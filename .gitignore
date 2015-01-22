@@ -5,8 +5,9 @@ __pycache__/
 # Python environment
 .venv/*
 
-# misc logs
+# misc logs and data
 *.log
+*.db
 
 # IDE created files
 .idea/*
