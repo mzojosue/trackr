@@ -1,0 +1,34 @@
+{% macro todos(name, task=None, due_date=None) %}
+	<div class="col-sm-4 well well-sm">
+		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true" style="margin-bottom:0px;">
+			<div class="panel panel-warning">
+				<div class="panel-heading" role="tab" id="headingOne">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordian" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+							Todo #1
+						</a>
+					</h4>
+				</div>
+				<div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+					<div class="panel-body">
+						This is the description of the new todo
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-warning">
+				<div class="panel-heading" role="tab" id="headingTwo">
+					<h4 class="panel-title">
+						<a class="collapsed" data-toggle="collapse" data-parent="#accordian" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+							Todo #2
+						</a>
+					</h4>
+				</div>
+				<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+					<div class="panel-body">
+						This is the description of the second one.
+					</div>
+				</div>
+			</div>
+		</div>
+	</div><!-- /.col -->
+{% endmacro %}

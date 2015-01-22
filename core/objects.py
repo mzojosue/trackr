@@ -101,13 +101,14 @@ class Job(object):
 class MaterialList(object):
     lists = []
 
-    def __init__(self, job, items=None, foreman=None, date_sent=today(), comments="", doc=None):
+    def __init__(self, job, items=None, foreman=None, date_sent=today(), date_due=None, comments="", doc=None):
         job.material_lists.append(self)
         self.doc = doc
         self.job = job
         self.items = items
         self.foreman = foreman
         self.date_sent = date_sent
+        self.date_due = date_due
         self.comments = comments
         self.quotes = []
         self.todo = True

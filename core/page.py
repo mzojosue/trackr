@@ -4,8 +4,8 @@ from flask import *
 from objects import *
 
 # Flask environment
-TEMPLATE_FOLDER = 'template/folder'
-STATIC_FOLDER = 'static/folder'
+TEMPLATE_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/templates'
+STATIC_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/static'
 
 # Flask upload environment
 UPLOAD_FOLDER = 'uploads/folder'
@@ -42,7 +42,12 @@ def root():
 def home():
     jobs = Job.jobs
     lists = MaterialList.lists
-    return render_template('home.html', jobs=jobs, lists=lists)
+    return render_template('dashboard.html', jobs=jobs, lists=lists)
+
+
+@app.route('/j/')
+def all_jobs():
+    return render_template('all_jobs.html')
 
 
 @app.route('/j/<job_name>')
@@ -67,7 +72,7 @@ def material():
         ##TODO:turn due into datetime obj
 
         ##TODO:pass intended job
-        MaterialList(j, doc=f.filename, due=due)
+        MaterialList(j, doc=f.filename, date_due=due)
         return "successfully uploaded"
     else:
         return render_template('material.html', jobs=Job.jobs)
@@ -80,6 +85,7 @@ def quote():
     :return:
     """
     if request.method is 'POST':
+        ##TODO:correctly implement document upload
         f = request.files['quote']
         upload_file(f)
     else:
