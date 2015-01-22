@@ -1,6 +1,10 @@
-{% macro todos(name, task=None, due_date=None) %}
+{# templates/objects.html #}
+
+{% macro todo(todo_obj) %}
 	<div class="col-sm-4 well well-sm">
 		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true" style="margin-bottom:0px;">
+
+
 			<div class="panel panel-warning">
 				<div class="panel-heading" role="tab" id="headingOne">
 					<h4 class="panel-title">
@@ -15,6 +19,7 @@
 					</div>
 				</div>
 			</div>
+
 			<div class="panel panel-warning">
 				<div class="panel-heading" role="tab" id="headingTwo">
 					<h4 class="panel-title">
@@ -29,6 +34,18 @@
 					</div>
 				</div>
 			</div>
+
+
+		</div>
+	</div><!-- /.col -->
+{% endmacro %}
+
+{% macro collapsable_todos(todos) %}
+	<div class="col-sm-4 well well-sm">
+		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true" style="margin-bottom:0px;">
+			{% for i in todos %}
+				{{ todo(i) }}
+			{% endfor %}
 		</div>
 	</div><!-- /.col -->
 {% endmacro %}

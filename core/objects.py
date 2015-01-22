@@ -33,7 +33,9 @@ class Job(object):
     number = 0
     jobs = {}
 
-    def __init__(self, name, number=None, gc=None, foreman=None, sub_path=None, rate='a'):
+    def __init__(self, name, number=None, gc=None, foreman=None, sub_path=None, rate='a', projected_cost=None):
+        ##TODO:implement better document storage
+
         self.name = '-'.join([str(number), str(name)])
         if not number:
             Job.number += 1
@@ -49,6 +51,7 @@ class Job(object):
         self.material_lists = []
         self._PO = 0  # stores most recent PO suffix number
         self.POs = {}  # stores PO strings as keys
+        self.projected_cost = projected_cost
 
         # Job.timesheets.key is datetime.datetime object
         #Job.timesheets.value is [ 'pathname/to/timesheet', hours ]
