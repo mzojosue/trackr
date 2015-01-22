@@ -9,6 +9,7 @@ __pycache__/
 *.log
 
 # IDE created files
+.idea/*
 *.anjuta        # anjuta files
 .anjuta*
 .ropeproject    # rope symbol db
