@@ -8,6 +8,8 @@ __pycache__/
 # misc logs
 *.log
 
-# IDE config files
+# IDE created files
+*.anjuta        # anjuta files
 .anjuta*
-*~
+.ropeproject    # rope symbol db
+*~              # auto-saved files
