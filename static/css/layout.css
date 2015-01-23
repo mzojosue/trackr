@@ -1,4 +1,12 @@
 /*
+ * Jinja HTML Object Styling
+ */
+.todo-well {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/*
  * Base structure
  */
 

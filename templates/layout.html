@@ -136,8 +136,9 @@
               </div><!-- /.panel -->
             </div><!-- /.col -->
 
-            <div class="col-sm-4 well">
+            <div class="col-sm-4 well well-lg todo-well">
               <div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true" style="margin-bottom:0px;">
+								{{ objects.new_todo() }}
                 {% for i in todos %}
                   {{ objects.todo(i) }}
                 {% endfor %}

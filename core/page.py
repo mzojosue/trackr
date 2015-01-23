@@ -4,8 +4,8 @@ from flask import *
 from objects import *
 
 # Flask environment
-TEMPLATE_FOLDER = 'F:/TheBeastFromTheEast/My Documents/GitHub/trackr/templates'
-STATIC_FOLDER = 'F:/TheBeastFromTheEast/My Documents/GitHub/trackr/static'
+TEMPLATE_FOLDER = "../templates"
+STATIC_FOLDER = '../static'
 
 # Flask upload environment
 UPLOAD_FOLDER = 'uploads/folder'
@@ -91,3 +91,11 @@ def quote():
         upload_file(f)
     else:
         return render_template('delivery.html')
+
+
+@app.route('/task/new', methods=['POST'])
+def new_todo():
+    _title = request.form['title']
+    _task = request.form['task']
+    Todo(_title, task=_task)
+    return redirect( url_for('home') )
