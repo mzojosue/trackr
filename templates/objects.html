@@ -1,26 +1,23 @@
 {# templates/objects.html #}
 
 {% macro todo(todo_obj) %}
-	<div class="col-sm-4 well well-sm">
-		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true" style="margin-bottom:0px;">
-
 
 			<div class="panel panel-warning">
-				<div class="panel-heading" role="tab" id="headingOne">
+				<div class="panel-heading" role="tab" id="{{ todo_obj.name }}-heading">
 					<h4 class="panel-title">
-						<a data-toggle="collapse" data-parent="#accordian" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-							Todo #1
+						<a data-toggle="collapse" data-parent="#{{ todo_obj.name }}accordian" href="#{{ todo_obj.name }}-collapse" aria-expanded="false" aria-controls="{{ todo_obj.name }}-collapse">
+							{{ todo_obj.name }}
 						</a>
 					</h4>
 				</div>
-				<div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+				<div id="{{ todo_obj.name }}-collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="{{ todo_obj.name }}-heading">
 					<div class="panel-body">
 						This is the description of the new todo
 					</div>
 				</div>
 			</div>
 
-			<div class="panel panel-warning">
+			<!--div class="panel panel-warning">
 				<div class="panel-heading" role="tab" id="headingTwo">
 					<h4 class="panel-title">
 						<a class="collapsed" data-toggle="collapse" data-parent="#accordian" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
@@ -33,11 +30,8 @@
 						This is the description of the second one.
 					</div>
 				</div>
-			</div>
+			</div-->
 
-
-		</div>
-	</div><!-- /.col -->
 {% endmacro %}
 
 {% macro collapsable_todos(todos) %}

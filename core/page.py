@@ -4,8 +4,8 @@ from flask import *
 from objects import *
 
 # Flask environment
-TEMPLATE_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/templates'
-STATIC_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/static'
+TEMPLATE_FOLDER = 'F:/TheBeastFromTheEast/My Documents/GitHub/trackr/templates'
+STATIC_FOLDER = 'F:/TheBeastFromTheEast/My Documents/GitHub/trackr/static'
 
 # Flask upload environment
 UPLOAD_FOLDER = 'uploads/folder'
@@ -42,7 +42,8 @@ def root():
 def home():
     jobs = Job.jobs
     lists = MaterialList.lists
-    return render_template('dashboard.html', jobs=jobs, lists=lists)
+    todos = Todo.todos
+    return render_template('dashboard.html', jobs=jobs, lists=lists, todos=todos)
 
 
 @app.route('/j/')
