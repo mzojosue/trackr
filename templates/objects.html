@@ -2,56 +2,59 @@
 
 
 {% macro todo(todo_obj) %}
-  <div class="panel panel-warning">
-	<div class="panel-heading" role="tab" id="{{ todo_obj.name }}-heading">
-      <h4 class="panel-title">
-		<a data-toggle="collapse" data-parent="#{{ todo_obj.name }}" href="#{{ todo_obj.name }}-collapse" aria-expanded="false" aria-controls="{{ todo_obj.name }}-collapse">
-	      {{ todo_obj.name }}
-          <a href="{{ url_for('todo_complete', t_hash=todo_obj.hash) }}" method="post">
-            <span class="glyphicon glyphicon-unchecked pull-right"></span>
-          </a>
-		</a>
-      </h4>
-    </div>
-	<div id="{{ todo_obj.name }}-collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="{{ todo_obj.name }}-heading">
-      <div class="panel-body">
-		This is the description of the new todo
-	  </div>
+	<div class="panel panel-warning">
+		<div class="panel-heading" role="tab" id="{{ todo_obj.name }}-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#{{ todo_obj.name }}" href="#{{ todo_obj.name }}-collapse"
+					 aria-expanded="false" aria-controls="{{ todo_obj.name }}-collapse">
+					{{ todo_obj.name }}
+					<a href="{{ url_for('todo_complete', t_hash=todo_obj.hash) }}" method="post">
+						<span class="glyphicon glyphicon-unchecked pull-right"></span>
+					</a>
+				</a>
+			</h4>
+		</div>
+		<div id="{{ todo_obj.name }}-collapse" class="panel-collapse collapse" role="tabpanel"
+				 aria-labelledby="{{ todo_obj.name }}-heading">
+			<div class="panel-body">
+				This is the description of the new todo
+			</div>
+		</div>
 	</div>
-  </div>
 
 {% endmacro %}
 
 
 {% macro new_job_todo(j_hash=None) %}
-{# TODO:templates.objects.new_job_todo should be identical to templates.objects.new_todo, except should give the option to be associated with the job in context #}
-  <div class="panel panel-info">
-	<div class="panel-heading" role="tab" id="newJobTodo">
-      <h4 class="panel-title">
-		<a data-toggle="collapse" data-parent="" href="#newJobTodo-collapse" aria-expanded="false" aria-controls="newJobTodo-collapse">
-          Add new task for job
-		</a>
-      </h4>
-	</div>
-	<div id="newJobTodo-collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="newJobTodo">
-      <div class="panel-body">
-		<form class="form-horizontal" method="post" action="{{ url_for('new_todo') }}">
-	      <div class="input-group">
+	{# TODO:templates.objects.new_job_todo should be identical to templates.objects.new_todo, except should give the option to be associated with the job in context #}
+	<div class="panel panel-info">
+		<div class="panel-heading" role="tab" id="newJobTodo">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="" href="#newJobTodo-collapse" aria-expanded="false"
+					 aria-controls="newJobTodo-collapse">
+					Add new task for job
+				</a>
+			</h4>
+		</div>
+		<div id="newJobTodo-collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="newJobTodo">
+			<div class="panel-body">
+				<form class="form-horizontal" method="post" action="{{ url_for('new_todo') }}">
+					<div class="input-group">
 
-            {# TODO:implement hidden input for storing job hash #}
+						{# TODO:implement hidden input for storing job hash #}
 
-			<input name="title" type="text" class="form-control" placeholder="New Task Title for job">
+						<input name="title" type="text" class="form-control" placeholder="New Task Title for job">
 			<span class="input-group-btn">
 		      <button class="btn btn-primary" type="submit">
-				<span class="glyphicon glyphicon-plus"></span>
-              </button>
+						<span class="glyphicon glyphicon-plus"></span>
+					</button>
 			</span>
-		  </div>
-          <input name="task" type="text" class="form-control" placeholder="Task Description">
-		</form>
-      </div>
+					</div>
+					<input name="task" type="text" class="form-control" placeholder="Task Description">
+				</form>
+			</div>
+		</div>
 	</div>
-  </div>
 {% endmacro %}
 
 
@@ -60,7 +63,8 @@
 	<div class="panel panel-info">
 		<div class="panel-heading" role="tab" id="newTodo">
 			<h4 class="panel-title">
-				<a data-toggle="collapse" data-parent="" href="#newTodo-collapse" aria-expanded="false" aria-controls="newTodo-collapse">
+				<a data-toggle="collapse" data-parent="" href="#newTodo-collapse" aria-expanded="false"
+					 aria-controls="newTodo-collapse">
 					Add new task
 				</a>
 			</h4>
@@ -85,13 +89,26 @@
 {% endmacro %}
 
 
-{% macro task_widget(todos) %}
+{% macro task_widget(todos, completed) %}
 
-	<div class="col-sm-4 well well-sm">
-		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true" style="margin-bottom:0px;">
+	<div class="col-sm-4 well well-lg todo-well">
+		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true">
+			{{ new_todo() }}
 			{% for i in todos %}
 				{{ todo(i) }}
 			{% endfor %}
+		</div>
+		<div class="panel panel-success">
+			<div class="panel-heading">
+				Completed Tasks
+			</div>
+			<ul class="list-group">
+				{% for i in completed %}
+					<li class="list-group-item">
+						{{ i.name }}
+					</li>
+				{% endfor %}
+			</ul>
 		</div>
 	</div><!-- /.col -->
 
@@ -99,49 +116,89 @@
 
 
 {% macro delivery_widget(job=None) %}
+	{# Responsible for tracking and updating delivery of materials to and from the jobsite #}
 
-  {# TODO:set delivery iterable #}
-  <div class="col-sm-4">
-    <div class="panel panel-info">
-      <div class="panel-heading">
-        Scheduled Deliveries
-        <a href="#">
-          <span class="glyphicon glyphicon-link"></span>
-        </a>
-      </div><!-- /.panel-heading -->
-      <ul class="list-group">
-        <li class="list-group-item">
-          <a href="#">
-            Delivery from Elite
-            <span class="label label-info">1/23/15</span>
-            for Rittenberg
-          </a>
-        </li><!-- /.list-group-item -->
-      </ul><!-- /.list-group -->
-    </div><!-- /.panel -->
-    <div class="panel panel-primary">
-      <div class="panel-heading">
-        Schedule Delivery/Backorder
-      </div><!-- /.panel-heading -->
-      <div class="panel-body">
-        <div class="form-horizontal">
-          <div class="form-group col-sm-9">
-            <select class="form-control">
-              <option selected>Please select a job</option>
-            </select>
-          </div><!-- /.form-group -->
-          <div class="form-group col-sm-9">
-            <select class="form-control">
-              <option selected>Select Quote/Material List</option>
-            </select>
-          </div><!-- /.form-group -->
-          <div class="form-inline">
-            <input type="date" name="delivery-date" class="form-control">
-            <input type="submit">
-          </div><!-- /.form-inline -->
-        </div>
-      </div>
-    </div><!-- /.panel -->
-  </div><!-- /.col -->
+	{# TODO:set delivery iterable #}
+	<div class="col-sm-4">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				Scheduled Deliveries
+				<a href="#">
+					<span class="glyphicon glyphicon-link"></span>
+				</a>
+			</div>
+			<!-- /.panel-heading -->
+			<ul class="list-group">
+				<li class="list-group-item">
+					<a href="#">
+						Delivery from Elite
+						<span class="label label-info">1/23/15</span>
+						for Rittenberg
+					</a>
+				</li>
+				<!-- /.list-group-item -->
+			</ul>
+			<!-- /.list-group -->
+		</div>
+		<!-- /.panel -->
+		<div class="panel panel-primary">
+			<div class="panel-heading">
+				Schedule Delivery/Backorder
+			</div>
+			<!-- /.panel-heading -->
+			<div class="panel-body">
+				<div class="form-horizontal">
+					<div class="form-group col-sm-9">
+						<select class="form-control">
+							<option selected>Please select a job</option>
+						</select>
+					</div>
+					<!-- /.form-group -->
+					<div class="form-group col-sm-9">
+						<select class="form-control">
+							<option selected>Select Quote/Material List</option>
+						</select>
+					</div>
+					<!-- /.form-group -->
+					<div class="form-inline">
+						<input type="date" name="delivery-date" class="form-control">
+						<input type="submit">
+					</div>
+					<!-- /.form-inline -->
+				</div>
+			</div>
+		</div>
+		<!-- /.panel -->
+	</div><!-- /.col -->
+
+{% endmacro %}
+
+
+{% macro materials_widget(job=None) %}
+	{# Widget for managing the tracking and purchasing of materials ordered from the jobsite #}
+
+	<div class="col-sm-4">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				Open Material Lists
+				<a href="#">
+					<span class="glyphicon glyphicon-link"></span>
+				</a>
+			</div>
+			<!-- /.panel-heading -->
+			<ul class="list-group">
+				<li class="list-group-item">
+					<a href="#">
+						List from
+						<span class="label label-info">1/21/15</span>
+						for Riverfront
+					</a>
+				</li>
+				<!-- /.list-group-item -->
+			</ul>
+			<!-- /.list-group -->
+		</div>
+		<!-- /.panel -->
+	</div><!-- /.col -->
 
 {% endmacro %}
