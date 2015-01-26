@@ -1,7 +1,7 @@
 {# templates/objects.html #}
 
 
-{% macro todo(todo_obj) %}
+{% macro todo(todo_obj, job=None) %}
 	<div class="panel panel-warning">
 		<div class="panel-heading" role="tab" id="{{ todo_obj.name }}-heading">
 			<h4 class="panel-title">
@@ -58,7 +58,7 @@
 {% endmacro %}
 
 
-{% macro new_todo() %}
+{% macro new_todo(job=False) %}
 
 	<div class="panel panel-info">
 		<div class="panel-heading" role="tab" id="newTodo">
@@ -89,7 +89,7 @@
 {% endmacro %}
 
 
-{% macro task_widget(todos, completed) %}
+{% macro task_widget(todos, completed, job=False) %}
 
 	<div class="col-sm-4 well well-lg todo-well">
 		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true">
