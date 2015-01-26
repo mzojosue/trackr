@@ -1,35 +1,24 @@
 import core
 import shelve
 
-trackr = shelve.open('trackr.db')
+trackr_db = shelve.open('trackr.db' , writeback=True)
 
+_dicts  = ['workers', 'jobs', 'deliveries', 'todos', 'completed']
+_ints   = ['job_num']
+for i in _dicts:
+	if i not in trackr_db:
+		trackr_db[i] = {}
+for i in _ints:
+	if i not in trackr_db:
+		trackr_db[i] = 0
 
-def start():
-    """ Reads values from db and loads into memory
-    :return:
-    """
-    core.Worker.workers = trackr['workers']
-    core.Job.jobs = trackr['jobs']
-    core.MaterialList.lists = trackr['lists']
-    core.Delivery.deliveries = trackr['deliveries']
-    core.Todo.todos = trackr['todos']
-    return True
+core.Worker.workers = trackr_db['workers']
+core.Job.jobs = trackr_db['jobs']
+core.Job.number = trackr_db['job_num']
+core.Delivery.deliveries = trackr_db['deliveries']
+core.Todo.todos = trackr_db['todos']
+core.Todo.completed = trackr_db['completed']
 
-
-def update():
-    """ Updates the db from variables in memory
-    :return:
-    """
-    trackr['workers'] = core.Worker.workers
-    trackr['jobs'] = core.Job.jobs
-    trackr['lists'] = core.MaterialList.lists
-    trackr['deliveries'] = core.Delivery.deliveries
-    trackr['todos'] = core.Todo.todos
-    return True
-
-
-def reset():
-    return None
 
 if __name__ == "__main__":
-    core.page.app.run(debug=True)
+	core.page.app.run(debug=True)

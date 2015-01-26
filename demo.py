@@ -1,4 +1,4 @@
-import core
+from trackr import *
 
 # create 10 dummy todos
 for i in xrange(1, 11):

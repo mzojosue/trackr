@@ -1,3 +1,4 @@
+import shelve
 from datetime import datetime
 
 today = datetime.today
@@ -12,15 +13,17 @@ class Worker(object):
 
 	def __init__(self, name, phone=None, email=None, job=None, rate=None):
 		self.name = name
+		self.hash = abs(hash(str(self.name)))
 		super(Worker, self).__setattr__('job', job)
 		self.prev_jobs = []
 		self.phone = str(phone)
 		self.email = str(email)
-		self.job = job
 		if rate is 'a':
 			self.rate = Worker.A_RATE
 		elif rate is 'b':
 			self.rate = Worker.B_RATE
+		Worker.workers[self.hash] = self
+
 
 	def __setattr__(self, name, value):
 		if name is 'job':
@@ -162,10 +165,11 @@ class Delivery(object):
 	:param
 		po:     pointer to PO object
 	"""
-	deliveries = []
+	deliveries = {}
 
 	def __init__(self, po, items=None, expected=None, destination='shop'):
-		Delivery.deliveries.append(self)
+		self.hash = abs(hash(str(po.name)))
+		Delivery.deliveries[self.hash] = self
 		self.delivered = False
 		self.po = po
 		if items is None:
