@@ -13,6 +13,9 @@ ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'png', 'jpg'}
 
 app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLDER)
 
+# Jinja environment globals
+app.jinja_env.globals['Todo'] = Todo
+
 # app upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -42,7 +45,7 @@ def root():
 def home():
     jobs = Job.jobs
     lists = MaterialList.lists
-    todos = Todo.todos
+    todos = Todo.todos.itervalues()
     return render_template('dashboard.html', jobs=jobs, lists=lists, todos=todos)
 
 
@@ -98,4 +101,11 @@ def new_todo():
     _title = request.form['title']
     _task = request.form['task']
     Todo(_title, task=_task)
-    return redirect( url_for('home') )
+    return redirect(request.referrer)
+
+@app.route('/task/<t_hash>/complete')
+def todo_complete(t_hash):
+    _todo = Todo.todos[int(t_hash)]
+    Todo.completed[_todo.hash] = _todo
+    del Todo.todos[_todo.hash]
+    return redirect(request.referrer)

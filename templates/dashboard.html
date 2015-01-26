@@ -50,3 +50,88 @@
   <li><a href="#">Rental Logs</a></li>
   <li><a href="#">Inventory</a></li>
 {% endblock %}
+
+{% block body %}
+
+    <div class="col-sm-3 col-md-2 sidebar">
+      <ul class="nav nav-sidebar">
+        <li class="active">
+          <a href="#">
+			<span class="glyphicon glyphicon-eye-open"></span>&nbsp;
+			Overview
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span class="glyphicon glyphicon-stats"></span>&nbsp;
+            Analytics
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span class="glyphicon glyphicon-plane"></span>&nbsp;
+            Deliveries
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span class="glyphicon glyphicon-piggy-bank"></span>&nbsp;
+            Estimating
+          </a>
+        </li>
+        <li><a href="#">Rental Logs</a></li>
+        <li><a href="#">Inventory</a></li>
+      </ul>
+    </div><!-- /.sidebar -->
+    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+      <h1 class="page-header">Dashboard</h1>
+      <div class="row">
+
+        {{ objects.delivery_widget() }}
+
+        <div class="col-sm-4">
+          <div class="panel panel-info">
+            <div class="panel-heading">
+              Open Material Lists
+              <a href="#">
+                <span class="glyphicon glyphicon-link"></span>
+              </a>
+            </div><!-- /.panel-heading -->
+            <ul class="list-group">
+              <li class="list-group-item">
+                <a href="#">
+                  List from
+                  <span class="label label-info">1/21/15</span>
+                  for Riverfront
+                </a>
+              </li><!-- /.list-group-item -->
+            </ul><!-- /.list-group -->
+          </div><!-- /.panel -->
+        </div><!-- /.col -->
+
+        <div class="col-sm-4 well well-lg todo-well">
+          <div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true">
+            {{ objects.new_todo() }}
+            {{ objects.new_job_todo() }}
+            {% for i in todos %}
+              {{ objects.todo(i) }}
+            {% endfor %}
+          </div>
+          <div class="panel panel-success">
+            <div class="panel-heading">
+              Completed Tasks
+            </div>
+            <ul class="list-group">
+              {% for i in Todo.completed.itervalues() %}
+                <li class="list-group-item">
+                  {{ i.name }}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        </div>
+      </div><!-- /.row -->
+    </div><!-- /.main-content -->
+
+{% endblock %}

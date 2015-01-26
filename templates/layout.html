@@ -17,6 +17,7 @@
 
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='css/layout.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/objects.css') }}" rel="stylesheet">
     {% block styles %}{% endblock %}
 
   </head>
@@ -51,101 +52,9 @@
     <div class="container-fluid">
       <div class="row">
 
-        <div class="col-sm-3 col-md-2 sidebar">
-          <ul class="nav nav-sidebar">
-						{% block sidebar_content %}
-						{% endblock %}
-          </ul>
-        </div><!-- /.sidebar -->
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <h1 class="page-header">Dashboard</h1>
-          <div class="row">
+        {% block body %}
+        {% endblock %}
 
-
-            <div class="col-sm-4">
-              <div class="panel panel-info">
-                <div class="panel-heading">
-                  Scheduled Deliveries
-                  <a href="#">
-                    <span class="glyphicon glyphicon-link"></span>
-                  </a>
-                </div><!-- /.panel-heading -->
-                <ul class="list-group">
-                  <li class="list-group-item">
-                    <a href="#">
-                      Delivery from Elite
-                      <span class="label label-info">1/23/15</span>
-                      for Rittenberg
-                    </a>
-                  </li><!-- /.list-group-item -->
-                </ul><!-- /.list-group -->
-              </div><!-- /.panel -->
-              <div class="panel panel-primary">
-                <div class="panel-heading">
-                  Schedule Delivery/Backorder
-                </div><!-- /.panel-heading -->
-                <div class="panel-body">
-                  <div class="form-horizontal">
-                    <div class="form-group col-sm-9">
-                      <select class="form-control">
-                        <option>Please</option>
-                        <option>Select</option>
-                        <option>A</option>
-                        <option>Job</option>
-                        <option selected>Please select a job</option>
-                      </select>
-                    </div><!-- /.form-group -->
-                    <div class="form-group col-sm-9">
-                      <select class="form-control">
-                        <option>Please</option>
-                        <option>Select</option>
-                        <option>A</option>
-                        <option>Quote</option>
-                        <option>Or</option>
-                        <option>Material List</option>
-                        <option selected>Select Quote/Material List</option>
-                      </select>
-                    </div><!-- /.form-group -->
-                    <div class="form-inline">
-                      <input type="date" name="delivery-date" class="form-control">
-                      <input type="submit">
-                    </div><!-- /.form-inline -->
-                  </div>
-                </div>
-              </div><!-- /.panel -->
-            </div><!-- /.col -->
-
-
-            <div class="col-sm-4">
-              <div class="panel panel-info">
-                <div class="panel-heading">
-                  Open Material Lists
-                  <a href="#">
-                    <span class="glyphicon glyphicon-link"></span>
-                  </a>
-                </div><!-- /.panel-heading -->
-                <ul class="list-group">
-                  <li class="list-group-item">
-                    <a href="#">
-                      List from
-                      <span class="label label-info">1/21/15</span>
-                      for Riverfront
-                    </a>
-                  </li><!-- /.list-group-item -->
-                </ul><!-- /.list-group -->
-              </div><!-- /.panel -->
-            </div><!-- /.col -->
-
-            <div class="col-sm-4 well well-lg todo-well">
-              <div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true" style="margin-bottom:0px;">
-								{{ objects.new_todo() }}
-                {% for i in todos %}
-                  {{ objects.todo(i) }}
-                {% endfor %}
-              </div>
-            </div>
-          </div><!-- /.row -->
-        </div><!-- /.main-content -->
       </div><!-- /.row -->
     </div>
 

@@ -33,7 +33,9 @@ class Job(object):
     number = 0
     jobs = {}
 
-    def __init__(self, name, number=None, gc=None, foreman=None, sub_path=None, rate='a', projected_cost=None):
+    def __init__(self, name, number=None, po_pre=None,
+                 gc=None, foreman=None, sub_path=None,
+                 rate='a', projected_cost=None, tax_exempt=False):
         ##TODO:implement better document storage
 
         self.name = '-'.join([str(number), str(name)])
@@ -49,6 +51,8 @@ class Job(object):
         self.foreman = foreman
         self.workers = []
         self.material_lists = []
+        self.po_pre = po_pre
+        self.tax_exempt = tax_exempt
         self._PO = 0  # stores most recent PO suffix number
         self.POs = {}  # stores PO strings as keys
         self.projected_cost = projected_cost
@@ -179,11 +183,14 @@ class Todo(object):
         due:    task due date
         notif:  date/time to follow-up
     """
-    todos = []
+    todos = {}
+    completed = {}
 
     def __init__(self, name, task="", due=None, notify=None):
-        Todo.todos.append(self)
         self.name = str(name)
+        self.hash = hash(self.name)
+        self.hash = abs(self.hash)     # ensure positive values
+        Todo.todos[self.hash] = self
         self.task = task
         self.due = due
         self.notify = notify
