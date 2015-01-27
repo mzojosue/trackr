@@ -1,8 +1,7 @@
-import shelve
 from datetime import datetime
 
 today = datetime.today
-
+now = datetime.now
 
 class Worker(object):
 	workers = {}
@@ -14,7 +13,7 @@ class Worker(object):
 	def __init__(self, name, phone=None, email=None, job=None, rate=None):
 		self.name = name
 		self.hash = abs(hash(str(self.name)))
-		super(Worker, self).__setattr__('job', job)
+		self.job = job
 		self.prev_jobs = []
 		self.phone = str(phone)
 		self.email = str(email)
@@ -22,7 +21,9 @@ class Worker(object):
 			self.rate = Worker.A_RATE
 		elif rate is 'b':
 			self.rate = Worker.B_RATE
-		Worker.workers[self.hash] = self
+
+		if hasattr(Worker, 'db'):
+			Worker.db['workers'][self.hash] = self
 
 
 	def __setattr__(self, name, value):
@@ -30,6 +31,11 @@ class Worker(object):
 			if self.job not in self.prev_jobs:
 				self.prev_jobs.append(self.job)
 		return super(Worker, self).__setattr__(name, value)
+
+	@staticmethod
+	def find(q_hash):
+		if hasattr(Todo, 'db'):
+			return Todo.db['workers'][q_hash]
 
 
 class Job(object):
@@ -43,17 +49,19 @@ class Job(object):
 
 		self.name = '-'.join([str(number), str(name)])
 		if not number:
-			Job.number += 1
-			self.number = Job.number
+			if hasattr(Job, 'db'):
+				Job.db['job_num'] += 1
+				self.number = Job.db['job_num']
+				# TODO:object does not save to shelve db when created.
+				Job.db['jobs'][self.number] = self
 		else:
 			self.number = number
-		Job.jobs[self.number] = self
 		self.alt_name = ""
 		self.address = ""
 		self.gc = gc
 		self.foreman = foreman
 		self.workers = []
-		self.material_lists = []
+		self.materials = []
 		self.po_pre = po_pre
 		self.tax_exempt = tax_exempt
 		self._PO = 0  # stores most recent PO suffix number
@@ -108,12 +116,21 @@ class Job(object):
 			amt += i.quote.price
 		return amt
 
+	@staticmethod
+	def find(num):
+		if hasattr(Todo, 'db'):
+			return Todo.db['jobs'][num]
+
 
 class MaterialList(object):
-	lists = []
+	lists = {}
 
 	def __init__(self, job, items=None, foreman=None, date_sent=today(), date_due=None, comments="", doc=None):
-		job.material_lists.append(self)
+		self.hash = abs(hash(str(now())))
+		job.materials[self.hash] = (self)
+		if hasattr(MaterialList, 'db'):
+			MaterialList.db['materials'][self.hash] = self
+
 		self.doc = doc
 		self.job = job
 		self.items = items
@@ -169,7 +186,8 @@ class Delivery(object):
 
 	def __init__(self, po, items=None, expected=None, destination='shop'):
 		self.hash = abs(hash(str(po.name)))
-		Delivery.deliveries[self.hash] = self
+		if hasattr(Delivery, 'db'):
+			Delivery.db['deliveries'][self.hash] = self
 		self.delivered = False
 		self.po = po
 		if items is None:
@@ -178,6 +196,12 @@ class Delivery(object):
 			self.items = items
 		self.expected = expected
 		self.destination = destination
+
+	@staticmethod
+	def find(q_hash):
+		if hasattr(Todo, 'db'):
+			return Todo.db['deliveries'][q_hash]
+
 
 
 class Todo(object):
@@ -195,7 +219,22 @@ class Todo(object):
 		self.name = str(name)
 		self.hash = hash(self.name)
 		self.hash = abs(self.hash)  # ensure positive values
-		Todo.todos[self.hash] = self
 		self.task = task
 		self.due = due
 		self.notify = notify
+		if hasattr(Todo, 'db'):
+			Todo.db['todos'][self.hash] = self
+
+	def complete(self):
+		if hasattr(Todo, 'db'):
+			Todo.db['completed'][self.hash] = self
+			del Todo.db['todos'][self.hash]
+		return True
+
+	@staticmethod
+	def find(q_hash):
+		if hasattr(Todo, 'db'):
+			return Todo.db['todos'][q_hash]
+		else:
+			# TODO:create exception class
+			raise BaseException

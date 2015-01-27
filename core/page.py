@@ -43,11 +43,15 @@ def root():
 
 @app.route('/home')
 def home():
-	jobs = Job.jobs
-	lists = MaterialList.lists
-	_todos = Todo.todos.itervalues()
-	_completed = Todo.completed.itervalues()
-	return render_template('dashboard.html', jobs=jobs, lists=lists, todos=_todos, completed=_completed)
+	if hasattr(Todo, 'db') and hasattr(MaterialList, 'db') and hasattr(Job, 'db'):
+		_todos = Todo.db['todos'].itervalues()
+		_completed = Todo.db['completed'].itervalues()
+		_jobs = Job.db['jobs'].itervalues()
+		_lists = MaterialList.db['materials'].itervalues()
+		return render_template('dashboard.html', jobs=_jobs, lists=_lists, todos=_todos, completed=_completed)
+	else:
+		# TODO:display db error on page
+		return render_template('dashboard.html')
 
 
 @app.route('/j/')
@@ -107,7 +111,7 @@ def new_todo():
 
 @app.route('/task/<t_hash>/complete')
 def todo_complete(t_hash):
-	_todo = Todo.todos[int(t_hash)]
-	Todo.completed[_todo.hash] = _todo
-	del Todo.todos[_todo.hash]
-	return redirect(request.referrer)
+	_todo = Todo.find(int(t_hash))
+	if _todo.complete():
+		return redirect(request.referrer)
+	# create unknown error exception
