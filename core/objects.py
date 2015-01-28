@@ -42,9 +42,9 @@ class Job(object):
 	number = 0
 	jobs = {}
 
-	def __init__(self, name, number=None, po_pre=None,
-	             gc=None, foreman=None, sub_path=None,
-	             rate='a', projected_cost=None, tax_exempt=False):
+	def __init__(self, name, number=None, start_date=None, end_date=None, po_pre=None, address=None,
+	             gc=None, gc_contact=None, scope=None, foreman=None, sub_path=None, desc=None,
+	             rate='a', contract_amount=None, tax_exempt=False, certified_pay=False):
 		##TODO:implement better document storage
 
 		self.name = '-'.join([str(number), str(name)])
@@ -57,17 +57,24 @@ class Job(object):
 		else:
 			self.number = number
 		self.alt_name = ""
-		self.address = ""
+		self.address = address
+		self.start_date = start_date
+		self.end_date = end_date
 		self.gc = gc
+		self.gc_contact = gc_contact
+		self.scope = scope
 		self.foreman = foreman
 		self.workers = []
 		self.materials = []
 		self.po_pre = po_pre
 		self.tax_exempt = tax_exempt
+		self.certified_pay = certified_pay
 		self._PO = 0  # stores most recent PO suffix number
 		self.POs = {}  # stores PO strings as keys
-		self.projected_cost = projected_cost
+		self.contract_amount = contract_amount
 		self.tasks = {}
+		self.desc = desc
+
 
 		# Job.timesheets.key is datetime.datetime object
 		# Job.timesheets.value is [ 'pathname/to/timesheet', hours ]
@@ -214,6 +221,8 @@ class Todo(object):
 	"""
 	todos = {}
 	completed = {}
+
+	# TODO:add __del__ descriptor to automatically remove instance from Todo.db
 
 	def __init__(self, name, task="", due=None, notify=None):
 		self.name = str(name)

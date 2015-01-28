@@ -60,19 +60,44 @@ def all_jobs():
 
 
 @app.route('/j/<job_name>')
-def show_job(job_name=None):
-	return render_template('job.html', job=job_name)
+def show_job(job=None):
+	return render_template('job.html', job=job)
 
 
 @app.route('/j/create', methods=['GET', 'POST'])
 def create_job():
-	# not implemented yet
-	return NotImplemented
+	if request.method == 'POST':
+
+		# TODO:create form field for PO-prefix, foreman, wage rate,
+
+		_name = str(request.form['newJobName'])
+		_job_num = int(request.form['jobNumber'])
+		_job_type = str(request.form['jobType'])
+		_contract_amt = float(request.form['contractAmt'])
+		_tax_exempt = bool(request.form['taxExempt'])
+		_certified_pay = bool(request.form['certifiedPayroll'])
+		_gc = str(request.form['gc'])
+		_gc_contact = str(request.form['gcContact'])
+		_scope = str(request.form['scopeOfWork'])
+		_start = datetime(request.form['contractDate'])
+		_end = datetime(request.form['completionDate'])
+		_desc = str(request.form['jobDesc'])
+		# TODO:figure out how to accept then save uploaded file
+
+		_job = Job(_name, number=_job_num, gc=_gc, gc_contact=_gc_contact,
+		           start_date=_start, end_date=_end,
+		           contract_amount=_contract_amt, scope=_scope,
+		           tax_exempt=_tax_exempt, certified_pay=_certified_pay)
+
+		return _job.name
+		#return redirect(redirect('show_job', job=_job.number))
+	else:
+		return render_template('create_job.html')
 
 
 @app.route('/material', methods=['GET', 'POST'])
 def material():
-	if request.method is 'POST':
+	if request.method == 'POST':
 		f = request.files['list']
 		upload_file(f)
 		j = request.form['job']
@@ -115,3 +140,14 @@ def todo_complete(t_hash):
 	if _todo.complete():
 		return redirect(request.referrer)
 	# create unknown error exception
+
+@app.route('/task/<t_hash>/del')
+def del_todo(t_hash):
+	try:
+		del Todo.db['todos'][int(t_hash)]
+		# TODO:implement task delete function
+		return redirect(request.referrer)
+	finally:
+		# TODO:find exception type to catch error
+		# TODO:display error on redirect
+		return redirect(request.referrer)

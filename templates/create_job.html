@@ -1,0 +1,189 @@
+{% extends "layout.html" %}
+
+{% block title %}
+	Create a new job - Campano HVAC
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/job.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+	<li>
+		<a href="{{ url_for('home') }}">Dashboard</a>
+	</li>
+	<li>
+		<a href="#">Estimating</a>
+	</li>
+	<li class="active">
+		<a href="{{ url_for('all_jobs') }}">Jobs</a>
+	</li>
+	<li>
+		<a href="#">Settings</a>
+	</li>
+	<li>
+		<a href="#">Help</a>
+	</li>
+{% endblock %}
+
+
+{% block body %}
+
+	<div class="col-sm-3 col-md-2 sidebar">
+		<ul class="nav nav-sidebar">
+			<li><a href="#">List</a></li>
+			<li><a href="#">All</a></li>
+			<li><a href="#">Jobs</a></li>
+			<li><a href="#">Here</a></li>
+		</ul>
+	</div><!-- /.sidebar -->
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+			Creating new job
+		</h1>
+
+		<div class="row content">
+			<form enctype="multipart/form-data" method="POST">
+
+
+				<div class="col-sm-4 form-group">
+					<label for="newJobName">Job Name:</label>
+					<input name="newJobName" type="text" class="form-control" id="newJobName" placeholder="Enter Job Name">
+				</div>
+
+				<div class="col-xs-1 form-group">
+					<label for="jobNumber">
+						Job Number:
+					</label>
+					<input name="jobNumber" type="text" class="form-control" id="jobNumber" value="1">
+				</div>
+
+				<div class="col-sm-2">
+					<label for="jobType">Job Type:</label>
+					<select name="jobType" id="jobType" class="form-control">
+						<option>Awarded Project</option>
+						<option>Pre-construction</option>
+					</select>
+				</div>
+
+				<div class="col-md-2 col-xs-2 pull-right">
+					<div class="form-group">
+						<label for="contractAmt">Contract Amount:</label>
+						<div class="input-group" id="contractAmt">
+							<span class="input-group-addon">$</span>
+							<input name="contractAmt" type="text" class="form-control input-sm">
+							<span class="input-group-addon">.00</span>
+						</div>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" name="taxExempt" value="True">
+								Tax-exempt
+							</label>&nbsp;
+							<label>
+								<input type="checkbox" name="certifiedPayroll" value="True">
+								Certified Payroll
+							</label>
+						</div>
+					</div><!-- ./form-group -->
+				</div>
+
+				<!-- Keeps title textbox on its own line -->
+				<div class="clearfix visible-lg-block"></div>
+
+				<div class="col-sm-4 form-group">
+					<label for="jobAddress">
+						Job Address:
+					</label>
+					<textarea name="jobAddress" id="jobAddress" class="form-control" rows="4"></textarea>
+				</div>
+
+				<div class="col-xs-2">
+					<div class="form-group">
+						<label for="genContracter">
+							GC:
+						</label>
+						<select name="gc" class="form-control" id="genContracter">
+							<option>Falasca Mechanical</option>
+							<option>McCloskey Mechanical</option>
+							<option>Gary F. Gardner</option>
+						</select>
+
+						<label for="gcContact">
+							Contact Name
+						</label>
+						<input name="gcContact" type="text" class="form-control" id="gcContact" placeholder="">
+					</div><!-- /.form-control -->
+				</div>
+
+				<div class="col-xs-3 form-group scope-of-work">
+					<label>Scope of Work:</label>
+					<div class="radio">
+						<label>
+							<input type="radio" name="scopeOfWork" value="fabrication">
+							Ductwork Fabrication Only
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="scopeOfWork" value="rgds">
+							Installation of Ductwork and/or RGDs
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="scopeOfWork" value="full-airside">
+							Full-Airside Installation
+							<p class="small">(Ductwork / RGDs / Equipment )</p>
+						</label>
+					</div>
+				</div>
+
+				<div class="col-xs-2 pull-right">
+					<div class="form-group">
+						<label for="contractDate">
+							Contract Date:
+						</label>
+						<input name="contractDate" type="date" id="contractDate" class="form-control">
+						<label for="completionDate">
+							Completion Date:
+						</label>
+						<input name="completionDate" type="date" id="completionDate" class="form-control">
+					</div><!-- ./form-group -->
+				</div>
+
+				<div class="col-sm-4 form-group">
+					<label for="jobDesc">
+						Job Description:
+					</label>
+					<textarea name="jobDesc" id="jobDesc" class="form-control" rows="4"></textarea>
+				</div>
+
+				<div class="col-xs-4">
+					<div class="form-group">
+						<label for="jobDwgs">
+							Project Drawings
+						</label>
+						<input type="file" id="jobDwgs" name="jobDwgs" />
+					</div>
+				</div>
+
+				<!-- Keeps title textbox on its own line -->
+				<div class="clearfix visible-lg-block"></div>
+
+				<div class="col-xs-2">
+					<button type="submit" class="btn btn-success">Create job</button>
+				</div>
+
+			</form>
+		</div><!-- /.content -->
+
+	</div>
+
+{% endblock %}
+
+

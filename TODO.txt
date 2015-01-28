@@ -1,6 +1,3 @@
 TODOs:
     * look into implementing PDF.js as a document reader
     * implement `job` argument in html widgets
-
-BUGs:
-    * Job object does not save to trackr_db['jobs'] when saved

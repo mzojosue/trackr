@@ -2,23 +2,32 @@
 
 
 {% macro todo(todo_obj, job=None) %}
+{# TODO:implement delete link in panel-heading of todo_obj #}
+
 	<div class="panel panel-warning">
-		<div class="panel-heading" role="tab" id="{{ todo_obj.name }}-heading">
+		<div class="panel-heading" role="tab" id="{{ todo_obj.hash }}-heading">
+
 			<h4 class="panel-title">
-				<a data-toggle="collapse" data-parent="#{{ todo_obj.name }}" href="#{{ todo_obj.name }}-collapse"
-					 aria-expanded="false" aria-controls="{{ todo_obj.name }}-collapse">
+				<a data-toggle="collapse" data-parent="#{{ todo_obj.hash }}" href="#{{ todo_obj.hash }}-collapse"
+					 aria-expanded="false" aria-controls="{{ todo_obj.hash }}-collapse">
 					{{ todo_obj.name }}
-					<a href="{{ url_for('todo_complete', t_hash=todo_obj.hash) }}" method="post">
+					<a href="{{ url_for('todo_complete', t_hash=todo_obj.hash) }}">
 						<span class="glyphicon glyphicon-unchecked pull-right"></span>
 					</a>
 				</a>
 			</h4>
+
 		</div>
-		<div id="{{ todo_obj.name }}-collapse" class="panel-collapse collapse" role="tabpanel"
-				 aria-labelledby="{{ todo_obj.name }}-heading">
+		<div id="{{ todo_obj.hash }}-collapse" class="panel-collapse collapse" role="tabpanel"
+				 aria-labelledby="{{ todo_obj.hash }}-heading">
+
 			<div class="panel-body">
 				This is the description of the new todo
+				<a href="{{ url_for('del_todo', t_hash=todo_obj.hash) }}">
+						<span class="glyphicon glyphicon-trash pull-right"></span>
+				</a>
 			</div>
+
 		</div>
 	</div>
 
@@ -27,6 +36,7 @@
 
 {% macro new_job_todo(j_hash=None) %}
 	{# TODO:templates.objects.new_job_todo should be identical to templates.objects.new_todo, except should give the option to be associated with the job in context #}
+
 	<div class="panel panel-info">
 		<div class="panel-heading" role="tab" id="newJobTodo">
 			<h4 class="panel-title">
@@ -55,6 +65,7 @@
 			</div>
 		</div>
 	</div>
+
 {% endmacro %}
 
 

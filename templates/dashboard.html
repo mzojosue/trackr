@@ -4,6 +4,14 @@
 	Campano Dashboard
 {% endblock %}
 
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
 {% block nav_links %}
 	<li class="active">
 		<a href="{{ url_for('home') }}">Dashboard</a>
@@ -22,34 +30,6 @@
 	</li>
 {% endblock %}
 
-{% block sidebar_content %}
-	<li class="active">
-		<a href="#">
-			<span class="glyphicon glyphicon-eye-open"></span>&nbsp;
-			Overview
-		</a>
-	</li>
-	<li>
-		<a href="#">
-			<span class="glyphicon glyphicon-stats"></span>&nbsp;
-			Analytics
-		</a>
-	</li>
-	<li>
-		<a href="#">
-			<span class="glyphicon glyphicon-plane"></span>&nbsp;
-			Deliveries
-		</a>
-	</li>
-	<li>
-		<a href="#">
-			<span class="glyphicon glyphicon-piggy-bank"></span>&nbsp;
-			Estimating
-		</a>
-	</li>
-	<li><a href="#">Rental Logs</a></li>
-	<li><a href="#">Inventory</a></li>
-{% endblock %}
 
 {% block body %}
 
