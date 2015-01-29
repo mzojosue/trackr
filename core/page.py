@@ -59,9 +59,10 @@ def all_jobs():
 	return render_template('all_jobs.html')
 
 
-@app.route('/j/<job_name>')
-def show_job(job=None):
-	return render_template('job.html', job=job)
+@app.route('/j/<int:job_num>')
+def show_job(job_num=None):
+	_job = Job.find(job_num)
+	return render_template('job.html', job=_job)
 
 
 @app.route('/j/create', methods=['GET', 'POST'])
@@ -74,23 +75,36 @@ def create_job():
 		_job_num = int(request.form['jobNumber'])
 		_job_type = str(request.form['jobType'])
 		_contract_amt = float(request.form['contractAmt'])
-		_tax_exempt = bool(request.form['taxExempt'])
-		_certified_pay = bool(request.form['certifiedPayroll'])
+		try:
+			request.form['taxExempt']
+			_tax_exempt = True
+		except:
+			_tax_exempt = False
+		try:
+			request.form['certifiedPayroll']
+			_certified_pay = True
+		except:
+			_certified_pay = False
 		_gc = str(request.form['gc'])
 		_gc_contact = str(request.form['gcContact'])
 		_scope = str(request.form['scopeOfWork'])
-		_start = datetime(request.form['contractDate'])
-		_end = datetime(request.form['completionDate'])
+		try:
+			_start = datetime(request.form['contractDate'])
+		except TypeError:
+			_start = None
+		try:
+			_end = datetime(request.form['completionDate'])
+		except TypeError:
+			_end = None
 		_desc = str(request.form['jobDesc'])
 		# TODO:figure out how to accept then save uploaded file
 
-		_job = Job(_name, number=_job_num, gc=_gc, gc_contact=_gc_contact,
-		           start_date=_start, end_date=_end,
-		           contract_amount=_contract_amt, scope=_scope,
-		           tax_exempt=_tax_exempt, certified_pay=_certified_pay)
+		_job = Job(_name, job_num=_job_num, gc=_gc, gc_contact=_gc_contact,
+					start_date=_start, end_date=_end,
+					contract_amount=_contract_amt, scope=_scope,
+					tax_exempt=_tax_exempt, certified_pay=_certified_pay)
 
-		return _job.name
-		#return redirect(redirect('show_job', job=_job.number))
+		return redirect(url_for('show_job', job_num=_job.number))
 	else:
 		return render_template('create_job.html')
 

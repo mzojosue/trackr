@@ -42,20 +42,16 @@ class Job(object):
 	number = 0
 	jobs = {}
 
-	def __init__(self, name, number=None, start_date=None, end_date=None, po_pre=None, address=None,
+	def __init__(self, name, job_num=None, start_date=None, end_date=None, po_pre=None, address=None,
 	             gc=None, gc_contact=None, scope=None, foreman=None, sub_path=None, desc=None,
 	             rate='a', contract_amount=None, tax_exempt=False, certified_pay=False):
 		##TODO:implement better document storage
 
-		self.name = '-'.join([str(number), str(name)])
-		if not number:
-			if hasattr(Job, 'db'):
-				Job.db['job_num'] += 1
-				self.number = Job.db['job_num']
-				# TODO:object does not save to shelve db when created.
-				Job.db['jobs'][self.number] = self
-		else:
-			self.number = number
+		if hasattr(Job, 'db'):
+			self.number = int(job_num)
+			Job.db['job_num'] = job_num + 1
+			Job.db['jobs'][self.number] = self
+		self.name = '-'.join([str(self.number), str(name)])
 		self.alt_name = ""
 		self.address = address
 		self.start_date = start_date
@@ -86,6 +82,8 @@ class Job(object):
 			self.rate = Worker.B_RATE
 		self.start_date = None
 		self.sub_path = sub_path
+
+		print "\n\n * Job Created * "
 
 	@property
 	def next_po(self):
@@ -125,8 +123,8 @@ class Job(object):
 
 	@staticmethod
 	def find(num):
-		if hasattr(Todo, 'db'):
-			return Todo.db['jobs'][num]
+		if hasattr(Job, 'db'):
+			return Job.db['jobs'][num]
 
 
 class MaterialList(object):
