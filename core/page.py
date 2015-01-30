@@ -15,6 +15,7 @@ app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLD
 
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo
+app.jinja_env.globals['Job'] = Job
 
 # app upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -22,7 +23,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
 	return '.' in filename and \
-	       filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+		filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 def upload_file(f):
@@ -61,8 +62,11 @@ def all_jobs():
 
 @app.route('/j/<int:job_num>')
 def show_job(job_num=None):
-	_job = Job.find(job_num)
-	return render_template('job.html', job=_job)
+	try:
+		_job = Job.find(int(job_num))
+		return render_template('job.html', job=_job)
+	except KeyError:
+		return "Error: Job does not exist"
 
 
 @app.route('/j/create', methods=['GET', 'POST'])
@@ -74,6 +78,7 @@ def create_job():
 		_name = str(request.form['newJobName'])
 		_job_num = int(request.form['jobNumber'])
 		_job_type = str(request.form['jobType'])
+		_job_address = str(request.form['jobAddress'])
 		_contract_amt = float(request.form['contractAmt'])
 		try:
 			request.form['taxExempt']
@@ -99,8 +104,8 @@ def create_job():
 		_desc = str(request.form['jobDesc'])
 		# TODO:figure out how to accept then save uploaded file
 
-		_job = Job(_name, job_num=_job_num, gc=_gc, gc_contact=_gc_contact,
-					start_date=_start, end_date=_end,
+		_job = Job(job_num=_job_num, name=_name, gc=_gc, gc_contact=_gc_contact, address=_job_address,
+					start_date=_start, end_date=_end, desc=_desc,
 					contract_amount=_contract_amt, scope=_scope,
 					tax_exempt=_tax_exempt, certified_pay=_certified_pay)
 
@@ -144,12 +149,22 @@ def quote():
 def new_todo():
 	_title = request.form['title']
 	_task = request.form['task']
-	Todo(_title, task=_task)
-	return redirect(request.referrer)
+	if 'job' in request.form:
+		_job = request.form['job']
+		_job = Job.find(int(_job))
 
+		_title = ' '.join([_title, 'for', _job.name])
+		_todo = Todo(_title, task=_task)
+
+		_job.tasks[_todo.hash] = _todo
+	else:
+		Todo(_title, task=_task)
+	return redirect(request.referrer)
 
 @app.route('/task/<t_hash>/complete')
 def todo_complete(t_hash):
+	# TODO:implement job_completion for job-linked tasks
+
 	_todo = Todo.find(int(t_hash))
 	if _todo.complete():
 		return redirect(request.referrer)

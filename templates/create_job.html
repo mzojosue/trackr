@@ -61,7 +61,7 @@
 					<label for="jobNumber">
 						Job Number:
 					</label>
-					<input name="jobNumber" type="text" class="form-control" id="jobNumber" value="1">
+					<input name="jobNumber" type="text" class="form-control" id="jobNumber" value="{{ Job.db['job_num'] }}">
 				</div>
 
 				<div class="col-sm-2">
@@ -149,7 +149,7 @@
 						<label for="contractDate">
 							Contract Date:
 						</label>
-						<input name="contractDate" type="date" id="contractDate" class="form-control" value="">
+						<input name="contractDate" type="date" id="contractDate" class="form-control" default="">
 						<label for="completionDate">
 							Completion Date:
 						</label>

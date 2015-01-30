@@ -42,9 +42,9 @@ class Job(object):
 	number = 0
 	jobs = {}
 
-	def __init__(self, name, job_num=None, start_date=None, end_date=None, po_pre=None, address=None,
-	             gc=None, gc_contact=None, scope=None, foreman=None, sub_path=None, desc=None,
-	             rate='a', contract_amount=None, tax_exempt=False, certified_pay=False):
+	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
+	             gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
+	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None):
 		##TODO:implement better document storage
 
 		if hasattr(Job, 'db'):
@@ -52,38 +52,39 @@ class Job(object):
 			Job.db['job_num'] = job_num + 1
 			Job.db['jobs'][self.number] = self
 		self.name = '-'.join([str(self.number), str(name)])
-		self.alt_name = ""
-		self.address = address
 		self.start_date = start_date
 		self.end_date = end_date
+		self.alt_name = alt_name
+		self.po_pre = po_pre
+		self.address = address
 		self.gc = gc
 		self.gc_contact = gc_contact
 		self.scope = scope
 		self.foreman = foreman
-		self.workers = []
-		self.materials = []
-		self.po_pre = po_pre
-		self.tax_exempt = tax_exempt
-		self.certified_pay = certified_pay
-		self._PO = 0  # stores most recent PO suffix number
-		self.POs = {}  # stores PO strings as keys
-		self.contract_amount = contract_amount
-		self.tasks = {}
 		self.desc = desc
-
-
-		# Job.timesheets.key is datetime.datetime object
-		# Job.timesheets.value is [ 'pathname/to/timesheet', hours ]
-		self.timesheets = {}
-
 		if rate is 'a':
 			self.rate = Worker.A_RATE
 		elif rate is 'b':
 			self.rate = Worker.B_RATE
-		self.start_date = None
+		self.contract_amount = contract_amount
+		self.tax_exempt = tax_exempt
+		self.certified_pay = certified_pay
 		self.sub_path = sub_path
 
-		print "\n\n * Job Created * "
+
+		self._PO = 0    # stores most recent PO suffix number
+		self.POs = {}   # stores PO strings as keys
+		self.workers = []
+		self.materials = []
+
+		# TODO:add delivery object on Delivery.__init__
+		self.deliveries = {}
+
+		self.tasks = {}
+
+		# Job.timesheets.key is datetime.datetime object
+		# Job.timesheets.value is [ 'pathname/to/timesheet', hours ]
+		self.timesheets = {}
 
 	@property
 	def next_po(self):
@@ -94,7 +95,7 @@ class Job(object):
 	@staticmethod
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
-		##TODO:initialize documents w/ job information
+		# TODO:initialize documents w/ job information
 		if self.sub_path:
 			return NotImplemented
 
@@ -190,6 +191,9 @@ class Delivery(object):
 	deliveries = {}
 
 	def __init__(self, po, items=None, expected=None, destination='shop'):
+
+		# TODO:add object to job.deliveries
+
 		self.hash = abs(hash(str(po.name)))
 		if hasattr(Delivery, 'db'):
 			Delivery.db['deliveries'][self.hash] = self
@@ -219,8 +223,6 @@ class Todo(object):
 	"""
 	todos = {}
 	completed = {}
-
-	# TODO:add __del__ descriptor to automatically remove instance from Todo.db
 
 	def __init__(self, name, task="", due=None, notify=None):
 		self.name = str(name)

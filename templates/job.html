@@ -64,17 +64,66 @@
 		</ul>
 	</div><!-- /.sidebar -->
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-		<h1 class="page-header">{{ job.name }}</h1>
+		<h1 class="page-header">
+			{{ job.name }}&nbsp;
+			<button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#jobInfo" aria-expanded="false" aria-controls="jobInfo">
+				<span class="glyphicon glyphicon-info-sign"></span>
+			</button>
+			<!-- TODO:implement link to unlock and edit job -->
+			<a href="" class="btn btn-default btn-sm">
+				Unlock for Editing
+			</a>
+		</h1>
 
 		<div class="row">
 
-			{{ objects.delivery_widget() }}
+			<div class="collapse" id="jobInfo">
+				<div class="col-xs-3">
+					<label for="jobAddress">Address:</label>
+					<textarea name="jobAddress" id="jobAddress" class="form-control" rows="2" onclick="this.select();" readonly>
+						{{- job.address -}}
+					</textarea>
+					<br>
+					<label for="jobDesc">Description:</label>
+					<textarea name="jobDesc" id="jobDesc" class="form-control" rows="3" onclick="this.select();" readonly>
+						{{- job.desc -}}
+					</textarea>
+				</div><!-- /#jobDesc-->
+				<div class="col-xs-2">
+					<label for="foremanInfo">
+						Foreman's Information:
+					</label>
+					<div class="well" id="foremanInfo">
 
-			{{ objects.materials_widget() }}
+						<label for="foremanName">
+							Name:
+						</label>
+						<input type="tel" class="form-control" id="foremanName" onclick="this.select();" value="{# job.foreman.name #}" readonly>
 
-			{{ objects.task_widget(todos, completed) }}
+						<label for="foremanPhone">
+							Phone #
+						</label>
+						<input type="text" class="form-control" id="foremanPhone" onclick="this.select();" value="856.873.3210" readonly>
+
+						<label for="foremanEmail">
+							Email:
+						</label>
+						<input type="email" class="form-control" id="foremanEmail" onclick="this.select();" value="{# job.foreman.email #}" readonly>
+
+					</div>
+				</div><!-- /#foremanInfo -->
+				<div class="clearfix visible-lg-block"></div>
+				<hr>
+			</div>
+
+			{{ objects.delivery_widget(job=job) }}
+
+			{{ objects.materials_widget(job=job) }}
+
+			<!-- TODO:implement task completion for job-linked tasks -->
+			{{ objects.task_widget(job=job) }}
 
 		</div>
-	</div><!-- /.row -->
+	</div><!-- /.main -->
 
 {% endblock %}

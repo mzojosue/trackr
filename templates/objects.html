@@ -76,13 +76,20 @@
 			<h4 class="panel-title">
 				<a data-toggle="collapse" data-parent="" href="#newTodo-collapse" aria-expanded="false"
 					 aria-controls="newTodo-collapse">
-					Add new task
+					{% if job %}
+						Add new task for {{ job.name }}
+					{% else %}
+						Add new task
+					{% endif %}
 				</a>
 			</h4>
 		</div>
 		<div id="newTodo-collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="newTodo">
 			<div class="panel-body">
 				<form class="form-horizontal" method="post" action="{{ url_for('new_todo') }}">
+					{% if job %}
+						<input name="job" type="hidden" value="{{ job.number }}">
+					{% endif %}
 					<div class="input-group">
 						<input name="title" type="text" class="form-control" placeholder="New Task Title">
 						<span class="input-group-btn">
@@ -100,25 +107,34 @@
 {% endmacro %}
 
 
-{% macro task_widget(todos, completed, job=False) %}
+{% macro task_widget(todos=None, completed=None, job=False) %}
 
 	<div class="col-sm-4 well well-lg todo-well">
 		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true">
-			{{ new_todo() }}
-			{% for i in todos %}
-				{{ todo(i) }}
-			{% endfor %}
+			{% if job %}
+				{{ new_todo(job=job) }}
+				{% for i in job.tasks.itervalues() %}
+					{{ todo(i) }}
+				{% endfor %}
+			{% else %}
+				{{ new_todo() }}
+				{% for i in todos %}
+					{{ todo(i) }}
+				{% endfor %}
+			{% endif %}
 		</div>
 		<div class="panel panel-success">
 			<div class="panel-heading">
 				Completed Tasks
 			</div>
 			<ul class="list-group">
-				{% for i in completed %}
-					<li class="list-group-item">
-						{{ i.name }}
-					</li>
-				{% endfor %}
+				{% if not job %}
+					{% for i in completed %}
+						<li class="list-group-item">
+							{{ i.name }}
+						</li>
+					{% endfor %}
+				{% endif %}
 			</ul>
 		</div>
 	</div><!-- /.col -->
@@ -126,20 +142,25 @@
 {% endmacro %}
 
 
-{% macro delivery_widget(job=None) %}
+{% macro delivery_widget(job=False) %}
 	{# Responsible for tracking and updating delivery of materials to and from the jobsite #}
 
 	{# TODO:set delivery iterable #}
 	<div class="col-sm-4">
 		<div class="panel panel-info">
 			<div class="panel-heading">
-				Scheduled Deliveries
+				{% if job %}
+					Deliveries scheduled for {{ job.name }}
+				{% else %}
+					Scheduled Deliveries
+				{% endif %}
 				<a href="#">
 					<span class="glyphicon glyphicon-link"></span>
 				</a>
 			</div>
 			<!-- /.panel-heading -->
 			<ul class="list-group">
+				{% for i in job.deliveries %}
 				<li class="list-group-item">
 					<a href="#">
 						Delivery from Elite
@@ -147,6 +168,7 @@
 						for Rittenberg
 					</a>
 				</li>
+				{% endfor %}
 				<!-- /.list-group-item -->
 			</ul>
 			<!-- /.list-group -->
