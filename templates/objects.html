@@ -109,7 +109,7 @@
 
 {% macro task_widget(todos=None, completed=None, job=False) %}
 
-	<div class="col-sm-4 well well-lg todo-well">
+	<div class="col-sm-4 well well-lg todo-well pull-right">
 		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true">
 			{% if job %}
 				{{ new_todo(job=job) }}
@@ -160,48 +160,66 @@
 			</div>
 			<!-- /.panel-heading -->
 			<ul class="list-group">
-				{% for i in job.deliveries %}
-				<li class="list-group-item">
-					<a href="#">
-						Delivery from Elite
-						<span class="label label-info">1/23/15</span>
-						for Rittenberg
-					</a>
-				</li>
-				{% endfor %}
-				<!-- /.list-group-item -->
-			</ul>
-			<!-- /.list-group -->
-		</div>
-		<!-- /.panel -->
+				{% if job %}
+					{% for i in job.deliveries %}
+						<li class="list-group-item">
+							<a href="#">
+								Delivery from Elite
+								<span class="label label-info">1/23/15</span>
+								for Rittenberg
+							</a>
+						</li>
+					{% endfor %}
+				{% else %}
+					{% for i in Delivery.db['deliveries'] %}
+						<li class="list-group-item">
+							<a href="#">
+								Delivery from Elite
+								<span class="label label-info">1/23/15</span>
+								for Rittenberg
+							</a>
+						</li>
+					{% endfor %}
+				{% endif %}<!-- /.list-group-item -->
+			</ul><!-- /.list-group -->
+		</div><!-- /.panel -->
 		<div class="panel panel-primary">
 			<div class="panel-heading">
 				Schedule Delivery/Backorder
 			</div>
 			<!-- /.panel-heading -->
 			<div class="panel-body">
-				<div class="form-horizontal">
-					<div class="form-group col-sm-9">
-						<select class="form-control">
-							<option selected>Please select a job</option>
-						</select>
-					</div>
-					<!-- /.form-group -->
+				<!-- TODO:change input elements and form action if `job` exists -->
+				{% if job %}
+					<form class="form-horizontal" action="{{ url_for('job_schedule_delivery', job_num=job.number) }}" method="post">
+				{% else %}
+					<form class="form-horizontal" action="{{ url_for('job_schedule_delivery') }}" method="post">
+						<div class="form-group col-sm-9">
+							<select name="job-number" class="form-control">
+								<option selected>Please select a job</option>
+								{% for i in Job.db['jobs'].itervalues() %}
+									<option value="{{ i.number }}">{{ i.name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+				{% endif %}<!-- /.form-group -->
 					<div class="form-group col-sm-9">
 						<select class="form-control">
 							<option selected>Select Quote/Material List</option>
 						</select>
-					</div>
-					<!-- /.form-group -->
+					</div><!-- /.form-group -->
 					<div class="form-inline">
 						<input type="date" name="delivery-date" class="form-control">
-						<input type="submit">
-					</div>
-					<!-- /.form-inline -->
-				</div>
+						<input class="btn btn-sm btn-primary" type="submit">
+					</div><!-- /.form-inline -->
+				{% if job %}
+					</form>
+				{% else %}
+					</form>
+				{% endif %}
+
 			</div>
-		</div>
-		<!-- /.panel -->
+		</div><!-- /.panel -->
 	</div><!-- /.col -->
 
 {% endmacro %}
@@ -233,5 +251,28 @@
 		</div>
 		<!-- /.panel -->
 	</div><!-- /.col -->
+
+{% endmacro %}
+
+
+{% macro dir_upload() %}
+
+<!-- TODO:implement directory upload -->
+
+	<form action="{{ url_for('upload_directory') }}" enctype="multipart/form-data" method="post">
+		<input type="file" name="file"  webkitdirectory="" directory="">
+		<input type="submit">
+	</form>
+
+{% endmacro %}
+
+{% macro file_upload(job=False, dir=None, type='material') %}
+
+	<div class="col-xs-4">
+		<form class="form-inline" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" method="post">
+			<input type="file" name="file">
+			<input class="btn btn-primary" type="submit">
+		</form>
+	</div>
 
 {% endmacro %}

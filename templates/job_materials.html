@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block title %}
+	{{ job.name }}
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/job.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+	<li>
+		<a href="{{ url_for('home') }}">Dashboard</a>
+	</li>
+	<li>
+		<a href="#">Estimating</a>
+	</li>
+	<li class="active">
+		<a href="{{ url_for('all_jobs') }}">Jobs</a>
+	</li>
+	<li>
+		<a href="#">Settings</a>
+	</li>
+	<li>
+		<a href="#">Help</a>
+	</li>
+{% endblock %}
+
+
+{% block body %}
+
+	<div class="col-sm-3 col-md-2 sidebar">
+		<ul class="nav nav-sidebar">
+			<li>
+				<a href="{{ url_for('job_overview', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-eye-open"></span>&nbsp;
+					Overview
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_analytics', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-stats"></span>&nbsp;
+					Analytics
+				</a>
+			</li>
+			<li class="active">
+				<a href="{{ url_for('job_materials', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-wrench"></span>&nbsp;
+					Materials
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_deliveries', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-plane"></span>&nbsp;
+					Deliveries
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_POs', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-piggy-bank"></span>&nbsp;
+					Purchase Orders
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_rentals', job_num=job.number) }}">
+					Rental Logs
+				</a>
+			</li>
+		</ul>
+	</div><!-- /.sidebar -->
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+			{{ job.name }}&nbsp;
+			<!-- TODO:implement link to unlock and edit job -->
+			<a href="" class="btn btn-default btn-sm">
+				Unlock for Editing
+			</a>
+		</h1>
+
+		<div class="row">
+
+			<!-- TODO:save file under job folder directory structure -->
+			{{ objects.file_upload() }}
+
+		</div>
+	</div><!-- /.main -->
+
+{% endblock %}

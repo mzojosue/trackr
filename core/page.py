@@ -8,7 +8,7 @@ TEMPLATE_FOLDER = "../templates"
 STATIC_FOLDER = '../static'
 
 # Flask upload environment
-UPLOAD_FOLDER = 'uploads/folder'
+UPLOAD_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/uploads/'
 ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'png', 'jpg'}
 
 app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLDER)
@@ -16,6 +16,7 @@ app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLD
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo
 app.jinja_env.globals['Job'] = Job
+app.jinja_env.globals['Delivery'] = Delivery
 
 # app upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -26,15 +27,19 @@ def allowed_file(filename):
 		filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-def upload_file(f):
-	try:
-		if f and allowed_file(f.filename):
-			filename = secure_filename(f.filename)
-			f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-			return True
-	finally:
-		pass
-	return False
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+	if request.method == 'POST':
+		file = request.files['file']
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+			return redirect(url_for('uploaded_file', filename=filename))
+
+
+@app.route('/upload/<filename>')
+def uploaded_file(filename):
+	return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @app.route('/')
@@ -59,15 +64,56 @@ def home():
 def all_jobs():
 	return render_template('all_jobs.html')
 
-
 @app.route('/j/<int:job_num>')
-def show_job(job_num=None):
+def job_overview(job_num=None):
 	try:
 		_job = Job.find(int(job_num))
-		return render_template('job.html', job=_job)
+		return render_template('job_overview.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
 
+@app.route('/j/<int:job_num>/analytics')
+def job_analytics(job_num=None):
+	return NotImplemented
+
+@app.route('/j/<int:job_num>/materials', methods=['POST', 'GET'])
+def job_materials(job_num=None):
+	try:
+		_job = Job.find(int(job_num))
+		if request.method == 'POST':
+			file = request.files['file']
+			if file and allowed_file(file.filename):
+				filename = secure_filename(file.filename)
+				file.save(os.path.join(_job.sub_path), filename)
+		return render_template('job_materials.html', job=_job)
+	except KeyError:
+		return "Error: Job does not exist"
+
+@app.route('/delivery/schedule', methods=['POST'])
+@app.route('/j/<int:job_num>/deliveries/new', methods=['POST'])
+def job_schedule_delivery(job_num=None):
+	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`
+	:param job_num: specifies job number
+	:return:
+	"""
+	# TODO:show success
+	return redirect(request.referrer)
+
+@app.route('/j/<int:job_num>/deliveries')
+def job_deliveries(job_num=None):
+	return NotImplemented
+
+@app.route('/j/<int:job_num>/purchases')
+def job_POs(job_num=None):
+	try:
+		_job = Job.find(int(job_num))
+		return render_template('job_purchases.html', job=_job)
+	except KeyError:
+		return "Error: Job does not exist"
+
+@app.route('/j/<int:job_num>/rentals')
+def job_rentals(job_num=None):
+	return NotImplemented
 
 @app.route('/j/create', methods=['GET', 'POST'])
 def create_job():
@@ -109,9 +155,9 @@ def create_job():
 					contract_amount=_contract_amt, scope=_scope,
 					tax_exempt=_tax_exempt, certified_pay=_certified_pay)
 
-		return redirect(url_for('show_job', job_num=_job.number))
+		return redirect(url_for('job_overview', job_num=_job.number))
 	else:
-		return render_template('create_job.html')
+		return render_template('job_create.html')
 
 
 @app.route('/material', methods=['GET', 'POST'])
@@ -128,7 +174,7 @@ def material():
 		MaterialList(j, doc=f.filename, date_due=due)
 		return "successfully uploaded"
 	else:
-		return render_template('material.html', jobs=Job.jobs)
+		return render_template('job_materials.html', job=Job.jobs)
 
 
 @app.route('/quote', methods=['GET', 'POST'])

@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block title %}
+	{{ job.name }}
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/job.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+	<li>
+		<a href="{{ url_for('home') }}">Dashboard</a>
+	</li>
+	<li>
+		<a href="#">Estimating</a>
+	</li>
+	<li class="active">
+		<a href="{{ url_for('all_jobs') }}">Jobs</a>
+	</li>
+	<li>
+		<a href="#">Settings</a>
+	</li>
+	<li>
+		<a href="#">Help</a>
+	</li>
+{% endblock %}
+
+
+{% block body %}
+
+	<div class="col-sm-3 col-md-2 sidebar">
+		<ul class="nav nav-sidebar">
+			<li class="active">
+				<a href="{{ url_for('job_overview', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-eye-open"></span>&nbsp;
+					Overview
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_analytics', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-stats"></span>&nbsp;
+					Analytics
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_materials', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-wrench"></span>&nbsp;
+					Materials
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_deliveries', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-plane"></span>&nbsp;
+					Deliveries
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_POs', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-piggy-bank"></span>&nbsp;
+					Purchase Orders
+				</a>
+			</li>
+			<li>
+				<a href="{{ url_for('job_rentals', job_num=job.number) }}">
+					Rental Logs
+				</a>
+			</li>
+		</ul>
+	</div><!-- /.sidebar -->
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+			{{ job.name }}&nbsp;
+			<!-- TODO:implement link to unlock and edit job -->
+			<a href="" class="btn btn-default btn-sm">
+				Unlock for Editing
+			</a>
+		</h1>
+
+		<div class="row">
+
+			<div class="col-xs-3">
+				<label for="jobAddress">Address:</label>
+				<textarea name="jobAddress" id="jobAddress" class="form-control" rows="3" onclick="this.select();" readonly>
+					{{- job.address -}}
+				</textarea>
+				<br>
+				<label for="jobDesc">Description:</label>
+				<textarea name="jobDesc" id="jobDesc" class="form-control" rows="3" onclick="this.select();" readonly>
+					{{- job.desc -}}
+				</textarea>
+			</div><!-- /#jobDesc-->
+			<div class="col-xs-2">
+				<label for="foremanInfo">
+					Foreman's Information:
+				</label>
+				<div class="well" id="foremanInfo">
+					<label for="foremanName">
+						Name:
+					</label>
+					<input type="tel" class="form-control" id="foremanName" onclick="this.select();" value="{# job.foreman.name #}" readonly>
+
+					<label for="foremanPhone">
+						Phone #
+					</label>
+					<input type="text" class="form-control" id="foremanPhone" onclick="this.select();" value="856.873.3210" readonly>
+
+					<label for="foremanEmail">
+						Email:
+					</label>
+					<input type="email" class="form-control" id="foremanEmail" onclick="this.select();" value="{# job.foreman.email #}" readonly>
+
+				</div>
+			</div><!-- /#foremanInfo -->
+
+			<div class="col-xs-2">
+				<label for="nextPO">
+					Next Available PO:
+				</label>
+				<div id="nextPO" class="input-group">
+					<input type="text" class="form-control" onclick="this.select();" value="{{ job.next_po }}" readonly>
+					<a class="input-group-btn">
+						<button class="btn btn-success">
+							<span class="glyphicon glyphicon-plus"></span>
+						</button>
+					</a>
+				</div>
+			</div>
+
+			{{ objects.task_widget(job=job) }}
+			<div class="clearfix visible-lg-block"></div>
+			<hr>
+
+			{{ objects.delivery_widget(job=job) }}
+
+			{{ objects.materials_widget(job=job) }}
+
+			<div class="col-xs-4">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Workers
+					</div>
+					<ul class="list-group">
+						<li class="list-group-item">
+							Test
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- TODO:list contract amount and updated job cost. -->
+			<!-- TODO:list start and end date -->
+
+
+		</div>
+	</div><!-- /.main -->
+
+{% endblock %}
