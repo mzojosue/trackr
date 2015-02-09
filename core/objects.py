@@ -29,6 +29,9 @@ class Worker(object):
 			Worker.db['workers'][self.hash] = self
 
 	def __setattr__(self, name, value):
+		""" Alters attribute setting to listen to when self.job is changed,
+			the previous job is stored in self.prev_jobs
+		"""
 		if name is 'job':
 			value.workers[self.hash] = self
 			try:
@@ -85,13 +88,16 @@ class Job(object):
 		self.contract_amount = contract_amount
 		self.tax_exempt = tax_exempt
 		self.certified_pay = certified_pay
-		if sub_path:
-			self.sub_path = sub_path
-		elif not os.path.exists(os.path.join(Job.default_sub_dir, self.name)):
-			os.mkdir(os.path.join(Job.default_sub_dir, self.name))
-			self.sub_path = os.path.join(Job.default_sub_dir, self.name)
-		else:
-			self.sub_path = os.path.join(Job.default_sub_dir, self.name)
+		try:
+			if sub_path:
+				self.sub_path = sub_path
+			elif not os.path.exists(os.path.join(Job.default_sub_dir, self.name)):
+				os.mkdir(os.path.join(Job.default_sub_dir, self.name))
+				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
+			else:
+				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
+		except OSError:
+			print "ERROR: cannot connect to server. File functions disabled.\n"
 
 		self._PO = 0    # stores most recent PO suffix number
 		self.POs = {}   # stores PO strings as keys
@@ -106,7 +112,7 @@ class Job(object):
 	@property
 	def next_po(self):
 		""" Used for manually reserving a PO for use later
-		:return: returns the value of the next available PO for considering it being given to a vendor
+		:return: returns the value of the current available PO for considering it being given to a vendor
 		"""
 		_po = self._PO  # + 1
 		_po = '%03d' % _po        # add padding to PO #
@@ -114,7 +120,7 @@ class Job(object):
 
 	@property
 	def claim_po(self):
-		"""
+		""" Used for storing a PO number with a quote and sending it a vendor
 		:return: returns unformatted PO number
 		"""
 		_po = self._PO

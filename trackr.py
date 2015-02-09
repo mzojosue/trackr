@@ -8,10 +8,10 @@ trackr_db = shelve.open('trackr.db', writeback=True)
 _dicts = ['workers', 'jobs', 'materials', 'deliveries', 'todos', 'completed']
 _ints = ['job_num']
 for i in _dicts:
-	if not trackr_db.has_key(i):
+	if i not in trackr_db:
 		trackr_db[i] = dict()
 for i in _ints:
-	if not trackr_db.has_key(i):
+	if i not in trackr_db:
 		trackr_db[i] = 0
 
 

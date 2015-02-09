@@ -22,6 +22,10 @@ app.jinja_env.globals['Delivery'] = Delivery
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
+##################
+## Utility urls ##
+
+
 def allowed_file(filename):
 	return '.' in filename and \
 		filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -29,12 +33,20 @@ def allowed_file(filename):
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
+	"""
+	Accepts a file via POST named 'file' and saves to core.UPLOAD_FOLDER
+	:return: redirect to uploaded file if successful. otherwise redirects back to referrer page with error status.
+	"""
 	if request.method == 'POST':
-		file = request.files['file']
-		if file and allowed_file(file.filename):
-			filename = secure_filename(file.filename)
-			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+		# TODO:accept arbitrary http post key name and save destination
+		_file = request.files['file']
+		if _file and allowed_file(_file.filename):
+			filename = secure_filename(_file.filename)
+			_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 			return redirect(url_for('uploaded_file', filename=filename))
+		else:
+			# TODO:show error status on redirect
+			return redirect(request.referrer)
 
 
 @app.route('/upload/<filename>')
@@ -45,6 +57,10 @@ def uploaded_file(filename):
 @app.route('/')
 def root():
 	return redirect(url_for('home'))
+
+
+################
+## Home pages ##
 
 
 @app.route('/home')
@@ -60,63 +76,99 @@ def home():
 		return render_template('dashboard.html')
 
 
+##############
+## Job Pages ##
+
+
 @app.route('/j/')
 def all_jobs():
+	"""
+	Displays links to all current and past jobs
+	:return:
+	"""
 	return render_template('all_jobs.html')
+
 
 @app.route('/j/<int:job_num>')
 def job_overview(job_num=None):
+	"""
+	Renders overview template which displays active objects and general information such as job address
+	:param job_num: speicifies job number
+	"""
 	try:
 		_job = Job.find(int(job_num))
 		return render_template('job_overview.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
 
+
 @app.route('/j/<int:job_num>/analytics')
 def job_analytics(job_num=None):
+	"""
+	Displays statistics such as estimated job cost and labor averages.
+	:param job_num: specifies job number
+	"""
 	return NotImplemented
+
 
 @app.route('/j/<int:job_num>/materials', methods=['POST', 'GET'])
 def job_materials(job_num=None):
+	"""
+	Displays history of all active and fulfilled material listed in a table-like format.
+	:param job_num: specifies job number
+	"""
 	try:
 		_job = Job.find(int(job_num))
 		if request.method == 'POST':
-			file = request.files['file']
-			if file and allowed_file(file.filename):
-				filename = secure_filename(file.filename)
-				file.save(os.path.join(_job.sub_path), filename)
+			_file = request.files['file']
+			if _file and allowed_file(_file.filename):
+				filename = secure_filename(_file.filename)
+				_file.save(os.path.join(_job.sub_path), filename)
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
 
-@app.route('/delivery/schedule', methods=['POST'])
+
 @app.route('/j/<int:job_num>/deliveries/new', methods=['POST'])
-def job_schedule_delivery(job_num=None):
-	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`
+def schedule_delivery(job_num=None):
+	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`.
 	:param job_num: specifies job number
-	:return:
 	"""
+	_job = Job.find(job_num)
 	# TODO:show success
 	return redirect(request.referrer)
 
+
 @app.route('/j/<int:job_num>/deliveries')
 def job_deliveries(job_num=None):
+	"""
+	Displays history of all future and past deliveries listed in a table-like format.
+	:param job_num: specifies job_num
+	:return:
+	"""
 	return NotImplemented
 
+
 @app.route('/j/<int:job_num>/purchases')
-def job_POs(job_num=None):
+def job_pos(job_num=None):
 	try:
 		_job = Job.find(int(job_num))
 		return render_template('job_purchases.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
 
+
 @app.route('/j/<int:job_num>/rentals')
 def job_rentals(job_num=None):
 	return NotImplemented
 
+
 @app.route('/j/create', methods=['GET', 'POST'])
 def create_job():
+	"""
+	First renders job creation page, then processes POST request and creates Job object.
+	:return:
+	"""
 	if request.method == 'POST':
 
 		# TODO:create form field for PO-prefix, foreman, wage rate,
@@ -160,6 +212,10 @@ def create_job():
 		return render_template('job_create.html')
 
 
+## END JOB FUNCTIONS ##
+#######################
+
+
 @app.route('/material', methods=['GET', 'POST'])
 def material():
 	if request.method == 'POST':
@@ -189,6 +245,9 @@ def quote():
 		upload_file(f)
 	else:
 		return render_template('delivery.html')
+
+
+## _Todo functions ##
 
 
 @app.route('/task/new', methods=['POST'])

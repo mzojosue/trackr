@@ -1,3 +1,4 @@
 TODOs:
     * look into implementing PDF.js as a document reader
-    * implement `job` argument in html widgets
+    * continue to implement `job` argument in html widgets
+    * what should the default role should a Worker object have? (ask Joe)

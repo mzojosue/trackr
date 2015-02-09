@@ -191,9 +191,9 @@
 			<div class="panel-body">
 				<!-- TODO:change input elements and form action if `job` exists -->
 				{% if job %}
-					<form class="form-horizontal" action="{{ url_for('job_schedule_delivery', job_num=job.number) }}" method="post">
+					<form class="form-horizontal" action="{{ url_for('schedule_delivery', job_num=job.number) }}" method="post">
 				{% else %}
-					<form class="form-horizontal" action="{{ url_for('job_schedule_delivery') }}" method="post">
+					<form class="form-horizontal" action="{{ url_for('schedule_delivery') }}" method="post">
 						<div class="form-group col-sm-9">
 							<select name="job-number" class="form-control">
 								<option selected>Please select a job</option>
