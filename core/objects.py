@@ -7,6 +7,7 @@ now = datetime.now
 
 class Worker(object):
 	workers = {}
+
 	# pay rate constants
 	A_RATE = 100.84
 	A_RATE_journeyman = 97.38
@@ -186,6 +187,14 @@ class MaterialList(object):
 
 	def issue_po(self, quote, fulfills=False):
 		return PO(self.job, quote=quote, fulfills=fulfills)
+
+	@property
+	def age(self):
+		""" Used for highlighting unfulfilled material lists when displayed in a table.
+		:return: days since material list was received. If fulfilled, returns False.
+		"""
+		# TODO:implement function
+		return NotImplemented
 
 
 class Quotes(object):

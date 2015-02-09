@@ -194,7 +194,7 @@
 					<form class="form-horizontal" action="{{ url_for('schedule_delivery', job_num=job.number) }}" method="post">
 				{% else %}
 					<form class="form-horizontal" action="{{ url_for('schedule_delivery') }}" method="post">
-						<div class="form-group col-sm-9">
+						<div class="form-group col-sm-12">
 							<select name="job-number" class="form-control">
 								<option selected>Please select a job</option>
 								{% for i in Job.db['jobs'].itervalues() %}
@@ -203,7 +203,7 @@
 							</select>
 						</div>
 				{% endif %}<!-- /.form-group -->
-					<div class="form-group col-sm-9">
+					<div class="form-group col-sm-12">
 						<select class="form-control">
 							<option selected>Select Quote/Material List</option>
 						</select>

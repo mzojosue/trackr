@@ -114,7 +114,7 @@ def job_analytics(job_num=None):
 @app.route('/j/<int:job_num>/materials', methods=['POST', 'GET'])
 def job_materials(job_num=None):
 	"""
-	Displays history of all active and fulfilled material listed in a table-like format.
+	Displays history of all active and fulfilled material listed in a table-like format for the specified job.
 	:param job_num: specifies job number
 	"""
 	try:
@@ -129,20 +129,10 @@ def job_materials(job_num=None):
 		return "Error: Job does not exist"
 
 
-@app.route('/j/<int:job_num>/deliveries/new', methods=['POST'])
-def schedule_delivery(job_num=None):
-	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`.
-	:param job_num: specifies job number
-	"""
-	_job = Job.find(job_num)
-	# TODO:show success
-	return redirect(request.referrer)
-
-
 @app.route('/j/<int:job_num>/deliveries')
 def job_deliveries(job_num=None):
 	"""
-	Displays history of all future and past deliveries listed in a table-like format.
+	Displays history of all future and past deliveries listed in a table-like format for the specified job.
 	:param job_num: specifies job_num
 	:return:
 	"""
@@ -218,6 +208,10 @@ def create_job():
 
 @app.route('/material', methods=['GET', 'POST'])
 def material():
+	"""
+	Displays all active and fulfilled material lists in a table-like format.
+	:return:
+	"""
 	if request.method == 'POST':
 		f = request.files['list']
 		upload_file(f)
@@ -231,6 +225,28 @@ def material():
 		return "successfully uploaded"
 	else:
 		return render_template('job_materials.html', job=Job.jobs)
+
+
+@app.route('/deliveries')
+def deliveries():
+	"""
+	Displays all future and past deliveries in a table-like format.
+	:return:
+	"""
+	return NotImplemented
+
+
+@app.route('/delivery/schedule', methods=['POST'])
+@app.route('/j/<int:job_num>/deliveries/new', methods=['POST'])
+def schedule_delivery(job_num=None):
+	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`.
+	:param job_num: specifies job number
+	"""
+	if not job_num:
+		job_num = int(request.form['job-number'])
+	_job = Job.find(job_num)
+	# TODO:show success
+	return redirect(request.referrer)
 
 
 @app.route('/quote', methods=['GET', 'POST'])
