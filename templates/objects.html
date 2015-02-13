@@ -171,7 +171,7 @@
 						</li>
 					{% endfor %}
 				{% else %}
-					{% for i in Delivery.db['deliveries'] %}
+					{% for i in Delivery.db %}
 						<li class="list-group-item">
 							<a href="#">
 								Delivery from Elite
@@ -197,7 +197,7 @@
 						<div class="form-group col-sm-12">
 							<select name="job-number" class="form-control">
 								<option selected>Please select a job</option>
-								{% for i in Job.db['jobs'].itervalues() %}
+								{% for i in Job.db.itervalues() %}
 									<option value="{{ i.number }}">{{ i.name }}</option>
 								{% endfor %}
 							</select>
@@ -206,6 +206,15 @@
 					<div class="form-group col-sm-12">
 						<select class="form-control">
 							<option selected>Select Quote/Material List</option>
+							{% if job %}
+								{% for i in job.materials.itervalues() %}
+									<option value="{{ i.hash }}">{{ i }}</option>
+								{% endfor %}
+							{% else %}
+								{% for i in MaterialList.db.itervalues() %}
+									<option value="{{ i.hash }}">{{ i }}</option>
+								{% endfor %}
+							{% endif %}
 						</select>
 					</div><!-- /.form-group -->
 					<div class="form-inline">
@@ -232,19 +241,75 @@
 		<div class="panel panel-info">
 			<div class="panel-heading">
 				Open Material Lists
-				<a href="#">
-					<span class="glyphicon glyphicon-link"></span>
-				</a>
-			</div>
-			<!-- /.panel-heading -->
-			<ul class="list-group">
-				<li class="list-group-item">
-					<a href="#">
-						List from
-						<span class="label label-info">1/21/15</span>
-						for Riverfront
+				{% if job %}
+					<a href="{{ url_for('job_materials', job_num=job.number) }}">
+						<span class="glyphicon glyphicon-link"></span>
 					</a>
-				</li>
+				{% else %}
+					<a href="{{ url_for('material') }}">
+						<span class="glyphicon glyphicon-link"></span>
+					</a>
+				{% endif %}
+			</div><!-- /.panel-heading -->
+			<div class="panel-body">
+				<h5>Add quote:</h5>
+				<form class="form-horizontal" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
+					<div class="form-group col-xs-12">
+						<select class="form-control">
+							<option selected>Select Material List</option>
+							{% if job %}
+								{% for i in job.materials.itervalues() %}
+									<option value="{{ i.hash }}">{{ i }}</option>
+								{% endfor %}
+							{% else %}
+								{% for i in MaterialList.db.itervalues() %}
+									<option value="{{ i.hash }}">{{ i }}</option>
+								{% endfor %}
+							{% endif %}
+						</select>
+					</div><!-- /.form-group -->
+					<div class="form-group col-xs-12">
+						<input type="file" name="quote">
+						<button class="btn btn-primary pull-right" type="submit">Upload</button>
+					</div>
+				</form>
+			</div><!-- /.panel-body -->
+			<ul class="list-group">
+				{% if job %}
+					{% for mlist in job.materials.values() %}
+						<li class="list-group-item">
+							<a href="#">
+								{{ mlist }}
+							</a>
+							{% if mlist.quotes|length > 0%}
+								<!-- TODO:implement link to view quotes -->
+								<span class="glyphicon glyphicon-paperclip"></span>
+							{% endif %}
+							{% if mlist.doc %}
+								<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
+									<span class="glyphicon glyphicon-open-file"></span>
+								</a>
+							{% endif %}
+						</li>
+					{% endfor %}
+				{% else %}
+					{% for mlist in MaterialList.db.itervalues() %}
+						<li class="list-group-item">
+							<a href="#">
+								{{ mlist }}
+							</a>
+							{% if mlist.quotes|length > 0%}
+								<!-- TODO:implement link to view quotes -->
+								<span class="glyphicon glyphicon-paperclip"></span>
+							{% endif %}
+							{% if mlist.doc %}
+								<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
+									<span class="glyphicon glyphicon-open-file"></span>
+								</a>
+							{% endif %}
+						</li>
+					{% endfor %}
+				{% endif %}
 				<!-- /.list-group-item -->
 			</ul>
 			<!-- /.list-group -->
@@ -268,11 +333,18 @@
 
 {% macro file_upload(job=False, dir=None, type='material') %}
 
-	<div class="col-xs-4">
-		<form class="form-inline" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" method="post">
-			<input type="file" name="file">
-			<input class="btn btn-primary" type="submit">
-		</form>
+	<div class="col-xs-4 file-upload">
+		{% if not job %}
+			<form class="form-inline" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" method="post">
+				<input type="file" name="file">
+				<input class="btn btn-primary" type="submit">
+			</form>
+		{% else %}
+			<form class="form-inline" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
+				<input type="file" name="file">
+				<button class="btn btn-primary" type="submit">Upload</button>
+			</form>
+		{% endif %}
 	</div>
 
 {% endmacro %}

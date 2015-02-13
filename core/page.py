@@ -15,8 +15,10 @@ app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLD
 
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo
+app.jinja_env.globals['MaterialList'] = MaterialList
 app.jinja_env.globals['Job'] = Job
 app.jinja_env.globals['Delivery'] = Delivery
+app.jinja_env.globals['get_job_num'] = get_job_num
 
 # app upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -66,10 +68,10 @@ def root():
 @app.route('/home')
 def home():
 	if hasattr(Todo, 'db') and hasattr(MaterialList, 'db') and hasattr(Job, 'db'):
-		_todos = Todo.db['todos'].itervalues()
-		_completed = Todo.db['completed'].itervalues()
-		_jobs = Job.db['jobs'].itervalues()
-		_lists = MaterialList.db['materials'].itervalues()
+		_todos = Todo.db.itervalues()
+		_completed = Todo.completed_db.itervalues()
+		_jobs = Job.db.itervalues()
+		_lists = MaterialList.db.itervalues()
 		return render_template('dashboard.html', jobs=_jobs, lists=_lists, todos=_todos, completed=_completed)
 	else:
 		# TODO:display db error on page
@@ -97,7 +99,8 @@ def job_overview(job_num=None):
 	"""
 	try:
 		_job = Job.find(int(job_num))
-		return render_template('job_overview.html', job=_job)
+		_todos = _job.tasks.itervalues()
+		return render_template('job_overview.html', job=_job, todos=_todos)
 	except KeyError:
 		return "Error: Job does not exist"
 
@@ -123,10 +126,24 @@ def job_materials(job_num=None):
 			_file = request.files['file']
 			if _file and allowed_file(_file.filename):
 				filename = secure_filename(_file.filename)
-				_file.save(os.path.join(_job.sub_path), filename)
+				_path = os.path.join(_job.sub_path, 'materials', filename)
+				_file.save(_path)
+				_job.add_mat_list(MaterialList(_job, doc=filename))
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
+
+
+@app.route('/material/<doc_hash>')
+@app.route('/j/<int:job_num>/materials/<doc_hash>')
+def job_material_doc(doc_hash, job_num=None):
+	if not job_num:
+		_doc = MaterialList.db[int(doc_hash)]
+		_job = _doc.job
+	else:
+		_job = Job.find(job_num)
+		_doc = _job.materials[int(doc_hash)]
+	return send_from_directory(os.path.join(_job.sub_path, 'materials'), _doc.doc)
 
 
 @app.route('/j/<int:job_num>/deliveries')
@@ -259,8 +276,9 @@ def quote():
 		##TODO:correctly implement document upload
 		f = request.files['quote']
 		upload_file(f)
+		return redirect(request.referrer)
 	else:
-		return render_template('delivery.html')
+		return NotImplemented
 
 
 ## _Todo functions ##
@@ -275,9 +293,7 @@ def new_todo():
 		_job = Job.find(int(_job))
 
 		_title = ' '.join([_title, 'for', _job.name])
-		_todo = Todo(_title, task=_task)
-
-		_job.tasks[_todo.hash] = _todo
+		_todo = Todo(_title, task=_task, job=_job)
 	else:
 		Todo(_title, task=_task)
 	return redirect(request.referrer)
@@ -294,7 +310,7 @@ def todo_complete(t_hash):
 @app.route('/task/<t_hash>/del')
 def del_todo(t_hash):
 	try:
-		del Todo.db['todos'][int(t_hash)]
+		del Todo.db[int(t_hash)]
 		# TODO:implement task delete function
 		return redirect(request.referrer)
 	finally:

@@ -29,7 +29,7 @@
 			Jobs:
 		</h4>
 		<ul class="nav nav-sidebar">
-			{% for i in Job.db['jobs'].itervalues() %}
+			{% for i in Job.db.itervalues() %}
 				<li><a href="{{ url_for('job_overview', job_num=i.number) }}">{{ i.name }}</a></li>
 			{% endfor %}
 		</ul>

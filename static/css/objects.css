@@ -2,3 +2,8 @@
   max-height: 100%;
   overflow-y: auto;
 }
+
+.file-upload {
+  margin-bottom: 20px;
+}
+

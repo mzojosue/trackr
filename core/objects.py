@@ -26,8 +26,6 @@ class Worker(object):
 		elif rate is 'b':
 			self.rate = Worker.B_RATE
 
-		if hasattr(Worker, 'db'):
-			Worker.db['workers'][self.hash] = self
 
 	def __setattr__(self, name, value):
 		""" Alters attribute setting to listen to when self.job is changed,
@@ -41,7 +39,9 @@ class Worker(object):
 			except AttributeError:
 				pass
 
-		return super(Worker, self).__setattr__(name, value)
+		_return = super(Worker, self).__setattr__(name, value)
+		Worker.db[self.hash] = self
+		return _return
 
 	def __repr__(self):
 		# TODO:update output format
@@ -51,11 +51,10 @@ class Worker(object):
 	@staticmethod
 	def find(q_hash):
 		if hasattr(Todo, 'db'):
-			return Todo.db['workers'][q_hash]
+			return Todo.db[q_hash]
 
 
 class Job(object):
-	number = 0
 	jobs = {}
 
 	default_sub_dir = "//SERVER/Documents/Esposito/Jobs"
@@ -65,10 +64,7 @@ class Job(object):
 	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None):
 		# TODO:implement better document storage
 
-		if hasattr(Job, 'db'):
-			self.number = int(job_num)
-			Job.db['job_num'] = job_num + 1
-			Job.db['jobs'][self.number] = self
+		self.number = int(job_num)
 		self.name = '-'.join([str(self.number), str(name)])
 		self.start_date = start_date
 		self.end_date = end_date
@@ -95,6 +91,12 @@ class Job(object):
 			elif not os.path.exists(os.path.join(Job.default_sub_dir, self.name)):
 				os.mkdir(os.path.join(Job.default_sub_dir, self.name))
 				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
+				os.mkdir(os.path.join(self.sub_path, 'materials'))
+				os.mkdir(os.path.join(self.sub_path, 'quotes'))
+				os.mkdir(os.path.join(self.sub_path, 'drawings'))
+				os.mkdir(os.path.join(self.sub_path, 'specs'))
+				os.mkdir(os.path.join(self.sub_path, 'addendums'))
+				os.mkdir(os.path.join(self.sub_path, 'submittals'))
 			else:
 				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
 		except OSError:
@@ -110,12 +112,19 @@ class Job(object):
 		# Job.timesheets.value is [ 'pathname/to/timesheet', hours ]
 		self.timesheets = {}
 
+
+	def __setattr__(self, key, value):
+		_return = super(Job, self).__setattr__(key, value)
+		Job.db[self.number] = self
+		return _return
+
+
 	@property
 	def next_po(self):
 		""" Used for manually reserving a PO for use later
 		:return: returns the value of the current available PO for considering it being given to a vendor
 		"""
-		_po = self._PO  # + 1
+		_po = self._PO
 		_po = '%03d' % _po        # add padding to PO #
 		return '-'.join([self.name, _po])
 
@@ -161,29 +170,53 @@ class Job(object):
 	@staticmethod
 	def find(num):
 		if hasattr(Job, 'db'):
-			return Job.db['jobs'][num]
+			return Job.db[num]
+
+	def add_task(self, task_obj):
+		self.tasks[task_obj.hash] = task_obj
+		Job.db[self.number] = self
+		return None
+
+	def add_mat_list(self, mlist_obj):
+		self.materials[mlist_obj.hash] = mlist_obj
+		Job.db[self.number] = self
+		return None
 
 
 class MaterialList(object):
-	lists = {}
-
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments=""):
 		self.hash = abs(hash(str(now())))
-		job.materials[self.hash] = self
-		if hasattr(MaterialList, 'db'):
-			MaterialList.db['materials'][self.hash] = self
+
 
 		self.job = job
 		self.items = items
 		self.doc = doc
-		self.foreman = foreman
+		if not foreman:
+			self.foreman = self.job.foreman
+		else:
+			self.foreman = foreman
 		self.date_sent = date_sent
 		self.date_due = date_due
 		self.comments = comments
 
 		self.quotes = []
+		# TODO:append MaterialList to open tasks to-do
 		self.todo = True
 		self.fulfilled = False
+		self.sent_out = False
+
+
+	def __setattr__(self, key, value):
+		_return = super(MaterialList, self).__setattr__(key, value)
+		if hasattr(MaterialList, 'db'):
+			MaterialList.db[self.hash] = self
+		if hasattr(self, 'job'):
+			self.job.materials[self.hash] = self
+		return _return
+
+	def __repr__(self):
+		dt = self.date_sent
+		return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt.date())
 
 	def issue_po(self, quote, fulfills=False):
 		return PO(self.job, quote=quote, fulfills=fulfills)
@@ -234,8 +267,6 @@ class Delivery(object):
 	:param
 		po:     pointer to PO object
 	"""
-	deliveries = {}
-
 	def __init__(self, po, items=None, expected=None, destination='shop'):
 
 		# TODO:add object to job.deliveries
@@ -243,8 +274,6 @@ class Delivery(object):
 		self.po = po
 		del po
 		self.hash = abs(hash(str(self.po.name)))
-		if hasattr(Delivery, 'db'):
-			Delivery.db['deliveries'][self.hash] = self
 		self.delivered = False
 		self.po.job.deliveries[self.hash] = self
 		if items is None:
@@ -256,8 +285,13 @@ class Delivery(object):
 
 	@staticmethod
 	def find(q_hash):
-		if hasattr(Todo, 'db'):
-			return Todo.db['deliveries'][q_hash]
+		if hasattr(Delivery, 'db'):
+			return Delivery.db[q_hash]
+
+	def __setattr__(self, key, value):
+		_return = super(Delivery, self).__setattr__(key, value)
+		Delivery.db[self.hash] = self
+		return _return
 
 
 class Todo(object):
@@ -268,29 +302,48 @@ class Todo(object):
 		due:    task due date
 		notif:  date/time to follow-up
 	"""
-	todos = {}
-	completed = {}
 
-	def __init__(self, name, task="", due=None, notify=None):
+	def __init__(self, name, job=None, task="", due=None, notify=None):
 		self.name = str(name)
-		self.hash = hash(self.name)
-		self.hash = abs(self.hash)  # ensure positive values
+		self.hash = abs(hash(self.name))  # ensure positive values
+
+		self.job = job
+		if self.job:
+			self.job.tasks[self.hash] = self
 		self.task = task
 		self.due = due
 		self.notify = notify
-		if hasattr(Todo, 'db'):
-			Todo.db['todos'][self.hash] = self
 
 	def complete(self):
-		if hasattr(Todo, 'db'):
-			Todo.db['completed'][self.hash] = self
-			del Todo.db['todos'][self.hash]
+		if hasattr(Todo, 'db') and hasattr(Todo, 'completed_db'):
+			Todo.completed_db[self.hash] = self
+			del Todo.db[self.hash]
 		return True
 
 	@staticmethod
 	def find(q_hash):
 		if hasattr(Todo, 'db'):
-			return Todo.db['todos'][q_hash]
+			try:
+				return Todo.db[q_hash]
+			except KeyError:
+				return Todo.completed_db[q_hash]
 		else:
 			# TODO:create exception class
 			raise BaseException
+
+	def __setattr__(self, key, value):
+		_return = super(Todo, self).__setattr__(key, value)
+		if hasattr(self, 'hash'):
+			Todo.db[self.hash] = self
+		if hasattr(self, 'job'):
+			self.job.add_task(self)
+		return _return
+
+def get_job_num(*args):
+	try:
+		_keys = Job.db.keys()
+		num = int(_keys[-1]) + 1
+		return num
+	except IndexError:
+		print "Unknown Error:: Probably no jobs"
+		return 1

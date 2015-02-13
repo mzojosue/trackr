@@ -60,7 +60,7 @@
 				</a>
 			</li>
 			<li>
-				<a href="{{ url_for('job_POs', job_num=job.number) }}">
+				<a href="{{ url_for('job_pos', job_num=job.number) }}">
 					<span class="glyphicon glyphicon-piggy-bank"></span>&nbsp;
 					Purchase Orders
 				</a>
@@ -80,11 +80,44 @@
 				Unlock for Editing
 			</a>
 		</h1>
+		<h4 class="sub-header">Materials</h4>
 
 		<div class="row">
 
 			<!-- TODO:save file under job folder directory structure -->
-			{{ objects.file_upload() }}
+			{{ objects.file_upload(job=job) }}
+
+			<table class="table table-striped">
+				<tr>
+					<th><span class="glyphicon glyphicon-send"></span></th>
+					<th>List ID</th>
+					<th>Requested By:</th>
+					<th>Date Sent:</th>
+					<th>Date Due:</th>
+					<th>No. of Quotes:</th>
+				</tr>
+				{% for i in job.materials.itervalues() %}
+				<!-- TODO:style rows based on age -->
+					<tr>
+						<td>
+							<a href="#">
+								<span class="glyphicon glyphicon-unchecked"></span>
+							</a>
+						</td>
+						<td>
+							<a href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=i.hash) }}">
+								{{ i.hash }}
+							</a>
+						</td>
+						<td>{{ i.foreman }}</td>
+						<td>{{ i.date_sent }}</td>
+						<td>{{ i.date_due }}</td>
+						<!-- TODO:show appropriate styling for completed lists -->
+						<!-- TODO:add button for deleting material list -->
+						<td>{{ i.quotes|length }}</td>
+					</tr>
+				{% endfor %}
+			</table>
 
 		</div>
 	</div><!-- /.main -->
