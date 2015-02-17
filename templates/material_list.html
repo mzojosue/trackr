@@ -80,52 +80,56 @@
 				Unlock for Editing
 			</a>
 		</h1>
-
-		<h4 class="sub-header">All Material Lists:</h4>
+		<ul class="nav nav-tabs" id="matListNav">
+			<li role="presentation">
+				<a href="{{ url_for('job_materials', job_num=job.number) }}">
+					Material Lists
+				</a>
+			</li>
+			<li role="presentation" class="active">
+				<a href="#" class="disabled">
+					{{ list }}
+				</a>
+			</li>
+		</ul>
 
 		<div class="row">
 
 			<!-- TODO:save file under job folder directory structure -->
-			{{ objects.file_upload(job=job) }}
+			{{ objects.file_upload(job=job, obj=list, meth='quote') }}
 
 			<table class="table table-striped">
 				<tr>
 					<th><span class="glyphicon glyphicon-send"></span></th>
-					<th>List ID</th>
-					<th>Requested By:</th>
+					<th>Quote ID</th>
+					<th>Vendor</th>
 					<th>Date Sent:</th>
-					<th>Date Due:</th>
-					<th>No. of Quotes:</th>
+					<th>Price</th>
 				</tr>
-				{% for i in job.materials.itervalues() %}
+				{% for i in list.quotes.itervalues() %}
 				<!-- TODO:style rows based on age -->
 					<tr>
-						<td id="{{ i.hash }}-materials-fulfilled">
+						<td id="{{ i.hash }}">
 							<!-- TODO:redirect to schedule delivery -->
 							<a href="#">
 								<span class="glyphicon glyphicon-unchecked"></span>
 							</a>
 						</td>
 						<td>
-							<a href="{{ url_for('material_list', m_hash=i.hash) }}">
+							<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.hash) }}">
 								{{ i.hash }}
-							</a>&nbsp;
-							<a target="_blank" href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=i.hash) }}">
-								<span class="glyphicon glyphicon-paperclip"></span>
 							</a>
 						</td>
-						<td>{{ i.foreman }}</td>
-						<td>{{ i.date_sent.date() }}</td>
-						<td>{{ i.date_due }}</td>
+						<td>{{ i.vend }}</td>
+						<td>{{ i.date_recvd.date() }}</td>
 						<!-- TODO:show appropriate styling for completed lists -->
 						<!-- TODO:add button for deleting material list -->
-						<td>{{ i.quotes|length }}</td>
+						<td>{{ i.price }}</td>
 					</tr>
 				{% endfor %}
 			</table>
 
-		</div><!-- /.row -->
-
+		</div>
 	</div><!-- /.main -->
 
 {% endblock %}

@@ -134,7 +134,7 @@ def job_materials(job_num=None):
 		return "Error: Job does not exist"
 
 
-@app.route('/material/<doc_hash>')
+@app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')
 def job_material_doc(doc_hash, job_num=None):
 	if not job_num:
@@ -144,6 +144,18 @@ def job_material_doc(doc_hash, job_num=None):
 		_job = Job.find(job_num)
 		_doc = _job.materials[int(doc_hash)]
 	return send_from_directory(os.path.join(_job.sub_path, 'materials'), _doc.doc)
+
+@app.route('/quote/<doc_hash>')
+@app.route('/j/<int:job_num>/qoutes/<doc_hash>')
+def job_quote_doc(doc_hash, job_num=None):
+	# TODO:fix display/redownloading of quote
+	if not job_num:
+		_doc = MaterialList.db[int(doc_hash)]
+		_job = _doc.job
+	else:
+		_job = Job.find(job_num)
+		_doc = _job.quotes[int(doc_hash)]
+	return send_from_directory(os.path.join(_job.sub_path, 'quotes'), _doc.doc)
 
 
 @app.route('/j/<int:job_num>/deliveries')
@@ -243,6 +255,11 @@ def material():
 	else:
 		return render_template('job_materials.html', job=Job.jobs)
 
+@app.route('/material/<m_hash>/')
+def material_list(m_hash):
+	_list = MaterialList.db[int(m_hash)]
+	_job = _list.job
+	return render_template('material_list.html', job=_job, list=_list)
 
 @app.route('/deliveries')
 def deliveries():
@@ -272,13 +289,17 @@ def quote():
 	:param:
 	:return:
 	"""
-	if request.method is 'POST':
+	if request.method == 'POST':
 		##TODO:correctly implement document upload
-		f = request.files['quote']
-		upload_file(f)
+		_list = MaterialList.db[int(request.form['materialList'])]
+		_quote = request.files['quote']
+		if _quote and allowed_file(_quote.filename):
+			filename = secure_filename(_quote.filename)
+			_path = os.path.join(_list.job.sub_path, 'quotes', filename)
+			_quote.save(_path)
+			_obj = Quotes(mat_list=_list, doc=_path)
+			_list.job.add_quote(_obj)
 		return redirect(request.referrer)
-	else:
-		return NotImplemented
 
 
 ## _Todo functions ##

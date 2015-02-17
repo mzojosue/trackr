@@ -182,6 +182,11 @@ class Job(object):
 		Job.db[self.number] = self
 		return None
 
+	def add_quote(self, quote_obj):
+		self.materials[quote_obj.mat_list.hash].add_quote(quote_obj)
+		Job.db[self.number] = self
+		return None
+
 
 class MaterialList(object):
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments=""):
@@ -199,7 +204,7 @@ class MaterialList(object):
 		self.date_due = date_due
 		self.comments = comments
 
-		self.quotes = []
+		self.quotes = {}
 		# TODO:append MaterialList to open tasks to-do
 		self.todo = True
 		self.fulfilled = False
@@ -218,9 +223,6 @@ class MaterialList(object):
 		dt = self.date_sent
 		return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt.date())
 
-	def issue_po(self, quote, fulfills=False):
-		return PO(self.job, quote=quote, fulfills=fulfills)
-
 	@property
 	def age(self):
 		""" Used for highlighting unfulfilled material lists when displayed in a table.
@@ -229,14 +231,29 @@ class MaterialList(object):
 		# TODO:implement function
 		return NotImplemented
 
+	def add_quote(self, quote_obj):
+		self.quotes[quote_obj.hash] = quote_obj
+		MaterialList.db[self.hash] = self
+		return None
+
+	def issue_po(self, quote, fulfills=False):
+		return PO(self.job, quote=quote, fulfills=fulfills)
+
 
 class Quotes(object):
 	def __init__(self, mat_list, price=0.0, vend=None, doc=None):
+		self.hash = abs(hash(now()))
 		self.mat_list = mat_list
-		self.mat_list.quotes.append(self)
 		self.price = float(price)
 		self.vend = str(vend)
 		self.doc = str(doc)  # document target path/name
+		self.date_recvd = today()
+
+	def __setattr__(self, key, value):
+		_return = super(Quotes, self).__setattr__(key, value)
+		if hasattr(self, 'mat_list'):
+			self.mat_list.quotes[self.hash] = self
+		return _return
 
 
 class PO(object):
