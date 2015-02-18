@@ -10,3 +10,20 @@
   margin-top: -10px;
   margin-bottom: 10px;
 }
+
+#listStatus {
+  margin-top: 0px;
+  margin-bottom: 30px;
+}
+
+.widgetWell {
+  padding: 14px;
+}
+
+.widgetWell div {
+  margin-bottom: 0px;
+}
+
+#awardedPO {
+  color: #FFEF0D !important;
+}

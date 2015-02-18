@@ -106,6 +106,7 @@ class Job(object):
 		self.POs = {}   # stores PO strings as keys
 		self.workers = {}
 		self.materials = {}
+		self.quotes = {}
 		self.deliveries = {}
 		self.tasks = {}
 		# Job.timesheets.key is datetime.datetime object
@@ -128,7 +129,6 @@ class Job(object):
 		_po = '%03d' % _po        # add padding to PO #
 		return '-'.join([self.name, _po])
 
-	@property
 	def claim_po(self):
 		""" Used for storing a PO number with a quote and sending it a vendor
 		:return: returns unformatted PO number
@@ -184,6 +184,7 @@ class Job(object):
 
 	def add_quote(self, quote_obj):
 		self.materials[quote_obj.mat_list.hash].add_quote(quote_obj)
+		self.quotes[quote_obj.hash] = quote_obj
 		Job.db[self.number] = self
 		return None
 
@@ -207,8 +208,10 @@ class MaterialList(object):
 		self.quotes = {}
 		# TODO:append MaterialList to open tasks to-do
 		self.todo = True
-		self.fulfilled = False
-		self.sent_out = False
+		self.fulfilled = False  # True once list has been purchased
+		self.delivered = False  # True once order has been delivered
+		self.sent_out = False  # Is set to true once list is given out for pricing
+		self.po = None
 
 
 	def __setattr__(self, key, value):
@@ -237,7 +240,11 @@ class MaterialList(object):
 		return None
 
 	def issue_po(self, quote, fulfills=False):
-		return PO(self.job, quote=quote, fulfills=fulfills)
+		quote.awarded = True
+		_obj = PO(self.job, quote=quote, fulfills=fulfills)
+		self.po = _obj
+		self.fulfilled = True
+		return _obj
 
 
 class Quotes(object):
@@ -248,19 +255,19 @@ class Quotes(object):
 		self.vend = str(vend)
 		self.doc = str(doc)  # document target path/name
 		self.date_recvd = today()
+		self.awarded = False
 
 	def __setattr__(self, key, value):
 		_return = super(Quotes, self).__setattr__(key, value)
 		if hasattr(self, 'mat_list'):
-			self.mat_list.quotes[self.hash] = self
+			self.mat_list.add_quote(self)
 		return _return
 
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(), fulfills=False,
 	             quote=None, desc=None, deliveries=None):
-		num = job.claim_po()
-		self.name = '-'.join([str(job.name), str(num)])
+		self.num = job.claim_po()
 		self.job = job
 		self.mat_list = mat_list
 		self.date_issued = date_issued
@@ -272,6 +279,13 @@ class PO(object):
 
 		self.job.POs[self.name] = self
 		self.backorders = None  # stores any backorder delivery dates
+
+	@property
+	def name(self):
+		return '-'.join([str(self.job.name), str(self.num)])
+
+	def __repr__(self):
+		return self.name
 
 
 class Vendor(object):

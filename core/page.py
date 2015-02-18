@@ -145,10 +145,10 @@ def job_material_doc(doc_hash, job_num=None):
 		_doc = _job.materials[int(doc_hash)]
 	return send_from_directory(os.path.join(_job.sub_path, 'materials'), _doc.doc)
 
+
 @app.route('/quote/<doc_hash>')
 @app.route('/j/<int:job_num>/qoutes/<doc_hash>')
 def job_quote_doc(doc_hash, job_num=None):
-	# TODO:fix display/redownloading of quote
 	if not job_num:
 		_doc = MaterialList.db[int(doc_hash)]
 		_job = _doc.job
@@ -156,6 +156,15 @@ def job_quote_doc(doc_hash, job_num=None):
 		_job = Job.find(job_num)
 		_doc = _job.quotes[int(doc_hash)]
 	return send_from_directory(os.path.join(_job.sub_path, 'quotes'), _doc.doc)
+
+
+@app.route('/j/<int:job_num>/quotes/<int:doc_hash>/award')
+def job_quote_award_po(doc_hash, job_num=None):
+	_job = Job.find(job_num)
+	_doc = _job.quotes[doc_hash]
+	_doc.mat_list.issue_po(_doc)
+	return redirect(request.referrer)
+
 
 
 @app.route('/j/<int:job_num>/deliveries')
@@ -255,11 +264,25 @@ def material():
 	else:
 		return render_template('job_materials.html', job=Job.jobs)
 
-@app.route('/material/<m_hash>/')
+
+@app.route('/material/<int:m_hash>/')
 def material_list(m_hash):
+	try:
+		_list = MaterialList.db[int(m_hash)]
+		_job = _list.job
+		return render_template('material_list.html', job=_job, list=_list)
+	except KeyError:
+		return "Material List doesn't exist..."
+
+
+@app.route('/material/<int:m_hash>/update', methods=['POST'])
+def update_material_list(m_hash):
 	_list = MaterialList.db[int(m_hash)]
 	_job = _list.job
-	return render_template('material_list.html', job=_job, list=_list)
+	if 'sentOut' in request.form:
+		_list.sent_out = True
+		return redirect(request.referrer)
+
 
 @app.route('/deliveries')
 def deliveries():
@@ -297,7 +320,11 @@ def quote():
 			filename = secure_filename(_quote.filename)
 			_path = os.path.join(_list.job.sub_path, 'quotes', filename)
 			_quote.save(_path)
-			_obj = Quotes(mat_list=_list, doc=_path)
+
+			__price = request.form['quotePrice']
+			__vend = request.form['vendor']
+
+			_obj = Quotes(mat_list=_list, doc=filename, price=__price, vend=__vend)
 			_list.job.add_quote(_obj)
 		return redirect(request.referrer)
 
@@ -319,6 +346,7 @@ def new_todo():
 		Todo(_title, task=_task)
 	return redirect(request.referrer)
 
+
 @app.route('/task/<t_hash>/complete')
 def todo_complete(t_hash):
 	# TODO:implement job_completion for job-linked tasks
@@ -327,6 +355,7 @@ def todo_complete(t_hash):
 	if _todo.complete():
 		return redirect(request.referrer)
 	# create unknown error exception
+
 
 @app.route('/task/<t_hash>/del')
 def del_todo(t_hash):

@@ -256,7 +256,7 @@
 					{% if job.materials|length > 0 %}
 						{% for mlist in job.materials.itervalues() %}
 							<li class="list-group-item">
-								<a href="#">
+								<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
 									{{ mlist }}
 								</a>
 								{% if mlist.quotes|length %}
@@ -279,7 +279,7 @@
 					{% if MaterialList.db|length > 0 %}
 						{% for mlist in MaterialList.db.itervalues() %}
 							<li class="list-group-item">
-								<a href="#">
+								<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
 									{{ mlist }}
 								</a>
 								{% if mlist.quotes|length %}
@@ -347,13 +347,16 @@
 
 {% macro file_upload(job=False, obj=None, meth='material') %}
 
-	<div class="col-xs-4 file-upload">
+	<div class="file-upload">
 		{% if not job %}
+
 			<form class="form-inline" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" method="post">
 				<input type="file" name="file">
 				<input class="btn btn-primary" type="submit">
 			</form>
+
 		{% else %}
+
 			{% if meth == 'material' %}
 				<form class="form-inline" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
 					<input type="file" name="file">
@@ -363,9 +366,18 @@
 				<form class="form-inline" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
 					<input type="hidden" name="materialList" value="{{ obj.hash }}">
 					<input type="file" name="quote">
+					<label for="vendName">Vendor:</label>
+					<input type="text" name="vendor" id="vendName" class="form-control" placeholder="Vendor Name">
+					&nbsp;
+					<label for="quotePrice">Quoted Price:</label>
+					<div class="input-group" id="quotePrice">
+						<span class="input-group-addon">$</span>
+						<input type="text" name="quotePrice" class="form-control" value="0.0">
+					</div>
 					<button class="btn btn-primary" type="submit">Upload</button>
 				</form>
 			{% endif %}
+
 		{% endif %}
 	</div>
 

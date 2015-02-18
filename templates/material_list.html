@@ -96,35 +96,86 @@
 		<div class="row">
 
 			<!-- TODO:save file under job folder directory structure -->
-			{{ objects.file_upload(job=job, obj=list, meth='quote') }}
+			<div class="well well-sm col-lg-8 col-xs-12 widgetWell">
+				{{ objects.file_upload(job=job, obj=list, meth='quote') }}
+			</div>
+			<div class="well col-xs-4 widgetWell">
+				<!-- TODO:convert form/checkbox to http link -->
+				<form class="form-inline" action="{{ url_for('update_material_list', m_hash=list.hash) }}" method="post">
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" name="sentOut" value="True" {% if list.sent_out %}checked{% endif %}>
+							Sent to appropriate vendors
+						</label>
+					</div>
+					<button type="submit" class="btn btn-default">Update</button>
+				</form>
+			</div>
+			<div class="clearfix visible-lg-block"></div>
 
-			<table class="table table-striped">
+			<h3 id="listStatus">
+				{% if not list.sent_out %}
+					<span class="label label-danger">List not sent for pricing</span>
+				{% elif not list.quotes|length %}
+					<span class="label label-warning">Expecting Quotes</span>
+				{% endif %}
+				&nbsp;
+				{% if not list.po %}
+					<span class="label label-danger">PO Not Issued</span>
+				{% else %}
+					{% if list.fulfilled %}
+						{% if not list.delivered %}
+							<span class="label label-warning label-lg">PO Issued. Not Delivered</span>
+						{% else %}
+							<span class="label label-success label-lg">PO Issued. Delivered.</span>
+						{% endif %}
+						<span class="label label-info label-lg">{{ list.po }}</span>
+					{% endif %}
+				{% endif %}
+			</h3>
+
+			<label for="quoteTable">Associated Quotes:</label>
+			<table class="table table-striped" id="quoteTable">
 				<tr>
-					<th><span class="glyphicon glyphicon-send"></span></th>
+					<th><span class="glyphicon glyphicon-credit-card"></span></th>
 					<th>Quote ID</th>
 					<th>Vendor</th>
 					<th>Date Sent:</th>
 					<th>Price</th>
+					<th>Del:</th>
 				</tr>
 				{% for i in list.quotes.itervalues() %}
 				<!-- TODO:style rows based on age -->
-					<tr>
+					<tr class="{% if i.awarded %}success{% endif %}">
 						<td id="{{ i.hash }}">
+							{% if not i.awarded %}
+								{% if not list.fulfilled %}
+									<a href="{{ url_for('job_quote_award_po', doc_hash=i.hash, job_num=job.number) }}">
+										<span class="glyphicon glyphicon-unchecked"></span>
+									</a>
+								{% else %}
+									<a href="" class="disabled">
+										<span class="glyphicon glyphicon-unchecked"></span>
+									</a>
+								{% endif %}
+							{% else %}
 							<!-- TODO:redirect to schedule delivery -->
-							<a href="#">
-								<span class="glyphicon glyphicon-unchecked"></span>
-							</a>
+								<a href="#" id="awardedPO">
+										<span class="glyphicon glyphicon-star"></span>
+								</a>
+							{% endif %}
 						</td>
 						<td>
+							{{ i.hash }}
 							<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.hash) }}">
-								{{ i.hash }}
+								<span class="glyphicon glyphicon-paperclip"></span>
 							</a>
 						</td>
 						<td>{{ i.vend }}</td>
 						<td>{{ i.date_recvd.date() }}</td>
+						<td>{{ i.price }}</td>
 						<!-- TODO:show appropriate styling for completed lists -->
 						<!-- TODO:add button for deleting material list -->
-						<td>{{ i.price }}</td>
 					</tr>
 				{% endfor %}
 			</table>
