@@ -345,40 +345,81 @@
 
 {% endmacro %}
 
-{% macro file_upload(job=False, obj=None, meth='material') %}
 
-	<div class="file-upload">
-		{% if not job %}
+{% macro upload_modal(job=False, obj=None, meth='material') %}
 
-			<form class="form-inline" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" method="post">
-				<input type="file" name="file">
-				<input class="btn btn-primary" type="submit">
-			</form>
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
+	  Upload Doc
+	</button>
 
-		{% else %}
+	<!-- Modal -->
+	<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
 
-			{% if meth == 'material' %}
-				<form class="form-inline" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
-					<input type="file" name="file">
-					<button class="btn btn-primary" type="submit">Upload</button>
-				</form>
-			{% elif meth == 'quote' %}
-				<form class="form-inline" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
-					<input type="hidden" name="materialList" value="{{ obj.hash }}">
-					<input type="file" name="quote">
-					<label for="vendName">Vendor:</label>
-					<input type="text" name="vendor" id="vendName" class="form-control" placeholder="Vendor Name">
-					&nbsp;
-					<label for="quotePrice">Quoted Price:</label>
-					<div class="input-group" id="quotePrice">
-						<span class="input-group-addon">$</span>
-						<input type="text" name="quotePrice" class="form-control" value="0.0">
-					</div>
-					<button class="btn btn-primary" type="submit">Upload</button>
-				</form>
-			{% endif %}
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="uploadModalLabel">
+		        {% if meth == 'material' %}
+		          Upload Material List
+		        {% elif meth == 'quote' %}
+		          Upload Material Quote
+		        {% endif %}
+	        </h4>
+	      </div>
 
-		{% endif %}
+	      <div class="modal-body">
+	        {% if meth == 'material' %}
+		        <form id="uploadForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
+							<input type="file" name="file" id="fileUpload">
+
+			        <div class="form-group">
+				        <label for="dateSubmitted">
+					        Date Submitted:
+				        </label>
+				        <input type="date" name="dateSubmitted" id="dateSubmitted" class="form-control" value="{{ today().date() }}">
+			        </div>
+
+			        <div class="form-group">
+				        <label for="dateRequired">
+					        Date Required:
+				        </label>
+				        <input type="date" name="dateRequired" id="dateRequired" class="form-control">
+			        </div>
+						</form>
+
+		      {% elif meth == 'quote' %}
+
+						<form id="uploadForm" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
+							<input type="hidden" name="materialList" value="{{ obj.hash }}">
+							<input type="file" name="quote" id="fileUpload">
+
+							<div class="form-group">
+								<label for="vendName">Vendor:</label>
+								<input type="text" name="vendor" id="vendName" class="form-control" placeholder="Vendor Name">
+							</div>
+
+							<div class="form-group">
+								<label class="control-label" for="quotePrice">Quoted Price:</label>
+								<div class="input-group" id="quotePrice">
+									<span class="input-group-addon">
+										<span class="glyphicon glyphicon-usd"></span>
+									</span>
+									<input type="text" name="quotePrice" class="form-control" value="0.0">
+								</div>
+							</div>
+
+						</form>
+
+		      {% endif %}
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="uploadForm">Finalize Upload</button>
+	      </div>
+	    </div>
+	  </div>
 	</div>
 
 {% endmacro %}

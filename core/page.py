@@ -19,6 +19,7 @@ app.jinja_env.globals['MaterialList'] = MaterialList
 app.jinja_env.globals['Job'] = Job
 app.jinja_env.globals['Delivery'] = Delivery
 app.jinja_env.globals['get_job_num'] = get_job_num
+app.jinja_env.globals['today'] = today
 
 # app upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -128,7 +129,15 @@ def job_materials(job_num=None):
 				filename = secure_filename(_file.filename)
 				_path = os.path.join(_job.sub_path, 'materials', filename)
 				_file.save(_path)
-				_job.add_mat_list(MaterialList(_job, doc=filename))
+
+				_date_sent = datetime.strptime(request.form['dateSubmitted'], '%Y-%m-%d')
+				try:
+					_date_due  = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
+				except ValueError:
+					print "Unknown Error Processing Form"
+					_date_due  = None
+				__obj = MaterialList(_job, doc=filename, date_sent=_date_sent, date_due=_date_due)
+				_job.add_mat_list(__obj)
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
@@ -144,6 +153,15 @@ def job_material_doc(doc_hash, job_num=None):
 		_job = Job.find(job_num)
 		_doc = _job.materials[int(doc_hash)]
 	return send_from_directory(os.path.join(_job.sub_path, 'materials'), _doc.doc)
+
+
+@app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
+def delete_material_doc(doc_hash, job_num=None):
+	# TODO:delete document in filesystem
+	Job.db[job_num].del_material_list(doc_hash)
+	del MaterialList.db[doc_hash]
+	return redirect(request.referrer)
+
 
 
 @app.route('/quote/<doc_hash>')

@@ -3,7 +3,14 @@
   overflow-y: auto;
 }
 
-.file-upload {
+
+/****************/
+/* upload_modal */
+#uploadForm .form-group {
   margin-bottom: 20px;
 }
 
+#fileUpload {
+  margin-bottom: 20px;
+}
+/****************/

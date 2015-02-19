@@ -96,9 +96,10 @@
 		<div class="row">
 
 			<!-- TODO:save file under job folder directory structure -->
-			<div class="well well-sm col-lg-8 col-xs-12 widgetWell">
-				{{ objects.file_upload(job=job, obj=list, meth='quote') }}
+			<div class="well well-sm col-xs-1 widgetWell">
+				{{ objects.upload_modal(job=job, obj=list, meth='quote') }}
 			</div>
+
 			<div class="well col-xs-4 widgetWell">
 				<!-- TODO:convert form/checkbox to http link -->
 				<form class="form-inline" action="{{ url_for('update_material_list', m_hash=list.hash) }}" method="post">
@@ -115,11 +116,10 @@
 
 			<h3 id="listStatus">
 				{% if not list.sent_out %}
-					<span class="label label-danger">List not sent for pricing</span>
+					<span class="label label-danger">List not sent for pricing</span>&nbsp;
 				{% elif not list.quotes|length %}
-					<span class="label label-warning">Expecting Quotes</span>
+					<span class="label label-warning">Expecting Quotes</span>&nbsp;
 				{% endif %}
-				&nbsp;
 				{% if not list.po %}
 					<span class="label label-danger">PO Not Issued</span>
 				{% else %}
@@ -128,7 +128,7 @@
 							<span class="label label-warning label-lg">PO Issued. Not Delivered</span>
 						{% else %}
 							<span class="label label-success label-lg">PO Issued. Delivered.</span>
-						{% endif %}
+						{% endif %}&nbsp;
 						<span class="label label-info label-lg">{{ list.po }}</span>
 					{% endif %}
 				{% endif %}

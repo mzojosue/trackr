@@ -113,12 +113,14 @@ class Job(object):
 		# Job.timesheets.value is [ 'pathname/to/timesheet', hours ]
 		self.timesheets = {}
 
+	def update(self):
+		if hasattr(Job, 'db'):
+			Job.db[self.number] = self
 
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)
-		Job.db[self.number] = self
+		self.update()
 		return _return
-
 
 	@property
 	def next_po(self):
@@ -174,18 +176,24 @@ class Job(object):
 
 	def add_task(self, task_obj):
 		self.tasks[task_obj.hash] = task_obj
-		Job.db[self.number] = self
+		self.update()
 		return None
 
 	def add_mat_list(self, mlist_obj):
 		self.materials[mlist_obj.hash] = mlist_obj
-		Job.db[self.number] = self
+		self.update()
 		return None
 
 	def add_quote(self, quote_obj):
 		self.materials[quote_obj.mat_list.hash].add_quote(quote_obj)
 		self.quotes[quote_obj.hash] = quote_obj
-		Job.db[self.number] = self
+		self.update()
+		return None
+
+	def del_material_list(self, mlist_hash):
+		del self.materials[mlist_hash]
+		# TODO:delete document in filesystem
+		self.update()
 		return None
 
 
@@ -210,7 +218,7 @@ class MaterialList(object):
 		self.todo = True
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
-		self.sent_out = False  # Is set to true once list is given out for pricing
+		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
 

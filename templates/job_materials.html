@@ -75,6 +75,9 @@
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
 			{{ job.name }}&nbsp;
+			{% if job.alt_name %}
+				<small>{{ job.alt_name }}</small>
+			{% endif %}
 			<!-- TODO:implement link to unlock and edit job -->
 			<a href="" class="btn btn-default btn-sm">
 				Unlock for Editing
@@ -85,8 +88,9 @@
 
 		<div class="row">
 
-			<!-- TODO:save file under job folder directory structure -->
-			{{ objects.file_upload(job=job) }}
+			<div class="well well-sm col-xs-1 widgetWell">
+				{{ objects.upload_modal(job=job) }}
+			</div>
 
 			<table class="table table-striped">
 				<tr>
@@ -96,6 +100,7 @@
 					<th>Date Uploaded:</th>
 					<th>Date Due:</th>
 					<th>No. of Quotes:</th>
+					<th><span class="glyphicon glyphicon-trash"></span></th>
 				</tr>
 				{% for i in job.materials.itervalues() %}
 				<!-- TODO:style rows based on age -->
@@ -116,10 +121,21 @@
 						</td>
 						<td>{{ i.foreman }}</td>
 						<td>{{ i.date_sent.date() }}</td>
-						<td>{{ i.date_due }}</td>
+						<td>
+							{% if i.date_due %}
+								{{ i.date_due.date() }}
+							{% else %}
+								None
+							{% endif %}
+						</td>
 						<!-- TODO:show appropriate styling for completed lists -->
 						<!-- TODO:add button for deleting material list -->
 						<td>{{ i.quotes|length }}</td>
+						<td>
+							<a href="{{ url_for('delete_material_doc', doc_hash=i.hash, job_num=i.job.number) }}">
+								<span class="glyphicon glyphicon-trash"></span>
+							</a>
+						</td>
 					</tr>
 				{% endfor %}
 			</table>
