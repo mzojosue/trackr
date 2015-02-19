@@ -124,6 +124,9 @@ def job_materials(job_num=None):
 	try:
 		_job = Job.find(int(job_num))
 		if request.method == 'POST':
+
+			# TODO:add logic to accept document or itemized list
+
 			_file = request.files['file']
 			if _file and allowed_file(_file.filename):
 				filename = secure_filename(_file.filename)

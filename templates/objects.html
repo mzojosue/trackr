@@ -370,17 +370,17 @@
 	      </div>
 
 	      <div class="modal-body">
+
 	        {% if meth == 'material' %}
+
 		        <form id="uploadForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
 							<input type="file" name="file" id="fileUpload">
-
 			        <div class="form-group">
 				        <label for="dateSubmitted">
 					        Date Submitted:
 				        </label>
 				        <input type="date" name="dateSubmitted" id="dateSubmitted" class="form-control" value="{{ today().date() }}">
 			        </div>
-
 			        <div class="form-group">
 				        <label for="dateRequired">
 					        Date Required:
@@ -394,12 +394,10 @@
 						<form id="uploadForm" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
 							<input type="hidden" name="materialList" value="{{ obj.hash }}">
 							<input type="file" name="quote" id="fileUpload">
-
 							<div class="form-group">
 								<label for="vendName">Vendor:</label>
 								<input type="text" name="vendor" id="vendName" class="form-control" placeholder="Vendor Name">
 							</div>
-
 							<div class="form-group">
 								<label class="control-label" for="quotePrice">Quoted Price:</label>
 								<div class="input-group" id="quotePrice">
@@ -409,15 +407,68 @@
 									<input type="text" name="quotePrice" class="form-control" value="0.0">
 								</div>
 							</div>
-
 						</form>
 
 		      {% endif %}
 	      </div>
+
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
 	        <button type="submit" class="btn btn-primary" form="uploadForm">Finalize Upload</button>
 	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro item_modal(job=False, obj=None, meth='material') %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#itemModal">
+	  Input Items
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="itemModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="itemModalLabel">
+		        {% if meth == 'material' %}
+		          Entering Items
+		        {% elif meth == 'quote' %}
+		          Upload Material Quote
+		        {% endif %}
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+
+	        {% if meth == 'material' %}
+
+		        <form id="itemizedMaterialForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
+							<input type="hidden" value="0" id="itemCounter">
+			        <p><a href="javascript:;" onclick="addMaterialItem();">
+				        <span class="glyphicon glyphicon-plus"></span>
+			        </a></p>
+			        <div id="itemizedMaterialArea" class="row">
+				        {# Item line elements will be populated here #}
+			        </div>
+						</form>
+
+		      {% endif %}
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="itemizedMaterialForm">Upload</button>
+	      </div>
+
 	    </div>
 	  </div>
 	</div>
