@@ -124,27 +124,36 @@ def job_materials(job_num=None):
 	try:
 		_job = Job.find(int(job_num))
 		if request.method == 'POST':
-
-			# TODO:add logic to accept document or itemized list
-
-			_file = request.files['file']
-			if _file and allowed_file(_file.filename):
-				filename = secure_filename(_file.filename)
-				_path = os.path.join(_job.sub_path, 'materials', filename)
-				_file.save(_path)
-
-				_date_sent = datetime.strptime(request.form['dateSubmitted'], '%Y-%m-%d')
-				try:
-					_date_due  = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
-				except ValueError:
-					print "Unknown Error Processing Form"
-					_date_due  = None
-				__obj = MaterialList(_job, doc=filename, date_sent=_date_sent, date_due=_date_due)
-				_job.add_mat_list(__obj)
+			if request.files.has_key('file'):
+				""" This branch of logic is followed if a file is being uploaded """
+				print "file"
+				_file = request.files['file']
+				if _file and allowed_file(_file.filename):
+					filename = secure_filename(_file.filename)
+					_path = os.path.join(_job.sub_path, 'materials', filename)
+					_file.save(_path)
+					_date_sent = datetime.strptime(request.form['dateSubmitted'], '%Y-%m-%d')
+					try:
+						_date_due  = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
+					except ValueError:
+						print "_date_due value not given. Setting to None."
+						_date_due  = None
+					__obj = MaterialList(_job, doc=filename, date_sent=_date_sent, date_due=_date_due)
+					_job.add_mat_list(__obj)
+			elif request.form.has_key('itemCounter'):
+				__item_count = int(request.form['itemCounter'])
+				__items = []
+				_counter = 1
+				while _counter <= __item_count:
+					_qty = '-'.join([ 'item', str(_counter), 'qty' ])
+					_desc = '-'.join([ 'item', str(_counter), 'desc' ])
+					_item = [ int(request.form[_qty]), str(request.form[_desc]) ]
+					__items.append(_item)
+					_counter += 1
+				print __items
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
-
 
 @app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')

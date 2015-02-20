@@ -1,15 +1,3 @@
-function addElement() {
-    var ni = document.getElementById('itemizedMaterialForm');
-    var numi = document.getElementById('itemCounter');
-    var num = (document.getElementById('itemCounter').value -1)+ 2;
-    numi.value = num;
-    var newdiv = document.createElement('div');
-    var divIdName = 'my'+num+'Div';
-    newdiv.setAttribute('id',divIdName);
-    newdiv.innerHTML = 'Element Number '+num+' has been added! <a href=\'javascript:;\' onclick=\'removeElement('+divIdName+')\'>Remove the div "'+divIdName+'"</a>';
-    ni.appendChild(newdiv);
-}
-
 function addMaterialItem() {
     var itemForm = document.getElementById('itemizedMaterialArea');
     var numi = document.getElementById('itemCounter');
@@ -22,11 +10,11 @@ function addMaterialItem() {
 
     // Populate input element for quantity
     var qtyInput = document.createElement('input');
-    var qtyIdName = 'item'+num+'-qty';
-    qtyInput.setAttribute('id', qtyIdName);
+    var qtyIdName = 'item-'+num+'-qty';
+    qtyInput.setAttribute('name', qtyIdName);
     qtyInput.setAttribute('type', 'number');
     qtyInput.setAttribute('class', 'form-control');
-    qtyInput.setAttribute('placeholder', '1');
+    qtyInput.setAttribute('value', '1');
 
     // Append qty input element to div
     qtyDiv.appendChild(qtyInput);
@@ -38,18 +26,17 @@ function addMaterialItem() {
 
     // Populate input element for quantity
     var itemInput = document.createElement('input');
-    var itemIdName = 'item'+num+'-desc';
-    itemInput.setAttribute('id', itemIdName);
+    var itemIdName = 'item-'+num+'-desc';
+    itemInput.setAttribute('name', itemIdName);
     itemInput.setAttribute('type', 'text');
     itemInput.setAttribute('class', 'form-control');
-    itemInput.setAttribute('placeholder', 'Write Item Description Here');
+    itemInput.setAttribute('placeholder', 'Item Description Goes Here');
 
     // Append text input to div
     itemDiv.appendChild(itemInput);
 
     var lineDiv = document.createElement('div');
-    lineDiv.setAttribute('id', 'itemLineDiv');
-    lineDiv.setAttribute('class', 'col-xs-12 form-group');
+    lineDiv.setAttribute('class', 'col-xs-12 form-group itemLineDiv');
 
     lineDiv.appendChild(qtyDiv);
     lineDiv.appendChild(itemDiv);

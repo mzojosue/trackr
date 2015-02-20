@@ -450,10 +450,10 @@
 	      <div class="modal-body">
 
 	        {% if meth == 'material' %}
-
+						<!-- TODO:create input for naming material list -->
 		        <form id="itemizedMaterialForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
-							<input type="hidden" value="0" id="itemCounter">
-			        <p><a href="javascript:;" onclick="addMaterialItem();">
+							<input type="hidden" value="0" id="itemCounter" name="itemCounter">
+			        <p class="pull-right"><a href="javascript:;" onclick="addMaterialItem();">
 				        <span class="glyphicon glyphicon-plus"></span>
 			        </a></p>
 			        <div id="itemizedMaterialArea" class="row">
