@@ -96,11 +96,14 @@
 		<div class="row">
 
 			<!-- TODO:save file under job folder directory structure -->
-			<div class="well well-sm col-xs-1 widgetWell">
+			<div class="col-xs-2 widgetWell">
 				{{ objects.upload_modal(job=job, obj=list, meth='quote') }}
+				{% if list.items %}
+					{{ objects.list_modal(job=job, obj=list) }}
+				{% endif %}
 			</div>
 
-			<div class="well col-xs-4 widgetWell">
+			<div class="well col-xs-4 widgetWell pull-right">
 				<!-- TODO:convert form/checkbox to http link -->
 				<form class="form-inline" action="{{ url_for('update_material_list', m_hash=list.hash) }}" method="post">
 					<div class="checkbox">

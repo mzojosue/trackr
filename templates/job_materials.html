@@ -88,7 +88,7 @@
 
 		<div class="row">
 
-			<div class="well well-sm col-xs-2 widgetWell">
+			<div class="col-xs-2 widgetWell">
 				{{ objects.upload_modal(job=job) }}
 				{{ objects.item_modal(job=job) }}
 			</div>
@@ -105,20 +105,38 @@
 				</tr>
 				{% for i in job.materials.itervalues() %}
 				<!-- TODO:style rows based on age -->
-					<tr>
+					{% if (i.age > 6) and (not i.fulfilled) %}
+						<tr class="danger">
+					{% elif (i.age > 2) and (not i.fulfilled) %}
+						<tr class="warning">
+					{% elif i.fulfilled %}
+						<tr class="success">
+					{% else %}
+						<tr>
+					{% endif %}
 						<td id="{{ i.hash }}-materials-fulfilled">
-							<!-- TODO:redirect to schedule delivery -->
-							<a href="#">
-								<span class="glyphicon glyphicon-unchecked"></span>
-							</a>
+							{% if not i.fulfilled %}
+								<!-- TODO:redirect to schedule delivery -->
+								<a href="#">
+									<span class="glyphicon glyphicon-unchecked"></span>
+								</a>
+							{% else %}
+								<span class="glyphicon glyphicon-ok"></span>
+							{% endif %}
 						</td>
 						<td>
 							<a href="{{ url_for('material_list', m_hash=i.hash) }}">
-								{{ i.hash }}
-							</a>&nbsp;
-							<a target="_blank" href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=i.hash) }}">
-								<span class="glyphicon glyphicon-paperclip"></span>
+								{% if i.label|length %}
+									{{ i.label }}
+								{% else %}
+									{{ i.hash }}
+								{% endif %}
 							</a>
+							{% if i.doc %}
+								<a target="_blank" href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=i.hash) }}">
+									<span class="glyphicon glyphicon-paperclip"></span>
+								</a>
+							{% endif %}
 						</td>
 						<td>{{ i.foreman }}</td>
 						<td>{{ i.date_sent.date() }}</td>

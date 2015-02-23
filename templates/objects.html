@@ -20,7 +20,6 @@
 		</div>
 		<div id="{{ todo_obj.hash }}-collapse" class="panel-collapse collapse" role="tabpanel"
 				 aria-labelledby="{{ todo_obj.hash }}-heading">
-
 			<div class="panel-body">
 				This is the description of the new todo
 				<a href="{{ url_for('del_todo', t_hash=todo_obj.hash) }}">
@@ -350,7 +349,11 @@
 
 	<!-- Button trigger modal -->
 	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
-	  Upload Doc
+		{% if meth == 'material' %}
+	    Upload Doc
+		{% else %}
+			Upload Quote
+		{% endif %}
 	</button>
 
 	<!-- Modal -->
@@ -453,11 +456,26 @@
 						<!-- TODO:create input for naming material list -->
 		        <form id="itemizedMaterialForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
 							<input type="hidden" value="0" id="itemCounter" name="itemCounter">
-			        <p class="pull-right"><a href="javascript:;" onclick="addMaterialItem();">
-				        <span class="glyphicon glyphicon-plus"></span>
-			        </a></p>
+			        <div class="form-group itemLineDiv">
+				        <label for="listLabel">
+					        List Label
+				        </label>
+				        <a class="pull-right" href="javascript:;" onclick="addMaterialItem();">
+					        <span class="glyphicon glyphicon-plus"></span>
+				        </a>
+				        <input type="text" id="listLabel" class="form-control" name="listLabel" placeholder="Short description of list">
+				      </div>
+			        <label for="itemizedMaterialArea">
+				        Items:
+			        </label>
 			        <div id="itemizedMaterialArea" class="row">
 				        {# Item line elements will be populated here #}
+			        </div>
+			        <div class="form-group">
+				        <label for="dateRequired">
+					        Date Required:
+				        </label>
+				        <input type="date" name="dateRequired" id="dateRequired" class="form-control">
 			        </div>
 						</form>
 
@@ -467,6 +485,45 @@
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
 	        <button type="submit" class="btn btn-primary" form="itemizedMaterialForm">Upload</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro list_modal(job=False, obj=None) %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-info" data-toggle="modal" data-target="#listModal">
+	  View List
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="listModal" tabindex="-1" role="dialog" aria-labelledby="listModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="listModalLabel">
+		        {{ obj }}
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+		      <ul class="list-group">
+			      {% for item in obj.items %}
+			        <li class="list-group-item">{{ item }}</li>
+			      {% endfor %}
+			    </ul>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary">Edit</button>
 	      </div>
 
 	    </div>

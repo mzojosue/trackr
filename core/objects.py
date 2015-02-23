@@ -198,7 +198,7 @@ class Job(object):
 
 
 class MaterialList(object):
-	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments=""):
+	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label=""):
 		self.hash = abs(hash(str(now())))
 
 
@@ -211,6 +211,7 @@ class MaterialList(object):
 			self.foreman = foreman
 		self.date_sent = date_sent
 		self.date_due = date_due
+		self.label = label
 		self.comments = comments
 
 		self.quotes = {}
@@ -221,11 +222,13 @@ class MaterialList(object):
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
+	def update(self):
+		if hasattr(MaterialList, 'db'):
+			MaterialList.db[self.hash] = self
 
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
-		if hasattr(MaterialList, 'db'):
-			MaterialList.db[self.hash] = self
+		self.update()
 		if hasattr(self, 'job'):
 			self.job.materials[self.hash] = self
 		return _return
@@ -239,19 +242,22 @@ class MaterialList(object):
 		""" Used for highlighting unfulfilled material lists when displayed in a table.
 		:return: days since material list was received. If fulfilled, returns False.
 		"""
-		# TODO:implement function
-		return NotImplemented
+		if self.date_due:
+			return (self.date_due - today()).days
+		else:
+			return (today() - self.date_sent).days
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
 		MaterialList.db[self.hash] = self
 		return None
 
-	def issue_po(self, quote, fulfills=False):
+	def issue_po(self, quote):
 		quote.awarded = True
-		_obj = PO(self.job, quote=quote, fulfills=fulfills)
-		self.po = _obj
 		self.fulfilled = True
+		_obj = PO(self.job, quote=quote, mat_list=self)
+		self.po = _obj
+		self.update()
 		return _obj
 
 
@@ -273,19 +279,18 @@ class Quotes(object):
 
 
 class PO(object):
-	def __init__(self, job, mat_list=None, date_issued=today(), fulfills=False,
+	def __init__(self, job, mat_list=None, date_issued=today(),
 	             quote=None, desc=None, deliveries=None):
 		self.num = job.claim_po()
 		self.job = job
 		self.mat_list = mat_list
 		self.date_issued = date_issued
-		if fulfills:
-			self.mat_list.fulfilled = True
 		self.quote = quote
 		self.deliveries = deliveries  # stores initial delivery date
 		self.desc = str(desc)
 
 		self.job.POs[self.name] = self
+		self.job.update()
 		self.backorders = None  # stores any backorder delivery dates
 
 	@property

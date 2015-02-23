@@ -150,7 +150,14 @@ def job_materials(job_num=None):
 					_item = [ int(request.form[_qty]), str(request.form[_desc]) ]
 					__items.append(_item)
 					_counter += 1
-				print __items
+				try:
+					_date_due  = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
+				except ValueError:
+					print "_date_due value not given. Setting to None."
+					_date_due  = None
+				_label = request.form['listLabel']
+				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label)
+				_job.add_mat_list(__obj)
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
@@ -164,7 +171,11 @@ def job_material_doc(doc_hash, job_num=None):
 	else:
 		_job = Job.find(job_num)
 		_doc = _job.materials[int(doc_hash)]
-	return send_from_directory(os.path.join(_job.sub_path, 'materials'), _doc.doc)
+		if _doc.doc:
+			return send_from_directory(os.path.join(_job.sub_path, 'materials'), _doc.doc)
+		else:
+			return redirect(request.referrer)
+
 
 
 @app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
