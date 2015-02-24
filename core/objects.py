@@ -196,6 +196,11 @@ class Job(object):
 		self.update()
 		return None
 
+	def del_quote(self, quote_hash):
+		del self.quotes[quote_hash]
+		self.update()
+		return None
+
 
 class MaterialList(object):
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label=""):
@@ -222,10 +227,6 @@ class MaterialList(object):
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
-	def update(self):
-		if hasattr(MaterialList, 'db'):
-			MaterialList.db[self.hash] = self
-
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
 		self.update()
@@ -235,7 +236,10 @@ class MaterialList(object):
 
 	def __repr__(self):
 		dt = self.date_sent
-		return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt.date())
+		if len(self.label):
+			return '"%s" from %s' % (self.label, dt.date())
+		else:
+			return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt.date())
 
 	@property
 	def age(self):
@@ -247,9 +251,18 @@ class MaterialList(object):
 		else:
 			return (today() - self.date_sent).days
 
+	def update(self):
+		if hasattr(MaterialList, 'db'):
+			MaterialList.db[self.hash] = self
+
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
 		MaterialList.db[self.hash] = self
+		return None
+
+	def del_quote(self, quote_obj):
+		del self.quotes[quote_obj.hash]
+		self.update()
 		return None
 
 	def issue_po(self, quote):
@@ -266,7 +279,7 @@ class Quotes(object):
 		self.hash = abs(hash(now()))
 		self.mat_list = mat_list
 		self.price = float(price)
-		self.vend = str(vend)
+		self.vend = vend
 		self.doc = str(doc)  # document target path/name
 		self.date_recvd = today()
 		self.awarded = False
@@ -276,6 +289,9 @@ class Quotes(object):
 		if hasattr(self, 'mat_list'):
 			self.mat_list.add_quote(self)
 		return _return
+
+	def __repr__(self):
+		return "Quote from %s for %s" % (self.vend, self.mat_list)
 
 
 class PO(object):

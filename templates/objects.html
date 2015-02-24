@@ -266,6 +266,8 @@
 									<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
 										<span class="glyphicon glyphicon-open-file"></span>
 									</a>
+								{% elif mlist.items %}
+									<span class="glyphicon glyphicon-th-list"></span>
 								{% endif %}
 							</li>
 						{% endfor %}
@@ -377,6 +379,12 @@
 	        {% if meth == 'material' %}
 
 		        <form id="uploadForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
+			        <div class="form-group itemLineDiv">
+				        <label for="listLabel">
+					        List Label
+				        </label>
+				        <input type="text" id="listLabel" class="form-control" name="listLabel" placeholder="Descriptive Label">
+				      </div>
 							<input type="file" name="file" id="fileUpload">
 			        <div class="form-group">
 				        <label for="dateSubmitted">
@@ -463,7 +471,7 @@
 				        <a class="pull-right" href="javascript:;" onclick="addMaterialItem();">
 					        <span class="glyphicon glyphicon-plus"></span>
 				        </a>
-				        <input type="text" id="listLabel" class="form-control" name="listLabel" placeholder="Short description of list">
+				        <input type="text" id="listLabel" class="form-control" name="listLabel" placeholder="Descriptive Label">
 				      </div>
 			        <label for="itemizedMaterialArea">
 				        Items:

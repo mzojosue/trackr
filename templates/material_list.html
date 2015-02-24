@@ -179,6 +179,11 @@
 						<td>{{ i.price }}</td>
 						<!-- TODO:show appropriate styling for completed lists -->
 						<!-- TODO:add button for deleting material list -->
+						<td>
+							<a href="{{ url_for('delete_job_quote', doc_hash=i.hash, job_num=i.mat_list.job.number) }}">
+								<span class="glyphicon glyphicon-trash"></span>
+							</a>
+						</td>
 					</tr>
 				{% endfor %}
 			</table>

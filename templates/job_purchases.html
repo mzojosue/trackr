@@ -48,13 +48,19 @@
 				</a>
 			</li>
 			<li>
+				<a href="{{ url_for('job_materials', job_num=job.number) }}">
+					<span class="glyphicon glyphicon-wrench"></span>&nbsp;
+					Materials
+				</a>
+			</li>
+			<li>
 				<a href="{{ url_for('job_deliveries', job_num=job.number) }}">
 					<span class="glyphicon glyphicon-plane"></span>&nbsp;
 					Deliveries
 				</a>
 			</li>
 			<li class="active">
-				<a href="{{ url_for('job_POs', job_num=job.number) }}">
+				<a href="{{ url_for('job_pos', job_num=job.number) }}">
 					<span class="glyphicon glyphicon-piggy-bank"></span>&nbsp;
 					Purchase Orders
 				</a>
@@ -75,9 +81,41 @@
 			</a>
 		</h1>
 
+		<h4 class="sub-header">
+			Purchase Orders:
+		</h4>
+
 		<div class="row">
 
-			{{ objects.file_upload() }}
+			<table class="table table-striped">
+				<tr id="tableHeadings">
+					<th>PO:</th>
+					<th>Issued to:</th>
+					<th>Date Issued:</th>
+					<th>Price:</th>
+					<th>Original Material List:</th>
+					<th>Vendor Quote:</th>
+					<th>Ordered By:</th>
+				</tr>
+				{% for i in job.POs.itervalues() %}
+					<tr>
+						<td>{{ i }}</td>
+						<td>{{ i.quote.vend }}</td>
+						<td>{{ i.date_issued.date() }}</td>
+						<td>${{ i.quote.price }}</td>
+						<td>
+							<!-- TODO:create link to material list -->
+							<a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">
+								{{ i.mat_list }}
+							</a>
+						</td>
+						<td>
+							{{ i.quote }}
+						</td>
+						<td>Ordered by...</td>
+					</tr>
+				{% endfor %}
+			</table>
 
 		</div><!-- /.row -->
 	</div><!-- /.main -->

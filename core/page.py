@@ -199,6 +199,13 @@ def job_quote_doc(doc_hash, job_num=None):
 	return send_from_directory(os.path.join(_job.sub_path, 'quotes'), _doc.doc)
 
 
+@app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
+def delete_job_quote(job_num, doc_hash):
+	# TODO:implement quote deletion functions
+	Job.db[job_num].del_quote(doc_hash)
+	return redirect(request.referrer)
+
+
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/award')
 def job_quote_award_po(doc_hash, job_num=None):
 	_job = Job.find(job_num)
