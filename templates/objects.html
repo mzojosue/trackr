@@ -523,9 +523,13 @@
 
 	      <div class="modal-body">
 		      <ul class="list-group">
-			      {% for item in obj.items %}
-			        <li class="list-group-item">{{ item }}</li>
-			      {% endfor %}
+			      {% if obj.items is not string %}
+				      {% for item in obj.items %}
+				        <li class="list-group-item">{{ item }}</li>
+				      {% endfor %}
+			      {% else %}
+			        <p>{{ obj.items }}</p>
+			      {% endif %}
 			    </ul>
 	      </div>
 

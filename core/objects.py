@@ -4,6 +4,8 @@ from datetime import datetime
 today = datetime.today
 now = datetime.now
 
+ENV_ROOT = "//SERVER/Documents/Esposito"
+
 
 class Worker(object):
 	workers = {}
@@ -190,6 +192,11 @@ class Job(object):
 		self.update()
 		return None
 
+	def add_po(self, po_obj):
+		self.POs[po_obj.num] = po_obj
+		self.update()
+		return None
+
 	def del_material_list(self, mlist_hash):
 		del self.materials[mlist_hash]
 		# TODO:delete document in filesystem
@@ -209,7 +216,7 @@ class MaterialList(object):
 
 		self.job = job
 		self.items = items
-		self.doc = doc
+		self._doc = doc
 		if not foreman:
 			self.foreman = self.job.foreman
 		else:
@@ -220,12 +227,14 @@ class MaterialList(object):
 		self.comments = comments
 
 		self.quotes = {}
-		# TODO:append MaterialList to open tasks to-do
+		# TODO:append MaterialList to task list
 		self.todo = True
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
+
+		self.job.add_mat_list(self)
 
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
@@ -235,21 +244,34 @@ class MaterialList(object):
 		return _return
 
 	def __repr__(self):
-		dt = self.date_sent
-		if len(self.label):
-			return '"%s" from %s' % (self.label, dt.date())
+		if hasattr(self.date_sent, 'date'):
+			dt = self.date_sent.date()
 		else:
-			return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt.date())
+			dt = self.date_sent
+		if len(self.label):
+			return '"%s" from %s' % (self.label, dt)
+		else:
+			return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt)
 
 	@property
 	def age(self):
 		""" Used for highlighting unfulfilled material lists when displayed in a table.
 		:return: days since material list was received. If fulfilled, returns False.
 		"""
-		if self.date_due:
-			return (self.date_due - today()).days
-		else:
-			return (today() - self.date_sent).days
+		try:
+			if self.date_due:
+				return (self.date_due - today()).days
+			else:
+				return (today() - self.date_sent).days
+		except TypeError:
+			# `self.date_sent` is assumed to be 0
+			return 0
+
+	@property
+	def doc(self):
+		if self._doc:
+			return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
+		return False
 
 	def update(self):
 		if hasattr(MaterialList, 'db'):
@@ -278,11 +300,15 @@ class Quotes(object):
 	def __init__(self, mat_list, price=0.0, vend=None, doc=None):
 		self.hash = abs(hash(now()))
 		self.mat_list = mat_list
-		self.price = float(price)
+		try:
+			self.price = float(price)
+		except ValueError:
+			self.price = 0.0
 		self.vend = vend
-		self.doc = str(doc)  # document target path/name
+		self._doc = doc  # document target path/name
 		self.date_recvd = today()
 		self.awarded = False
+		self.mat_list.job.add_quote(self)
 
 	def __setattr__(self, key, value):
 		_return = super(Quotes, self).__setattr__(key, value)
@@ -292,6 +318,12 @@ class Quotes(object):
 
 	def __repr__(self):
 		return "Quote from %s for %s" % (self.vend, self.mat_list)
+
+	@property
+	def doc(self):
+		if self._doc:
+			return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
+		return False
 
 
 class PO(object):
@@ -305,13 +337,15 @@ class PO(object):
 		self.deliveries = deliveries  # stores initial delivery date
 		self.desc = str(desc)
 
-		self.job.POs[self.name] = self
-		self.job.update()
 		self.backorders = None  # stores any backorder delivery dates
+
+		self.mat_list.po = self
+		self.job.add_po(self)
 
 	@property
 	def name(self):
-		return '-'.join([str(self.job.name), str(self.num)])
+		_num = '%03d' % self.num
+		return '-'.join([self.job.name, _num])
 
 	def __repr__(self):
 		return self.name

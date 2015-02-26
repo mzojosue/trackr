@@ -1,4 +1,3 @@
-import os
 from werkzeug import secure_filename
 from flask import *
 from objects import *
@@ -20,6 +19,7 @@ app.jinja_env.globals['Job'] = Job
 app.jinja_env.globals['Delivery'] = Delivery
 app.jinja_env.globals['get_job_num'] = get_job_num
 app.jinja_env.globals['today'] = today
+app.jinja_env.globals['hasattr'] = hasattr
 
 # app upload config
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -139,7 +139,6 @@ def job_materials(job_num=None):
 						print "_date_due value not given. Setting to None."
 						_date_due  = None
 					__obj = MaterialList(_job, doc=filename, date_sent=_date_sent, date_due=_date_due)
-					_job.add_mat_list(__obj)
 			elif request.form.has_key('itemCounter'):
 				__item_count = int(request.form['itemCounter'])
 				__items = []
@@ -157,7 +156,6 @@ def job_materials(job_num=None):
 					_date_due  = None
 				_label = request.form['listLabel']
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label)
-				_job.add_mat_list(__obj)
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
 		return "Error: Job does not exist"
@@ -171,10 +169,11 @@ def job_material_doc(doc_hash, job_num=None):
 	else:
 		_job = Job.find(job_num)
 		_doc = _job.materials[int(doc_hash)]
-		if _doc.doc:
-			return send_from_directory(os.path.join(_job.sub_path, 'materials'), _doc.doc)
+		if type(_doc.doc) is tuple:
+			return send_from_directory(*_doc.doc)
 		else:
-			return redirect(request.referrer)
+			print "not using _doc.doc"
+			return send_from_directory(os.path.join(_job.sub_path, 'Materials'), _doc.doc)
 
 
 
@@ -196,7 +195,10 @@ def job_quote_doc(doc_hash, job_num=None):
 	else:
 		_job = Job.find(job_num)
 		_doc = _job.quotes[int(doc_hash)]
-	return send_from_directory(os.path.join(_job.sub_path, 'quotes'), _doc.doc)
+		if type(_doc.doc) is tuple:
+			return send_from_directory(*_doc.doc)
+		else:
+			return send_from_directory(os.path.join(_job.sub_path, 'quotes'), _doc.doc)
 
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
@@ -373,7 +375,6 @@ def quote():
 			__vend = request.form['vendor']
 
 			_obj = Quotes(mat_list=_list, doc=filename, price=__price, vend=__vend)
-			_list.job.add_quote(_obj)
 		return redirect(request.referrer)
 
 

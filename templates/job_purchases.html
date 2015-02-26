@@ -95,13 +95,13 @@
 					<th>Price:</th>
 					<th>Original Material List:</th>
 					<th>Vendor Quote:</th>
-					<th>Ordered By:</th>
+					<!--th>Ordered By:</th-->
 				</tr>
 				{% for i in job.POs.itervalues() %}
 					<tr>
 						<td>{{ i }}</td>
 						<td>{{ i.quote.vend }}</td>
-						<td>{{ i.date_issued.date() }}</td>
+						<td>{{ i.date_issued }}</td>
 						<td>${{ i.quote.price }}</td>
 						<td>
 							<!-- TODO:create link to material list -->
@@ -112,7 +112,7 @@
 						<td>
 							{{ i.quote }}
 						</td>
-						<td>Ordered by...</td>
+						<!--td>Ordered by...</td-->
 					</tr>
 				{% endfor %}
 			</table>

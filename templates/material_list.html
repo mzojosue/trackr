@@ -170,9 +170,11 @@
 						</td>
 						<td>
 							{{ i.hash }}
-							<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.hash) }}">
-								<span class="glyphicon glyphicon-paperclip"></span>
-							</a>
+							{% if i.doc %}
+								<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.hash) }}">
+									<span class="glyphicon glyphicon-paperclip"></span>
+								</a>
+							{% endif %}
 						</td>
 						<td>{{ i.vend }}</td>
 						<td>{{ i.date_recvd.date() }}</td>

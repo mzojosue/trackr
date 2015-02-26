@@ -139,7 +139,13 @@
 							{% endif %}
 						</td>
 						<td>{{ i.foreman }}</td>
-						<td>{{ i.date_sent.date() }}</td>
+						<td>
+							{% if hasattr(i.date_sent, 'date') %}
+								{{ i.date_sent.date() }}
+							{% else %}
+								{{ i.date_sent }}
+							{% endif %}
+						</td>
 						<td>
 							{% if i.date_due %}
 								{{ i.date_due.date() }}
