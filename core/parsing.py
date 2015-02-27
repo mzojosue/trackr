@@ -37,6 +37,7 @@ def parse_PO_log(poLog, sheet=None, create=False):
 					except TypeError:
 						__d = [int(i) for i in parse("{}.{}.{}", _row[3].value)]
 						__date_issued = date(__d[2], __d[0], __d[1])
+						del __d
 			else:
 				__date_issued = None
 
@@ -54,8 +55,11 @@ def parse_PO_log(poLog, sheet=None, create=False):
 				if '\\' in __mat_list_val:
 					__mat_list_val = str(__mat_list_val).replace('\\', '/')
 					_mat_list = objects.MaterialList(job=_job, doc=objects.os.path.split(__mat_list_val), date_sent=__date_issued)
-				elif create:
+				else:
 					_mat_list = objects.MaterialList(job=_job, items=__mat_list_val, date_sent=__date_issued)
+				_mat_list.sent_out = True
+				if _mat_list.age > 5:
+					_mat_list.delivered = True
 				print _mat_list
 
 				# Create Quote objects
@@ -65,10 +69,14 @@ def parse_PO_log(poLog, sheet=None, create=False):
 					_quote = objects.Quotes(mat_list=_mat_list, price=__price, vend=__vend, doc=__quote_val)
 
 				# Create PO objects
-				objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment)
+				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment)
+
+				del _mat_list, _quote, _po
 
 			else:
 				print str(__mat_list_val).replace('\\', '/')
+			# Delete all variables between each iteration
+			del __po, __vend, __price, __date_issued, __mat_list_val, __quote_val, __comment
 
 
 def parse_job_info(jobInfo):

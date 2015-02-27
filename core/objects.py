@@ -181,9 +181,10 @@ class Job(object):
 		self.update()
 		return None
 
-	def add_mat_list(self, mlist_obj):
+	def add_mat_list(self, mlist_obj, update=True):
 		self.materials[mlist_obj.hash] = mlist_obj
-		self.update()
+		if update:
+			self.update()
 		return None
 
 	def add_quote(self, quote_obj):
@@ -239,8 +240,6 @@ class MaterialList(object):
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
 		self.update()
-		if hasattr(self, 'job'):
-			self.job.materials[self.hash] = self
 		return _return
 
 	def __repr__(self):
@@ -276,6 +275,9 @@ class MaterialList(object):
 	def update(self):
 		if hasattr(MaterialList, 'db'):
 			MaterialList.db[self.hash] = self
+			if hasattr(self, 'job'):
+				self.job.add_mat_list(self)
+		return None
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
@@ -287,13 +289,16 @@ class MaterialList(object):
 		self.update()
 		return None
 
-	def issue_po(self, quote):
-		quote.awarded = True
+	def issue_po(self, quote_obj):
+		quote_obj.awarded = True
 		self.fulfilled = True
-		_obj = PO(self.job, quote=quote, mat_list=self)
-		self.po = _obj
-		self.update()
+		_obj = PO(self.job, quote=quote_obj, mat_list=self)
 		return _obj
+
+	def add_po(self, po_obj):
+		self.po = po_obj
+		self.update()
+		return None
 
 
 class Quotes(object):
@@ -325,6 +330,13 @@ class Quotes(object):
 			return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
 		return False
 
+	def update(self):
+		if hasattr(Quotes, 'db'):
+			Quotes.db[self.hash] = self
+			if hasattr(self, 'mat_list'):
+				self.mat_list.add_quote(self)
+		return None
+
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
@@ -339,8 +351,15 @@ class PO(object):
 
 		self.backorders = None  # stores any backorder delivery dates
 
-		self.mat_list.po = self
+		# update job object
 		self.job.add_po(self)
+		# update material list object
+		self.mat_list.add_po(self)
+		self.mat_list.fulfilled = True
+		self.mat_list.update()
+		# update quote object
+		self.quote.awarded = True
+		self.quote.update()
 
 	@property
 	def name(self):

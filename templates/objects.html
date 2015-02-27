@@ -254,22 +254,24 @@
 				{% if job %}
 					{% if job.materials|length > 0 %}
 						{% for mlist in job.materials.itervalues() %}
-							<li class="list-group-item">
-								<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
-									{{ mlist }}
-								</a>
-								{% if mlist.quotes|length %}
-									<!-- TODO:implement link to view quotes -->
-									<span class="glyphicon glyphicon-paperclip"></span>
-								{% endif %}
-								{% if mlist.doc %}
-									<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
-										<span class="glyphicon glyphicon-open-file"></span>
+							{% if not mlist.fulfilled %}
+								<li class="list-group-item">
+									<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
+										{{ mlist }}
 									</a>
-								{% elif mlist.items %}
-									<span class="glyphicon glyphicon-th-list"></span>
-								{% endif %}
-							</li>
+									{% if mlist.quotes|length %}
+										<!-- TODO:implement link to view quotes -->
+										<span class="glyphicon glyphicon-paperclip"></span>
+									{% endif %}
+									{% if mlist.doc %}
+										<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
+											<span class="glyphicon glyphicon-open-file"></span>
+										</a>
+									{% elif mlist.items %}
+										<span class="glyphicon glyphicon-th-list"></span>
+									{% endif %}
+								</li>
+							{% endif %}
 						{% endfor %}
 					{% else %}
 						<li class="list-group-item">
@@ -279,20 +281,22 @@
 				{% else %}
 					{% if MaterialList.db|length > 0 %}
 						{% for mlist in MaterialList.db.itervalues() %}
-							<li class="list-group-item">
-								<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
-									{{ mlist }}
-								</a>
-								{% if mlist.quotes|length %}
-									<!-- TODO:implement link to view quotes -->
-									<span class="glyphicon glyphicon-paperclip"></span>
-								{% endif %}
-								{% if mlist.doc %}
-									<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
-										<span class="glyphicon glyphicon-open-file"></span>
+							{% if not mlist.fulfilled %}
+								<li class="list-group-item">
+									<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
+										{{ mlist }}
 									</a>
-								{% endif %}
-							</li>
+									{% if mlist.quotes|length %}
+										<!-- TODO:implement link to view quotes -->
+										<span class="glyphicon glyphicon-paperclip"></span>
+									{% endif %}
+									{% if mlist.doc %}
+										<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
+											<span class="glyphicon glyphicon-open-file"></span>
+										</a>
+									{% endif %}
+								</li>
+							{% endif %}
 						{% endfor %}
 					{% else %}
 						<li class="list-group-item">

@@ -88,7 +88,7 @@
 			</li>
 			<li role="presentation" class="active">
 				<a href="#" class="disabled">
-					{{ list }}
+					{{ mlist }}
 				</a>
 			</li>
 		</ul>
@@ -97,18 +97,18 @@
 
 			<!-- TODO:save file under job folder directory structure -->
 			<div class="col-xs-2 widgetWell">
-				{{ objects.upload_modal(job=job, obj=list, meth='quote') }}
-				{% if list.items %}
-					{{ objects.list_modal(job=job, obj=list) }}
+				{{ objects.upload_modal(job=job, obj=mlist, meth='quote') }}
+				{% if mlist.items %}
+					{{ objects.list_modal(job=job, obj=mlist) }}
 				{% endif %}
 			</div>
 
 			<div class="well col-xs-4 widgetWell pull-right">
 				<!-- TODO:convert form/checkbox to http link -->
-				<form class="form-inline" action="{{ url_for('update_material_list', m_hash=list.hash) }}" method="post">
+				<form class="form-inline" action="{{ url_for('update_material_list', m_hash=mlist.hash) }}" method="post">
 					<div class="checkbox">
 						<label>
-							<input type="checkbox" name="sentOut" value="True" {% if list.sent_out %}checked{% endif %}>
+							<input type="checkbox" name="sentOut" value="True" {% if mlist.sent_out %}checked{% endif %}>
 							Sent to appropriate vendors
 						</label>
 					</div>
@@ -118,23 +118,23 @@
 			<div class="clearfix visible-lg-block"></div>
 
 			<h3 id="listStatus">
-				{% if not list.sent_out %}
+				{%- if not mlist.sent_out %}
 					<span class="label label-danger">List not sent for pricing</span>&nbsp;
-				{% elif not list.quotes|length %}
+				{% elif not mlist.quotes|length %}
 					<span class="label label-warning">Expecting Quotes</span>&nbsp;
-				{% endif %}
-				{% if not list.po %}
+				{% endif -%}
+				{%- if not mlist.po %}
 					<span class="label label-danger">PO Not Issued</span>
 				{% else %}
-					{% if list.fulfilled %}
-						{% if not list.delivered %}
+					{%- if mlist.fulfilled %}
+						{% if not mlist.delivered %}
 							<span class="label label-warning label-lg">PO Issued. Not Delivered</span>
 						{% else %}
 							<span class="label label-success label-lg">PO Issued. Delivered.</span>
 						{% endif %}&nbsp;
-						<span class="label label-info label-lg">{{ list.po }}</span>
-					{% endif %}
-				{% endif %}
+						<span class="label label-info label-lg">{{ mlist.po }}</span>
+					{% endif -%}
+				{% endif -%}
 			</h3>
 
 			<label for="quoteTable">Associated Quotes:</label>
@@ -147,12 +147,12 @@
 					<th>Price</th>
 					<th>Del:</th>
 				</tr>
-				{% for i in list.quotes.itervalues() %}
+				{% for i in mlist.quotes.itervalues() %}
 				<!-- TODO:style rows based on age -->
 					<tr class="{% if i.awarded %}success{% endif %}">
 						<td id="{{ i.hash }}">
 							{% if not i.awarded %}
-								{% if not list.fulfilled %}
+								{% if not mlist.fulfilled %}
 									<a href="{{ url_for('job_quote_award_po', doc_hash=i.hash, job_num=job.number) }}">
 										<span class="glyphicon glyphicon-unchecked"></span>
 									</a>

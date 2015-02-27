@@ -105,14 +105,14 @@
 				</tr>
 				{% for i in job.materials.itervalues() %}
 				<!-- TODO:style rows based on age -->
-					{% if (i.age > 6) and (not i.fulfilled) %}
+					{% if not i.fulfilled %}
+						<tr>
+					{% elif (i.age > 6) and (not i.fulfilled) %}
 						<tr class="danger">
 					{% elif (i.age > 2) and (not i.fulfilled) %}
 						<tr class="warning">
-					{% elif i.fulfilled %}
-						<tr class="success">
 					{% else %}
-						<tr>
+						<tr class="success">
 					{% endif %}
 						<td id="{{ i.hash }}-materials-fulfilled">
 							{% if not i.fulfilled %}

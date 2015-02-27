@@ -320,7 +320,7 @@ def material_list(m_hash):
 	try:
 		_list = MaterialList.db[int(m_hash)]
 		_job = _list.job
-		return render_template('material_list.html', job=_job, list=_list)
+		return render_template('material_list.html', job=_job, mlist=_list)
 	except KeyError:
 		return "Material List doesn't exist..."
 
