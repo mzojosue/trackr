@@ -122,20 +122,22 @@
 				{% endfor %}
 			{% endif %}
 		</div>
-		<div class="panel panel-success">
-			<div class="panel-heading">
-				Completed Tasks
+		{% if not job %}
+			<div class="panel panel-success">
+				<div class="panel-heading">
+					Completed Tasks
+				</div>
+				<ul class="list-group">
+					{% if not job %}
+						{% for i in completed %}
+							<li class="list-group-item">
+								{{ i.name }}
+							</li>
+						{% endfor %}
+					{% endif %}
+				</ul>
 			</div>
-			<ul class="list-group">
-				{% if not job %}
-					{% for i in completed %}
-						<li class="list-group-item">
-							{{ i.name }}
-						</li>
-					{% endfor %}
-				{% endif %}
-			</ul>
-		</div>
+		{% endif %}
 	</div><!-- /.col -->
 
 {% endmacro %}

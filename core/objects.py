@@ -8,8 +8,6 @@ ENV_ROOT = "//SERVER/Documents/Esposito"
 
 
 class Worker(object):
-	workers = {}
-
 	# pay rate constants
 	A_RATE = 100.84
 	A_RATE_journeyman = 97.38
@@ -42,7 +40,7 @@ class Worker(object):
 				pass
 
 		_return = super(Worker, self).__setattr__(name, value)
-		Worker.db[self.hash] = self
+		self.update()
 		return _return
 
 	def __repr__(self):
@@ -54,6 +52,13 @@ class Worker(object):
 	def find(q_hash):
 		if hasattr(Todo, 'db'):
 			return Todo.db[q_hash]
+
+	def update(self):
+		if hasattr(Worker, 'db'):
+			Worker.db[self.hash] = self
+			if hasattr(self, 'job'):
+				self.job.add_worker(self)
+		return None
 
 
 class Job(object):
@@ -67,11 +72,14 @@ class Job(object):
 		# TODO:implement better document storage
 
 		self.number = int(job_num)
-		self.name = '-'.join([str(self.number), str(name)])
+		self._name = str(name)
 		self.start_date = start_date
 		self.end_date = end_date
 		self.alt_name = alt_name
-		self.po_pre = po_pre
+		if po_pre:
+			self.po_pre = po_pre
+		else:
+			self.po_pre = self.name
 		self.address = address
 
 		self.gc = gc
@@ -125,10 +133,17 @@ class Job(object):
 		return _return
 
 	@property
+	def name(self):
+		return '-'.join([str(self.number), str(self._name)])
+
+	@property
 	def next_po(self):
 		""" Used for manually reserving a PO for use later
 		:return: returns the value of the current available PO for considering it being given to a vendor
 		"""
+
+		# TODO:optimize the use of PO numbers
+
 		_po = self._PO
 		_po = '%03d' % _po        # add padding to PO #
 		return '-'.join([self.name, _po])
@@ -137,8 +152,15 @@ class Job(object):
 		""" Used for storing a PO number with a quote and sending it a vendor
 		:return: returns unformatted PO number
 		"""
+
+
+		# TODO:optimize the use of PO numbers
+
 		_po = self._PO
-		self._PO += 1
+		while True:
+			if self._PO in self.POs.keys():
+				self._PO += 1
+			else: break
 		return _po
 
 	@staticmethod
@@ -181,10 +203,9 @@ class Job(object):
 		self.update()
 		return None
 
-	def add_mat_list(self, mlist_obj, update=True):
+	def add_mat_list(self, mlist_obj):
 		self.materials[mlist_obj.hash] = mlist_obj
-		if update:
-			self.update()
+		self.update()
 		return None
 
 	def add_quote(self, quote_obj):
@@ -194,9 +215,17 @@ class Job(object):
 		return None
 
 	def add_po(self, po_obj):
+		
+		# TODO:optimize the use of PO numbers
+
 		self.POs[po_obj.num] = po_obj
+		if not (self._PO+1 < po_obj.num):
+			self._PO = po_obj.num
 		self.update()
 		return None
+
+	def add_worker(self, wrkr_obj):
+		self.workers[wrkr_obj.hash] = wrkr_obj
 
 	def del_material_list(self, mlist_hash):
 		del self.materials[mlist_hash]
@@ -230,12 +259,15 @@ class MaterialList(object):
 		self.quotes = {}
 		# TODO:append MaterialList to task list
 		self.todo = True
+		if self.age < 5:
+			_msg = "Send out list for %s to vendors" % self.job.name
+			self.task = Todo(_msg, self.job)
+		self.job.add_mat_list(self)
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
-		self.job.add_mat_list(self)
 
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
@@ -261,7 +293,7 @@ class MaterialList(object):
 			if self.date_due:
 				return (self.date_due - today()).days
 			else:
-				return (today() - self.date_sent).days
+				return (today().date() - self.date_sent).days
 		except TypeError:
 			# `self.date_sent` is assumed to be 0
 			return 0
@@ -340,14 +372,20 @@ class Quotes(object):
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
-	             quote=None, desc=None, deliveries=None):
-		self.num = job.claim_po()
+	             quote=None, desc=None, deliveries=None, po_num=None, po_pre=None):
+		if not po_num:
+			self.num = job.claim_po()
+		else:
+			self.num = int(po_num)
 		self.job = job
 		self.mat_list = mat_list
 		self.date_issued = date_issued
 		self.quote = quote
 		self.deliveries = deliveries  # stores initial delivery date
 		self.desc = str(desc)
+		self.deliveries = []
+		if po_pre:
+			self.po_pre = str(po_pre)
 
 		self.backorders = None  # stores any backorder delivery dates
 
@@ -356,6 +394,8 @@ class PO(object):
 		# update material list object
 		self.mat_list.add_po(self)
 		self.mat_list.fulfilled = True
+		if hasattr(self.mat_list, 'task'):
+			self.mat_list.task.complete()
 		self.mat_list.update()
 		# update quote object
 		self.quote.awarded = True
@@ -364,7 +404,10 @@ class PO(object):
 	@property
 	def name(self):
 		_num = '%03d' % self.num
-		return '-'.join([self.job.name, _num])
+		if hasattr(self, 'po_pre'):
+			return '-'.join([str(self.po_pre), _num])
+		else:
+			return '-'.join([str(self.job.po_pre), _num])
 
 	def __repr__(self):
 		return self.name
@@ -403,7 +446,8 @@ class Delivery(object):
 
 	def __setattr__(self, key, value):
 		_return = super(Delivery, self).__setattr__(key, value)
-		Delivery.db[self.hash] = self
+		if hasattr(Delivery, 'db'):
+			Delivery.db[self.hash] = self
 		return _return
 
 
@@ -422,7 +466,7 @@ class Todo(object):
 
 		self.job = job
 		if self.job:
-			self.job.tasks[self.hash] = self
+			self.job.add_task(self)
 		self.task = task
 		self.due = due
 		self.notify = notify
@@ -431,11 +475,12 @@ class Todo(object):
 		if hasattr(Todo, 'db') and hasattr(Todo, 'completed_db'):
 			Todo.completed_db[self.hash] = self
 			del Todo.db[self.hash]
+		del self.job.tasks[self.hash]
 		return True
 
 	@staticmethod
 	def find(q_hash):
-		if hasattr(Todo, 'db'):
+		if hasattr(Todo, 'db') and hasattr(Todo, 'completed_db'):
 			try:
 				return Todo.db[q_hash]
 			except KeyError:
@@ -446,17 +491,19 @@ class Todo(object):
 
 	def __setattr__(self, key, value):
 		_return = super(Todo, self).__setattr__(key, value)
-		if hasattr(self, 'hash'):
+		if hasattr(Todo, 'db') and hasattr(self, 'hash'):
 			Todo.db[self.hash] = self
 		if hasattr(self, 'job'):
 			self.job.add_task(self)
 		return _return
 
+
 def get_job_num(*args):
 	try:
-		_keys = Job.db.keys()
-		num = int(_keys[-1]) + 1
-		return num
+		if hasattr(Job, 'db'):
+			_keys = Job.db.keys()
+			num = int(_keys[-1]) + 1
+			return num
 	except IndexError:
 		print "Unknown Error:: Probably no jobs"
 		return 1

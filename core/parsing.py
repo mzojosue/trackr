@@ -14,15 +14,12 @@ def parse_PO_log(poLog, sheet=None, create=False):
 				print _job.name
 			except TypeError:
 				pass    # Sheet name does not match regex
-		else:
-			try:
-				_job = [i for i in parse("{} - {}", _sheet.name)]
-			except TypeError:
-				pass    # Sheet name does not match regex
-			_job = objects.Job.find(int(_job[0]))
 		for _row in range(2, _sheet.nrows):
 			_row = _sheet.row_slice(_row)
 			__po = _row[0].value
+			if not __po:
+				# skips empty row by assuming that a row without a PO# is a row without content
+				continue
 			__vend = _row[1].value
 			__price = _row[2].value
 
@@ -69,7 +66,12 @@ def parse_PO_log(poLog, sheet=None, create=False):
 					_quote = objects.Quotes(mat_list=_mat_list, price=__price, vend=__vend, doc=__quote_val)
 
 				# Create PO objects
-				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment)
+				_pre = parse("{pre}-{:d}", __po)['pre']
+				_num = parse("{}-{num:d}", __po)['num']
+				if str(_pre) is not str(_job.po_pre):
+					po_pre = _pre
+				else: po_pre = None
+				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment, po_num=_num, po_pre=po_pre)
 
 				del _mat_list, _quote, _po
 
