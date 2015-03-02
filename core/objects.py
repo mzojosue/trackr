@@ -141,24 +141,25 @@ class Job(object):
 		_keys = self.POs.keys()
 		_k_len = len(_keys)
 
-		# calculate ideal sum of continuous sequence of equal length
-		_ideal_seq_sum = (_k_len/2) * (0 + (_k_len - 1))
+		if _k_len:
+			# calculate ideal sum of continuous sequence of equal length
+			_ideal_seq_sum = (_k_len/2) * (0 + (_k_len - 1))
 
-		# calculate the sum of existing po# sequence
-		_seq_sum = (_k_len/2) * (_keys[0] - _keys[-1])
+			# calculate the sum of existing po# sequence
+			_seq_sum = (_k_len/2) * (_keys[0] - _keys[-1])
 
-		# check to see if current sequence is continuous
-		if not (int(_seq_sum) == int(_ideal_seq_sum)):
-			#find the smallest integer to begin to complete the sequence.
-			_new_PO = 0  # start search @ 0
-			while True:
-				if _new_PO not in _keys:
-					self._PO = _new_PO
-					break
-				else:
-					_new_PO += 1
-		else:
-			self._PO = _keys[-1] + 1
+			# check to see if current sequence is continuous
+			if not (int(_seq_sum) == int(_ideal_seq_sum)):
+				#find the smallest integer to begin to complete the sequence.
+				_new_PO = 0  # start search @ 0
+				while True:
+					if _new_PO not in _keys:
+						self._PO = _new_PO
+						break
+					else:
+						_new_PO += 1
+			else:
+				self._PO = _keys[-1] + 1
 		return self._PO
 
 	@property
@@ -488,8 +489,18 @@ class Todo(object):
 	def complete(self):
 		if hasattr(Todo, 'db') and hasattr(Todo, 'completed_db'):
 			Todo.completed_db[self.hash] = self
-			del Todo.db[self.hash]
-		del self.job.tasks[self.hash]
+			try:
+				del Todo.db[self.hash]
+			except KeyError:
+				# assume that the task has been partially deleted
+				pass
+		if hasattr(self, 'job'):
+			try:
+				del self.job.tasks[self.hash]
+				self.job.update()
+			except KeyError:
+				# assume that the task has been partially deleted
+				pass
 		return True
 
 	@staticmethod

@@ -63,7 +63,7 @@ def parse_PO_log(poLog, sheet=None, create=False):
 				if '\\' in __quote_val:
 					_quote = objects.Quotes(mat_list=_mat_list, price=__price, vend=__vend, doc=objects.os.path.split(__quote_val))
 				else:
-					_quote = objects.Quotes(mat_list=_mat_list, price=__price, vend=__vend, doc=__quote_val)
+					_quote = objects.Quotes(mat_list=_mat_list, price=__price, vend=__vend)
 
 				# Create PO objects
 				_pre = parse("{pre}-{:d}", __po)['pre']
