@@ -135,15 +135,20 @@
 									{{ i.hash }}
 								{% endif %}
 							</a>
-							{% if i.doc %}
-								<a target="_blank" href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=i.hash) }}">
-									<span class="glyphicon glyphicon-paperclip"></span>
-								</a>
-							{% endif %}
 							{% if i.po %}
 								<div class="label label-info">
 									{{ i.po }}
 								</div>
+							{% endif %}
+							{% if i.doc %}
+								<a target="_blank" href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=i.hash) }}">
+									&nbsp;<span class="glyphicon glyphicon-paperclip"></span>
+								</a>
+							{% endif %}
+							{% if i.po and i.po.quote.doc %}
+								<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.po.quote.hash) }}">
+									&nbsp;<span class="glyphicon glyphicon-duplicate"></span>
+								</a>
 							{% endif %}
 						</td>
 						<td>{{ i.foreman }}</td>

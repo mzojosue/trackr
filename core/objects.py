@@ -273,13 +273,16 @@ class MaterialList(object):
 
 		self.quotes = {}
 		# TODO:append MaterialList to task list
-		self.todo = True
+		self.tasks = []
 		if self.age < 5:
+			# TODO:set listener to delete todo object associated with sending self out to vendors
 			_msg = "Send out list for %s to vendors" % self.job.name
-			self.task = Todo(_msg, self.job)
+			self.task = Todo(_msg, job=self.job)
 		self.job.add_mat_list(self)
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
+
+		# TODO:set listener to delete todo object associated with sending self out to vendors
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
@@ -315,9 +318,12 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		if self._doc:
-			return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
-		return False
+		if type(self._doc) is not str:
+			try:
+				return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
+			except TypeError:
+				pass
+		return (os.path.join(self.job.sub_path, 'Materials'), self._doc)
 
 	def update(self):
 		if hasattr(MaterialList, 'db'):
@@ -446,13 +452,15 @@ class Delivery(object):
 		del po
 		self.hash = abs(hash(str(self.po.name)))
 		self.delivered = False
-		self.po.job.deliveries[self.hash] = self
 		if items is None:
 			self.items = self.po.mat_list
 		else:
 			self.items = items
 		self.expected = expected
 		self.destination = destination
+
+		self.po.job.deliveries[self.hash] = self
+		self.po.job.update()
 
 	@staticmethod
 	def find(q_hash):
@@ -463,6 +471,9 @@ class Delivery(object):
 		_return = super(Delivery, self).__setattr__(key, value)
 		if hasattr(Delivery, 'db'):
 			Delivery.db[self.hash] = self
+		if hasattr(self, 'job'):
+			self.po.job.deliveries[self.hash] = self
+			self.job.update()
 		return _return
 
 
