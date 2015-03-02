@@ -254,86 +254,80 @@
 			</div><!-- /.panel-heading -->
 			<ul class="list-group">
 				{% if job %}
-					{% if job.materials|length > 0 %}
-						{% for mlist in job.materials.itervalues() %}
-							{% if not mlist.fulfilled %}
-								<li class="list-group-item">
-									<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
-										{{ mlist }}
-									</a>
-									{% if mlist.quotes|length %}
-										<!-- TODO:implement link to view quotes -->
-										<span class="glyphicon glyphicon-paperclip"></span>
-									{% endif %}
-									{% if mlist.doc %}
-										<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
-											<span class="glyphicon glyphicon-open-file"></span>
-										</a>
-									{% elif mlist.items %}
-										<span class="glyphicon glyphicon-th-list"></span>
-									{% endif %}
-								</li>
+					{% for mlist in job.materials.itervalues() if not mlist.fulfilled %}
+						<li class="list-group-item">
+							<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
+								{{ mlist }}
+							</a>
+							{% if mlist.quotes|length %}
+								<!-- TODO:implement link to view quotes -->
+								<span class="glyphicon glyphicon-paperclip"></span>
 							{% endif %}
-						{% endfor %}
+							{% if mlist.doc %}
+								<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
+									<span class="glyphicon glyphicon-open-file"></span>
+								</a>
+							{% elif mlist.items %}
+								<span class="glyphicon glyphicon-th-list"></span>
+							{% endif %}
+						</li>
 					{% else %}
 						<li class="list-group-item">
 							No open material lists.
 						</li>
-					{% endif %}
+					{% endfor %}
 				{% else %}
-					{% if MaterialList.db|length > 0 %}
-						{% for mlist in MaterialList.db.itervalues() %}
-							{% if not mlist.fulfilled %}
-								<li class="list-group-item">
-									<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
-										{{ mlist }}
-									</a>
-									{% if mlist.quotes|length %}
-										<!-- TODO:implement link to view quotes -->
-										<span class="glyphicon glyphicon-paperclip"></span>
-									{% endif %}
-									{% if mlist.doc %}
-										<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
-											<span class="glyphicon glyphicon-open-file"></span>
-										</a>
-									{% endif %}
-								</li>
+					{% for mlist in MaterialList.db.itervalues() if not mlist.fulfilled %}
+						<li class="list-group-item">
+							<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
+								{{ mlist }}
+							</a>
+							{% if mlist.quotes|length %}
+								<!-- TODO:implement link to view quotes -->
+								<span class="glyphicon glyphicon-paperclip"></span>
 							{% endif %}
-						{% endfor %}
+							{% if mlist.doc %}
+								<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
+									<span class="glyphicon glyphicon-open-file"></span>
+								</a>
+							{% endif %}
+						</li>
 					{% else %}
 						<li class="list-group-item">
 							No open material lists.
 						</li>
-					{% endif %}
+					{% endfor %}
 				{% endif %}
 				<!-- /.list-group-item -->
 			</ul><!-- /.list-group -->
-			{% if job %}
 			{# TODO:check if material list iterable is >0 #}
-				<div class="panel-body" id="quoteUpload">
-					<h5>Add quote:</h5>
-					<form class="form-horizontal" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
-						<div class="form-group col-xs-12">
-							<select class="form-control" name="materialList">
-								<option selected>Select Material List</option>
-								{% if job %}
-									{% for i in job.materials.itervalues() %}
-										<option value="{{ i.hash }}">{{ i }}</option>
-									{% endfor %}
+			<div class="panel-body" id="quoteUpload">
+				<h5>Add quote:</h5>
+				<form class="form-horizontal" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
+					<div class="form-group col-xs-12">
+						<select class="form-control" name="materialList">
+							<option selected>Select Material List</option>
+							{% if job %}
+								{% for i in job.materials.itervalues() if not i.fulfilled %}
+									<option value="{{ i.hash }}">{{ i }}</option>
 								{% else %}
-									{% for i in MaterialList.db.itervalues() %}
-										<option value="{{ i.hash }}">{{ i }}</option>
-									{% endfor %}
-								{% endif %}
-							</select>
-						</div><!-- /.form-group -->
-						<div class="form-group col-xs-12">
-							<input type="file" name="quote">
-							<button class="btn btn-primary pull-right" type="submit">Upload</button>
-						</div>
-					</form>
-				</div><!-- /.panel-body -->
-			{% endif %}
+									<option>No open material lists</option>
+								{% endfor %}
+							{% else %}
+								{% for i in MaterialList.db.itervalues() if not i.fulfilled %}
+									<option value="{{ i.hash }}">{{ i }}</option>
+							  {% else %}
+									<option>No open material lists</option>
+								{% endfor %}
+							{% endif %}
+						</select>
+					</div><!-- /.form-group -->
+					<div class="form-group col-xs-12">
+						<input type="file" name="quote">
+						<button class="btn btn-primary pull-right" type="submit">Upload</button>
+					</div>
+				</form>
+			</div><!-- /.panel-body -->
 		</div>
 		<!-- /.panel -->
 	</div><!-- /.col -->
@@ -512,7 +506,7 @@
 
 	<!-- Button trigger modal -->
 	<button type="button" class="btn btn-info" data-toggle="modal" data-target="#listModal">
-	  View List
+	  View Item List
 	</button>
 
 	<!-- Modal -->

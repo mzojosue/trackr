@@ -88,7 +88,10 @@
 
 		<div class="row">
 
-			<div class="col-xs-2 widgetWell">
+			<div class="col-xs-3 widgetWell">
+				<label>
+					New Items:
+				</label>
 				{{ objects.upload_modal(job=job) }}
 				{{ objects.item_modal(job=job) }}
 			</div>
@@ -136,6 +139,11 @@
 								<a target="_blank" href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=i.hash) }}">
 									<span class="glyphicon glyphicon-paperclip"></span>
 								</a>
+							{% endif %}
+							{% if i.po %}
+								<div class="label label-info">
+									{{ i.po }}
+								</div>
 							{% endif %}
 						</td>
 						<td>{{ i.foreman }}</td>
