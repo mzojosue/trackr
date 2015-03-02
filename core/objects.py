@@ -137,13 +137,7 @@ class Job(object):
 		return '-'.join([str(self.number), str(self._name)])
 
 	@property
-	def show_po(self):
-		""" Used for showing what PO# is available next.
-		:return: returns the formatted value of the next available PO for considering it being given to a vendor
-		"""
-
-		# TODO:optimize the use of PO numbers
-
+	def next_po(self):
 		_keys = self.POs.keys()
 		_k_len = len(_keys)
 
@@ -163,8 +157,16 @@ class Job(object):
 					break
 				else:
 					_new_PO += 1
+		else:
+			self._PO = _keys[-1] + 1
+		return self._PO
 
-		_po = self._PO
+	@property
+	def show_po(self):
+		""" Used for showing what PO# is available next.
+		:return: returns the formatted value of the next available PO for considering it being given to a vendor
+		"""
+		_po = self.next_po
 		_po = '%03d' % _po        # add padding to PO #
 		return '-'.join([self.name, _po])
 
@@ -172,7 +174,8 @@ class Job(object):
 		""" Used for storing a PO number with a quote and sending it a vendor
 		:return: returns unformatted PO number
 		"""
-		return self._PO
+
+		return self.next_po
 
 	@staticmethod
 	def init_struct(self):
