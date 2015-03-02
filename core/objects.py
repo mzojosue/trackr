@@ -137,12 +137,32 @@ class Job(object):
 		return '-'.join([str(self.number), str(self._name)])
 
 	@property
-	def next_po(self):
-		""" Used for manually reserving a PO for use later
-		:return: returns the value of the current available PO for considering it being given to a vendor
+	def show_po(self):
+		""" Used for showing what PO# is available next.
+		:return: returns the formatted value of the next available PO for considering it being given to a vendor
 		"""
 
 		# TODO:optimize the use of PO numbers
+
+		_keys = self.POs.keys()
+		_k_len = len(_keys)
+
+		# calculate ideal sum of continuous sequence of equal length
+		_ideal_seq_sum = (_k_len/2) * (0 + (_k_len - 1))
+
+		# calculate the sum of existing po# sequence
+		_seq_sum = (_k_len/2) * (_keys[0] - _keys[-1])
+
+		# check to see if current sequence is continuous
+		if not (int(_seq_sum) == int(_ideal_seq_sum)):
+			#find the smallest integer to begin to complete the sequence.
+			_new_PO = 0  # start search @ 0
+			while True:
+				if _new_PO not in _keys:
+					self._PO = _new_PO
+					break
+				else:
+					_new_PO += 1
 
 		_po = self._PO
 		_po = '%03d' % _po        # add padding to PO #
@@ -152,16 +172,7 @@ class Job(object):
 		""" Used for storing a PO number with a quote and sending it a vendor
 		:return: returns unformatted PO number
 		"""
-
-
-		# TODO:optimize the use of PO numbers
-
-		_po = self._PO
-		while True:
-			if self._PO in self.POs.keys():
-				self._PO += 1
-			else: break
-		return _po
+		return self._PO
 
 	@staticmethod
 	def init_struct(self):
@@ -215,7 +226,7 @@ class Job(object):
 		return None
 
 	def add_po(self, po_obj):
-		
+
 		# TODO:optimize the use of PO numbers
 
 		self.POs[po_obj.num] = po_obj
