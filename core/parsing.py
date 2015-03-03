@@ -51,9 +51,9 @@ def parse_PO_log(poLog, sheet=None, create=False):
 			if create:
 				if '\\' in __mat_list_val:
 					__mat_list_val = str(__mat_list_val).replace('\\', '/')
-					_mat_list = objects.MaterialList(job=_job, doc=objects.os.path.split(__mat_list_val), date_sent=__date_issued)
+					_mat_list = objects.MaterialList(job=_job, doc=objects.os.path.split(__mat_list_val), date_sent=__date_issued, task=False)
 				else:
-					_mat_list = objects.MaterialList(job=_job, items=__mat_list_val, date_sent=__date_issued)
+					_mat_list = objects.MaterialList(job=_job, items=__mat_list_val, date_sent=__date_issued, task=False)
 				_mat_list.sent_out = True
 				if _mat_list.age > 5:
 					_mat_list.delivered = True

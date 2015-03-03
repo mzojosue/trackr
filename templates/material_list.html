@@ -100,6 +100,10 @@
 				{{ objects.upload_modal(job=job, obj=mlist, meth='quote') }}
 				{% if mlist.items %}
 					{{ objects.list_modal(job=job, obj=mlist) }}
+				{% elif mlist.doc %}
+					<a href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=mlist.hash) }}" class="btn btn-info">
+	          View Material Document
+					</a>
 				{% endif %}
 			</div>
 

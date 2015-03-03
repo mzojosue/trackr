@@ -138,7 +138,8 @@ def job_materials(job_num=None):
 					except ValueError:
 						print "_date_due value not given. Setting to None."
 						_date_due  = None
-					__obj = MaterialList(_job, doc=filename, date_sent=_date_sent, date_due=_date_due)
+					_label = request.form['listLabel']
+					__obj = MaterialList(_job, doc=filename, date_sent=_date_sent, date_due=_date_due, label=_label)
 			elif request.form.has_key('itemCounter'):
 				__item_count = int(request.form['itemCounter'])
 				__items = []

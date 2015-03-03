@@ -255,7 +255,10 @@ class Job(object):
 
 
 class MaterialList(object):
-	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label=""):
+	# Class/Instance variables under watch by MaterialList._listener
+	listeners = ('sent_out')
+
+	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
 		self.hash = abs(hash(str(now())))
 
 
@@ -273,11 +276,7 @@ class MaterialList(object):
 
 		self.quotes = {}
 		# TODO:append MaterialList to task list
-		self.tasks = []
-		if self.age < 5:
-			# TODO:set listener to delete todo object associated with sending self out to vendors
-			_msg = "Send out list for %s to vendors" % self.job.name
-			self.task = Todo(_msg, job=self.job)
+		self.tasks = {}
 		self.job.add_mat_list(self)
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
@@ -286,9 +285,14 @@ class MaterialList(object):
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
+		if task:
+			self.next_step()
+
 
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
+		if key in MaterialList.listeners:
+			self._listen(key, value)
 		self.update()
 		return _return
 
@@ -323,7 +327,11 @@ class MaterialList(object):
 				return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
 			except TypeError:
 				pass
-		return (os.path.join(self.job.sub_path, 'Materials'), self._doc)
+		elif self._doc:
+			return (os.path.join(self.job.sub_path, 'Materials'), self._doc)
+		else:
+			return False
+
 
 	def update(self):
 		if hasattr(MaterialList, 'db'):
@@ -337,6 +345,15 @@ class MaterialList(object):
 		MaterialList.db[self.hash] = self
 		return None
 
+	def add_po(self, po_obj):
+		self.po = po_obj
+		self.update()
+		return None
+
+	def add_task(self, task_obj=None):
+		self.tasks[task_obj.hash] = task_obj
+		return None
+
 	def del_quote(self, quote_obj):
 		del self.quotes[quote_obj.hash]
 		self.update()
@@ -348,9 +365,28 @@ class MaterialList(object):
 		_obj = PO(self.job, quote=quote_obj, mat_list=self)
 		return _obj
 
-	def add_po(self, po_obj):
-		self.po = po_obj
-		self.update()
+	def next_step(self):
+		if not self.sent_out and self.age <= 7:
+			# only adds task if material list is less than a week old
+			# TODO:set listener to delete todo object associated with sending self out to vendors
+			_msg = "Send out list for %s to vendors" % self.job.name
+			_cmd = 'Job.db[%d].materials[%d].sent_out = True' % (self.job.number, self.hash)
+			_meta = 'listen::sent_out'
+			self.add_task(Todo(_msg, job=self.job, target=self, command=_cmd, metadata=_meta))
+		return None
+
+	def _listen(self, key, value):
+		""" Listens for changes in variables. Performs actions when changes are made to certain variables.
+		THIS FUNCTION IS NOT RESPONSIBLE FOR SETTING THE VALUE TO VARIABLES
+		:param key: variable name to check
+		:param value: variable value to work with
+		:return: None
+		"""
+		if key is 'sent_out' and not self.sent_out:
+			# TODO:delete Todo object associated with sending out self to vendors
+			for t in self.tasks.itervalues():
+				if t.metadata == 'listen::sent_out':
+					t.complete(command=False)
 		return None
 
 
@@ -486,7 +522,7 @@ class Todo(object):
 		notif:  date/time to follow-up
 	"""
 
-	def __init__(self, name, job=None, task="", due=None, notify=None):
+	def __init__(self, name, job=None, task="", due=None, notify=None, target=None, command=None, metadata=None):
 		self.name = str(name)
 		self.hash = abs(hash(self.name))  # ensure positive values
 
@@ -496,8 +532,13 @@ class Todo(object):
 		self.task = task
 		self.due = due
 		self.notify = notify
+		if target:
+			self.target = target
+		if command:
+			self.command = str(command)
+		self.metadata = metadata
 
-	def complete(self):
+	def complete(self, command=True):
 		if hasattr(Todo, 'db') and hasattr(Todo, 'completed_db'):
 			Todo.completed_db[self.hash] = self
 			try:
@@ -512,6 +553,8 @@ class Todo(object):
 			except KeyError:
 				# assume that the task has been partially deleted
 				pass
+		if command and hasattr(self, 'command'):
+			exec(self.command)
 		return True
 
 	@staticmethod
@@ -527,11 +570,16 @@ class Todo(object):
 
 	def __setattr__(self, key, value):
 		_return = super(Todo, self).__setattr__(key, value)
+		self.update()
+		return _return
+
+	def update(self):
 		if hasattr(Todo, 'db') and hasattr(self, 'hash'):
 			Todo.db[self.hash] = self
 		if hasattr(self, 'job'):
 			self.job.add_task(self)
-		return _return
+		if hasattr(self, 'target'):
+			self.target.add_task(self)
 
 
 def get_job_num(*args):
