@@ -96,7 +96,7 @@ def all_jobs():
 def job_overview(job_num=None):
 	"""
 	Renders overview template which displays active objects and general information such as job address
-	:param job_num: speicifies job number
+	:param job_num: specifies job number
 	"""
 	try:
 		_job = Job.find(int(job_num))
@@ -332,6 +332,7 @@ def update_material_list(m_hash):
 	_job = _list.job
 	if 'sentOut' in request.form:
 		_list.sent_out = True
+		_list.update()
 		return redirect(request.referrer)
 
 
@@ -397,12 +398,13 @@ def new_todo():
 	return redirect(request.referrer)
 
 
-@app.route('/task/<t_hash>/complete')
+@app.route('/task/<int:t_hash>/complete')
 def todo_complete(t_hash):
 	# TODO:implement job_completion for job-linked tasks
 
-	_todo = Todo.find(int(t_hash))
+	_todo = Todo.find(t_hash)
 	if _todo.complete():
+		_todo.update()
 		return redirect(request.referrer)
 	# create unknown error exception
 

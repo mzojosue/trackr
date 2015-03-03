@@ -101,12 +101,13 @@ class Job(object):
 			elif not os.path.exists(os.path.join(Job.default_sub_dir, self.name)):
 				os.mkdir(os.path.join(Job.default_sub_dir, self.name))
 				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
-				os.mkdir(os.path.join(self.sub_path, 'materials'))
-				os.mkdir(os.path.join(self.sub_path, 'quotes'))
-				os.mkdir(os.path.join(self.sub_path, 'drawings'))
-				os.mkdir(os.path.join(self.sub_path, 'specs'))
-				os.mkdir(os.path.join(self.sub_path, 'addendums'))
-				os.mkdir(os.path.join(self.sub_path, 'submittals'))
+				os.mkdir(os.path.join(self.sub_path, 'Materials'))
+				os.mkdir(os.path.join(self.sub_path, 'Quotes'))
+				os.mkdir(os.path.join(self.sub_path, 'Drawings'))
+				os.mkdir(os.path.join(self.sub_path, 'Documents'))
+				os.mkdir(os.path.join(self.sub_path, 'Specs'))
+				os.mkdir(os.path.join(self.sub_path, 'Addendums'))
+				os.mkdir(os.path.join(self.sub_path, 'Submittals'))
 			else:
 				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
 		except OSError:
@@ -256,7 +257,8 @@ class Job(object):
 
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
-	listeners = ('sent_out')
+	listeners = ('sent_out', 'po')
+	_steps = ('send_out', 'assess_price', 'send_po', 'receive_delivery')
 
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
 		self.hash = abs(hash(str(now())))
@@ -285,6 +287,7 @@ class MaterialList(object):
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
+		self.step = MaterialList._steps[0]
 		if task:
 			self.next_step()
 
@@ -366,13 +369,15 @@ class MaterialList(object):
 		return _obj
 
 	def next_step(self):
-		if not self.sent_out and self.age <= 7:
+		if self.step == MaterialList._steps[0]:
 			# only adds task if material list is less than a week old
 			# TODO:set listener to delete todo object associated with sending self out to vendors
 			_msg = "Send out list for %s to vendors" % self.job.name
-			_cmd = 'Job.db[%d].materials[%d].sent_out = True' % (self.job.number, self.hash)
+			_cmd = 'if %d in MaterialList.db: MaterialList.db[%d].sent_out = True' % (self.hash, self.hash)
 			_meta = 'listen::sent_out'
 			self.add_task(Todo(_msg, job=self.job, target=self, command=_cmd, metadata=_meta))
+			#self.step = str(MaterialList._steps[1])
+			self.update()
 		return None
 
 	def _listen(self, key, value):
@@ -383,7 +388,7 @@ class MaterialList(object):
 		:return: None
 		"""
 		if key is 'sent_out' and not self.sent_out:
-			# TODO:delete Todo object associated with sending out self to vendors
+			# TODO:complete Todo object associated with sending out self to vendors
 			for t in self.tasks.itervalues():
 				if t.metadata == 'listen::sent_out':
 					t.complete(command=False)
@@ -544,17 +549,28 @@ class Todo(object):
 			try:
 				del Todo.db[self.hash]
 			except KeyError:
-				# assume that the task has been partially deleted
-				pass
+				if Todo.completed_db[self.hash]:
+					pass
+				else:
+					raise KeyError
 		if hasattr(self, 'job'):
 			try:
 				del self.job.tasks[self.hash]
-				self.job.update()
 			except KeyError:
-				# assume that the task has been partially deleted
+				# assume partially deleted object
+				pass
+			self.job.update()
+		if hasattr(self, 'target') and hasattr(self.target, 'tasks'):
+			try:
+				del self.target.tasks[self.hash]
+			except KeyError:
+				# assume partially delted list
 				pass
 		if command and hasattr(self, 'command'):
-			exec(self.command)
+			exec(compile(self.command, '', 'exec'))
+		#if hasattr(self, 'target') and hasattr(self.target, 'next_step'):
+		#	self.target.next_step()
+		self.update()
 		return True
 
 	@staticmethod
