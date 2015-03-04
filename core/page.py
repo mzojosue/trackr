@@ -99,7 +99,7 @@ def job_overview(job_num=None):
 	:param job_num: specifies job number
 	"""
 	try:
-		_job = Job.find(int(job_num))
+		_job = Job.find(job_num)
 		_todos = _job.tasks.itervalues()
 		return render_template('job_overview.html', job=_job, todos=_todos)
 	except KeyError:
@@ -404,7 +404,6 @@ def todo_complete(t_hash):
 
 	_todo = Todo.find(t_hash)
 	if _todo.complete():
-		_todo.update()
 		return redirect(request.referrer)
 	# create unknown error exception
 

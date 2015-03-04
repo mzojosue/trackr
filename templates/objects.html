@@ -21,7 +21,7 @@
 		<div id="{{ todo_obj.hash }}-collapse" class="panel-collapse collapse" role="tabpanel"
 				 aria-labelledby="{{ todo_obj.hash }}-heading">
 			<div class="panel-body">
-				This is the description of the new todo
+				{{ todo_obj.task }}
 				<a href="{{ url_for('del_todo', t_hash=todo_obj.hash) }}">
 						<span class="glyphicon glyphicon-trash pull-right"></span>
 				</a>

@@ -254,11 +254,16 @@ class Job(object):
 		self.update()
 		return None
 
+	def del_task(self, task_hash):
+		del self.tasks[task_hash]
+		self.update()
+		return None
+
 
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
 	listeners = ('sent_out', 'po')
-	_steps = ('send_out', 'assess_price', 'send_po', 'receive_delivery')
+	_steps = ('send_out', 'receive_quotes' 'assess_quotes', 'send_po', 'receive_delivery')
 
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
 		self.hash = abs(hash(str(now())))
@@ -277,7 +282,6 @@ class MaterialList(object):
 		self.comments = comments
 
 		self.quotes = {}
-		# TODO:append MaterialList to task list
 		self.tasks = {}
 		self.job.add_mat_list(self)
 		self.fulfilled = False  # True once list has been purchased
@@ -290,7 +294,6 @@ class MaterialList(object):
 		self.step = MaterialList._steps[0]
 		if task:
 			self.next_step()
-
 
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
@@ -335,7 +338,6 @@ class MaterialList(object):
 		else:
 			return False
 
-
 	def update(self):
 		if hasattr(MaterialList, 'db'):
 			MaterialList.db[self.hash] = self
@@ -362,6 +364,11 @@ class MaterialList(object):
 		self.update()
 		return None
 
+	def del_task(self, task_hash):
+		del self.tasks[task_hash]
+		self.update()
+		return None
+
 	def issue_po(self, quote_obj):
 		quote_obj.awarded = True
 		self.fulfilled = True
@@ -376,7 +383,7 @@ class MaterialList(object):
 			_cmd = 'if %d in MaterialList.db: MaterialList.db[%d].sent_out = True' % (self.hash, self.hash)
 			_meta = 'listen::sent_out'
 			self.add_task(Todo(_msg, job=self.job, target=self, command=_cmd, metadata=_meta))
-			#self.step = str(MaterialList._steps[1])
+			self.step = str(MaterialList._steps[1])
 			self.update()
 		return None
 
@@ -387,11 +394,15 @@ class MaterialList(object):
 		:param value: variable value to work with
 		:return: None
 		"""
-		if key is 'sent_out' and not self.sent_out:
+		if key is 'sent_out':
 			# TODO:complete Todo object associated with sending out self to vendors
-			for t in self.tasks.itervalues():
-				if t.metadata == 'listen::sent_out':
-					t.complete(command=False)
+			try:
+				for t in self.tasks.itervalues():
+					if t.metadata == 'listen::sent_out':
+						t.complete(command=False)
+			except RuntimeError:
+				# Error should be raised since we are deleting an iterable
+				pass
 		return None
 
 
@@ -531,7 +542,8 @@ class Todo(object):
 		self.name = str(name)
 		self.hash = abs(hash(self.name))  # ensure positive values
 
-		self.job = job
+		if job:
+			self.job = job
 		if self.job:
 			self.job.add_task(self)
 		self.task = task
@@ -548,21 +560,25 @@ class Todo(object):
 			Todo.completed_db[self.hash] = self
 			try:
 				del Todo.db[self.hash]
+				print "deleted task from Todo.db"
 			except KeyError:
 				if Todo.completed_db[self.hash]:
+					# assume partially deleted object
+					print "object already in db"
 					pass
 				else:
 					raise KeyError
 		if hasattr(self, 'job'):
 			try:
-				del self.job.tasks[self.hash]
+				self.job.del_task(self.hash)
+				print "deleted task from job.tasks"
 			except KeyError:
 				# assume partially deleted object
 				pass
-			self.job.update()
 		if hasattr(self, 'target') and hasattr(self.target, 'tasks'):
 			try:
-				del self.target.tasks[self.hash]
+				self.target.del_task(self.hash)
+				print "deleted task from target.tasks"
 			except KeyError:
 				# assume partially delted list
 				pass
@@ -570,7 +586,6 @@ class Todo(object):
 			exec(compile(self.command, '', 'exec'))
 		#if hasattr(self, 'target') and hasattr(self.target, 'next_step'):
 		#	self.target.next_step()
-		self.update()
 		return True
 
 	@staticmethod
