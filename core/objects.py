@@ -233,6 +233,11 @@ class Job(object):
 		self.update()
 		return None
 
+	def add_delivery(self, deliv_obj):
+		self.deliveries[deliv_obj.hash] = deliv_obj
+		self.update()
+		return None
+
 	def add_po(self, po_obj):
 
 		# TODO:optimize the use of PO numbers
@@ -265,8 +270,8 @@ class Job(object):
 
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
-	listeners = ('sent_out', 'po')
-	_steps = ('send_out', 'assess_quotes', 'send_po', 'receive_delivery')
+	listeners = ('sent_out', 'po', 'delivered')
+	_steps = ('send_out', 'assess_quotes', 'send_po', 'receive_delivery', 'complete')
 
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
 		self.hash = abs(hash(str(now())))
@@ -286,17 +291,16 @@ class MaterialList(object):
 
 		self.quotes = {}
 		self.tasks = {}
+		self.rentals = {}
 		self.job.add_mat_list(self)
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
+		self.delivery = None    # Stores Delivery object
 
 		# TODO:set listener to delete todo object associated with sending self out to vendors
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
-		self.step = MaterialList._steps[0]
-		if task:
-			self.next_step()
 
 	def __setattr__(self, key, value):
 		_return = super(MaterialList, self).__setattr__(key, value)
@@ -350,25 +354,28 @@ class MaterialList(object):
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
-		if hasattr(MaterialList, 'db'):
-			MaterialList.db[self.hash] = self
-		# Make sure that we are at the minimum step to receive quotes
-		if MaterialList._steps.index(self.step) < 3:
-			self.sent_out = True
-			self.step = str(MaterialList._steps[1])
-			self.update()
-			print 'updated material list step to "%s"' % self.step
-			self.next_step()
+		self.update()
 		return None
 
 	def add_po(self, po_obj):
 		self.po = po_obj
+		self.fulfilled = True
 		self.update()
 		return None
 
 	def add_task(self, task_obj=None):
 		self.tasks[task_obj.hash] = task_obj
+		self.update()
 		return None
+
+	def add_delivery(self, deliv_obj):
+		self.delivery = deliv_obj
+		self.update()
+		return None
+
+	def add_rental(self, obj):
+		# return unique object id
+		return NotImplemented
 
 	def del_quote(self, quote_obj):
 		del self.quotes[quote_obj.hash]
@@ -380,30 +387,10 @@ class MaterialList(object):
 		self.update()
 		return None
 
-	def issue_po(self, quote_obj):
-		quote_obj.awarded = True
-		self.fulfilled = True
-		_obj = PO(self.job, quote=quote_obj, mat_list=self)
-		return _obj
+	def return_rental(self, obj_id):
+		#return self.rentals[obj_id]
+		return NotImplemented
 
-	def next_step(self):
-		if self.step == MaterialList._steps[0]:
-			# only adds task if material list is less than a week old
-			# TODO:set listener to delete todo object associated with sending self out to vendors
-			_msg = "Send out list for %s to vendors" % self.job.name
-			_cmd = 'if %d in MaterialList.db: MaterialList.db[%d].sent_out = True' % (self.hash, self.hash)
-			_meta = 'listen::sent_out'
-			self.add_task(Todo(_msg, job=self.job, target=self, command=_cmd, metadata=_meta))
-			self.step = str(MaterialList._steps[1])
-			self.update()
-		elif self.step == MaterialList._steps[1]:
-			_msg = "Assess pricing for %s" % self
-			_task = "Send po for %s" % self.job
-			_meta = 'listen::po'
-			# TODO:set listener to po object
-			self.add_task(Todo(_msg, job=self.job, task=_task, target=self, metadata=_meta))
-			self.step = str(MaterialList._steps[2])
-		return None
 
 	def _listen(self, key, value):
 		""" Listens for changes in variables. Performs actions when changes are made to certain variables.
@@ -413,8 +400,8 @@ class MaterialList(object):
 		:return: None
 		"""
 		if key is 'sent_out':
-			# TODO:complete Todo object associated with sending out self to vendors
 			try:
+				# Call _Todo.complete() on object that matches metadata
 				for t in self.tasks.itervalues():
 					if t.metadata == 'listen::sent_out':
 						t.complete(command=False)
@@ -423,9 +410,14 @@ class MaterialList(object):
 				pass
 		return None
 
+	@staticmethod
+	def find(mlist_hash):
+		if hasattr(MaterialList, 'db'):
+			return MaterialList.db[int(mlist_hash)]
+
 
 class Quotes(object):
-	def __init__(self, mat_list, price=0.0, vend=None, doc=None):
+	def __init__(self, mat_list, price=0.0, vend='unknown vendor', doc=None):
 		self.hash = abs(hash(now()))
 		self.mat_list = mat_list
 		try:
@@ -484,10 +476,6 @@ class PO(object):
 		self.job.add_po(self)
 		# update material list object
 		self.mat_list.add_po(self)
-		self.mat_list.fulfilled = True
-		if hasattr(self.mat_list, 'task'):
-			self.mat_list.task.complete()
-		self.mat_list.update()
 		# update quote object
 		self.quote.awarded = True
 		self.quote.update()
@@ -514,23 +502,19 @@ class Delivery(object):
 	:param
 		po:     pointer to PO object
 	"""
-	def __init__(self, po, items=None, expected=None, destination='shop'):
+	def __init__(self, mat_list, expected=None, destination='shop'):
 
 		# TODO:add object to job.deliveries
 
-		self.po = po
-		del po
-		self.hash = abs(hash(str(self.po.name)))
+		self.hash = abs(hash(str(mat_list)))
+		self.mat_list = mat_list
 		self.delivered = False
-		if items is None:
-			self.items = self.po.mat_list
-		else:
-			self.items = items
 		self.expected = expected
-		self.destination = destination
+		self.destination = self.job.address
 
-		self.po.job.deliveries[self.hash] = self
-		self.po.job.update()
+		self.job.add_delivery(self)
+		self.mat_list.fulfilled = True
+		self.mat_list.add_delivery(self)
 
 	@staticmethod
 	def find(q_hash):
@@ -545,6 +529,22 @@ class Delivery(object):
 			self.po.job.deliveries[self.hash] = self
 			self.job.update()
 		return _return
+
+	@property
+	def job(self):
+		return self.mat_list.job
+
+	@property
+	def po(self):
+		return self.mat_list.po
+
+	@property
+	def vend(self):
+		return self.po.quote.vend
+
+	@property
+	def countdown(self):
+		return (self.expected - today()).days
 
 
 class Todo(object):
@@ -602,8 +602,6 @@ class Todo(object):
 				pass
 		if command and hasattr(self, 'command'):
 			exec(compile(self.command, '', 'exec'))
-		#if hasattr(self, 'target') and hasattr(self.target, 'next_step'):
-		#	self.target.next_step()
 		return True
 
 	@staticmethod

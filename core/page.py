@@ -260,22 +260,22 @@ def create_job():
 		try:
 			request.form['taxExempt']
 			_tax_exempt = True
-		except:
+		except KeyError:
 			_tax_exempt = False
 		try:
 			request.form['certifiedPayroll']
 			_certified_pay = True
-		except:
+		except KeyError:
 			_certified_pay = False
 		_gc = str(request.form['gc'])
 		_gc_contact = str(request.form['gcContact'])
 		_scope = str(request.form['scopeOfWork'])
 		try:
-			_start = datetime(request.form['contractDate'])
+			_start = datetime(*request.form['contractDate'])
 		except TypeError:
 			_start = None
 		try:
-			_end = datetime(request.form['completionDate'])
+			_end = datetime(*request.form['completionDate'])
 		except TypeError:
 			_end = None
 		_desc = str(request.form['jobDesc'])
@@ -354,7 +354,10 @@ def schedule_delivery(job_num=None):
 	if not job_num:
 		job_num = int(request.form['job-number'])
 	_job = Job.find(job_num)
-	# TODO:show success
+	_mlist =  MaterialList.find(request.form['materialListHash'])
+	_dest = str(request.form['destination'])
+	_deliveryDate = datetime.strptime(request.form['deliveryDate'], '%Y-%m-%d')
+	__obj = Delivery(mat_list=_mlist, expected=_deliveryDate, destination=_dest)
 	return redirect(request.referrer)
 
 
@@ -366,7 +369,10 @@ def quote():
 	"""
 	if request.method == 'POST':
 		##TODO:correctly implement document upload
-		_list = MaterialList.db[int(request.form['materialList'])]
+		try:
+			_list = MaterialList.db[int(request.form['materialList'])]
+		except ValueError:
+			redirect(request.referrer)
 		_quote = request.files['quote']
 		if _quote and allowed_file(_quote.filename):
 			filename = secure_filename(_quote.filename)
