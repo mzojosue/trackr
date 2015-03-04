@@ -133,6 +133,9 @@ class Job(object):
 		self.update()
 		return _return
 
+	def __repr__(self):
+		return self.name
+
 	@property
 	def name(self):
 		return '-'.join([str(self.number), str(self._name)])
@@ -263,7 +266,7 @@ class Job(object):
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
 	listeners = ('sent_out', 'po')
-	_steps = ('send_out', 'receive_quotes' 'assess_quotes', 'send_po', 'receive_delivery')
+	_steps = ('send_out', 'assess_quotes', 'send_po', 'receive_delivery')
 
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
 		self.hash = abs(hash(str(now())))
@@ -347,7 +350,15 @@ class MaterialList(object):
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
-		MaterialList.db[self.hash] = self
+		if hasattr(MaterialList, 'db'):
+			MaterialList.db[self.hash] = self
+		# Make sure that we are at the minimum step to receive quotes
+		if MaterialList._steps.index(self.step) < 3:
+			self.sent_out = True
+			self.step = str(MaterialList._steps[1])
+			self.update()
+			print 'updated material list step to "%s"' % self.step
+			self.next_step()
 		return None
 
 	def add_po(self, po_obj):
@@ -385,6 +396,13 @@ class MaterialList(object):
 			self.add_task(Todo(_msg, job=self.job, target=self, command=_cmd, metadata=_meta))
 			self.step = str(MaterialList._steps[1])
 			self.update()
+		elif self.step == MaterialList._steps[1]:
+			_msg = "Assess pricing for %s" % self
+			_task = "Send po for %s" % self.job
+			_meta = 'listen::po'
+			# TODO:set listener to po object
+			self.add_task(Todo(_msg, job=self.job, task=_task, target=self, metadata=_meta))
+			self.step = str(MaterialList._steps[2])
 		return None
 
 	def _listen(self, key, value):
