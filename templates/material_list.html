@@ -106,6 +106,9 @@
 					</a>
 				{% endif %}
 			</div>
+			<div class="col-xs-3 widgetWell">
+				<a href="{{ url_for('accept_delivery', job_num=job.number, d_hash=mlist.delivery.hash) }}" class="btn btn-info">Order was Delivered</a>
+			</div>
 
 			<div class="well col-xs-4 widgetWell pull-right">
 				<!-- TODO:convert form/checkbox to http link -->

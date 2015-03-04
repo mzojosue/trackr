@@ -360,6 +360,11 @@ def schedule_delivery(job_num=None):
 	__obj = Delivery(mat_list=_mlist, expected=_deliveryDate, destination=_dest)
 	return redirect(request.referrer)
 
+@app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
+def accept_delivery(job_num, d_hash):
+	# TODO:function should set delivery.delivered to True
+	return NotImplemented
+
 
 @app.route('/quote', methods=['GET', 'POST'])
 def quote():
@@ -372,17 +377,20 @@ def quote():
 		try:
 			_list = MaterialList.db[int(request.form['materialList'])]
 		except ValueError:
-			redirect(request.referrer)
+			return redirect(request.referrer)
+
+		__price = request.form['quotePrice']
+		__vend = request.form['vendor']
+
 		_quote = request.files['quote']
 		if _quote and allowed_file(_quote.filename):
 			filename = secure_filename(_quote.filename)
 			_path = os.path.join(_list.job.sub_path, 'quotes', filename)
 			_quote.save(_path)
 
-			__price = request.form['quotePrice']
-			__vend = request.form['vendor']
-
 			_obj = Quotes(mat_list=_list, doc=filename, price=__price, vend=__vend)
+		elif __price and __vend:
+			_obj = Quotes(mat_list=_list, price=__price, vend=__vend)
 		return redirect(request.referrer)
 
 

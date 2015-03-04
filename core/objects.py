@@ -354,6 +354,8 @@ class MaterialList(object):
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
+		self.fulfilled = True
+		self.sent_out = True
 		self.update()
 		return None
 
@@ -387,10 +389,17 @@ class MaterialList(object):
 		self.update()
 		return None
 
+	def issue_po(self, quote_obj):
+		quote_obj.awarded = True
+		self.fulfilled = True
+		self.sent_out = True
+		_obj = PO(self.job, quote=quote_obj, mat_list=self)
+		self.update()
+		return _obj
+
 	def return_rental(self, obj_id):
 		#return self.rentals[obj_id]
 		return NotImplemented
-
 
 	def _listen(self, key, value):
 		""" Listens for changes in variables. Performs actions when changes are made to certain variables.
