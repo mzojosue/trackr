@@ -124,7 +124,7 @@ def job_materials(job_num=None):
 	try:
 		_job = Job.find(int(job_num))
 		if request.method == 'POST':
-			if request.files.has_key('file'):
+			if 'file' in request.files:
 				""" This branch of logic is followed if a file is being uploaded """
 				print "file"
 				_file = request.files['file']
@@ -177,14 +177,12 @@ def job_material_doc(doc_hash, job_num=None):
 			return send_from_directory(os.path.join(_job.sub_path, 'Materials'), _doc.doc)
 
 
-
 @app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
 def delete_material_doc(doc_hash, job_num=None):
 	# TODO:delete document in filesystem
 	Job.db[job_num].del_material_list(doc_hash)
 	del MaterialList.db[doc_hash]
 	return redirect(request.referrer)
-
 
 
 @app.route('/quote/<doc_hash>')

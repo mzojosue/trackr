@@ -96,33 +96,39 @@
 		<div class="row">
 
 			<!-- TODO:save file under job folder directory structure -->
-			<div class="col-xs-3 widgetWell">
-				{{ objects.upload_modal(job=job, obj=mlist, meth='quote') }}
-				{% if mlist.items %}
+			<div class="col-xs-8 widgetWell">
+        {% if not mlist.po %}
+				  {{ objects.upload_modal(job=job, obj=mlist, meth='quote') }}
+				{% elif mlist.items %}
 					{{ objects.list_modal(job=job, obj=mlist) }}
 				{% elif mlist.doc %}
 					<a href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=mlist.hash) }}" target="_blank" class="btn btn-info">
 	          View Material Document
 					</a>
 				{% endif %}
-			</div>
-			<div class="col-xs-3 widgetWell">
-				<a href="{{ url_for('accept_delivery', job_num=job.number, d_hash=mlist.delivery.hash) }}" class="btn btn-info">Order was Delivered</a>
+        {% if mlist.delivery %}
+          <a href="{{ url_for('accept_delivery', job_num=job.number, d_hash=124) }}" class="btn btn-success">Accept Delivery</a>
+        {% endif %}
 			</div>
 
-			<div class="well col-xs-4 widgetWell pull-right">
-				<!-- TODO:convert form/checkbox to http link -->
-				<form class="form-inline" action="{{ url_for('update_material_list', m_hash=mlist.hash) }}" method="post">
-					<div class="checkbox">
-						<label>
-							<input type="checkbox" name="sentOut" value="True" {% if mlist.sent_out %}checked{% endif %}>
-							Sent to appropriate vendors
-						</label>
-					</div>
-					<button type="submit" class="btn btn-default">Update</button>
-				</form>
-			</div>
-			<div class="clearfix visible-lg-block"></div>
+      {% if not mlist.sent_out %}
+        <div class="well col-xs-4 widgetWell">
+          <!-- TODO:convert form/checkbox to http link -->
+          <form class="form-inline" action="{{ url_for('update_material_list', m_hash=mlist.hash) }}" method="post">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="sentOut" value="True" {% if mlist.sent_out %}checked{% endif %}>
+                Sent to appropriate vendors
+              </label>
+            </div>
+            <button type="submit" class="btn btn-default">Update</button>
+          </form>
+        </div>
+      {% elif mlist.po and not mlist.delivery %}
+        {{ objects.delivery_widget(job=job, obj=mlist) }}
+      {% else %}
+        <div class="clearfix visible-lg-block"></div>
+      {% endif %}
 
 			<h3 id="listStatus">
 				{%- if not mlist.sent_out %}
@@ -146,7 +152,7 @@
 
 			<label for="quoteTable">Associated Quotes:</label>
 			<table class="table table-striped" id="quoteTable">
-				<tr>
+				<tr id="tableHeader">
 					<th><span class="glyphicon glyphicon-credit-card"></span></th>
 					<th>Quote ID</th>
 					<th>Vendor</th>
@@ -170,7 +176,7 @@
 								{% endif %}
 							{% else %}
 							<!-- TODO:redirect to schedule delivery -->
-								<a href="#" id="awardedPO">
+								<a href="" class="disabled" id="awardedPO">
 										<span class="glyphicon glyphicon-star"></span>
 								</a>
 							{% endif %}

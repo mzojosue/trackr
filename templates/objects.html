@@ -143,55 +143,57 @@
 {% endmacro %}
 
 
-{% macro delivery_widget(job=False) %}
+{% macro delivery_widget(job=False, obj=False) %}
 	{# Responsible for tracking and updating delivery of materials to and from the jobsite #}
 
 	{# TODO:set delivery iterable #}
 	<div class="col-sm-4">
-		<div class="panel panel-info">
-			<div class="panel-heading">
-				{% if job %}
-					Deliveries scheduled for {{ job.name }}
-				{% else %}
-					Scheduled Deliveries
-				{% endif %}
-				<a href="#">
-					<span class="glyphicon glyphicon-link"></span>
-				</a>
-			</div>
-			<!-- /.panel-heading -->
-			<ul class="list-group">
-				{% if job %}
-					{% for i in job.deliveries.itervalues() %}
-						{% if i.countdown < 2 %}
-							<li class="list-group-item list-group-item-danger">
-						{% elif i.countdown < 5 %}
-							<li class="list-group-item list-group-item-warning">
-						{% else %}
-							<li class="list-group-item">
-						{% endif %}
-							<!-- TODO:set link to deliveries page -->
-							<a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">
-								From {{ i.vend }} expected <span class="label label-info">{{ i.expected.date() }}</span>
-							</a>
-						</li>
-					{% endfor %}
-				{% else %}
-					{% for i in Delivery.db.itervalues() %}
-						{% if i.countdown < 2 %}
-							<li class="list-group-item list-group-item-danger">
-						{% elif i.countdown < 5 %}
-							<li class="list-group-item list-group-item-warning">
-						{% else %}
-							<li class="list-group-item">
-						{% endif %}
-							<!-- TODO:set link to deliveries page -->
-							<a href="#">Delivery from {{ i.vend }}, expected <span class="label label-info">{{ i.expected.date() }}</span> for {{ i.job }}</a>
-						</li>
-					{% endfor %}
-				{% endif %}<!-- /.list-group-item -->
-			</ul><!-- /.list-group -->
-		</div><!-- /.panel -->
+    {% if not obj %}  {# widget is being displayed on material list page #}
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          {% if job %}
+            Deliveries scheduled for {{ job.name }}
+          {% else %}
+            Scheduled Deliveries
+          {% endif %}
+          <a href="#">
+            <span class="glyphicon glyphicon-link"></span>
+          </a>
+        </div>
+        <!-- /.panel-heading -->
+        <ul class="list-group">
+          {% if job %}
+            {% for i in job.deliveries.itervalues() %}
+              {% if i.countdown < 2 %}
+                <li class="list-group-item list-group-item-danger">
+              {% elif i.countdown < 5 %}
+                <li class="list-group-item list-group-item-warning">
+              {% else %}
+                <li class="list-group-item">
+              {% endif %}
+                <!-- TODO:set link to deliveries page -->
+                <a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">
+                  From {{ i.vend }} expected <span class="label label-info">{{ i.expected.date() }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          {% else %}
+            {% for i in Delivery.db.itervalues() %}
+              {% if i.countdown < 2 %}
+                <li class="list-group-item list-group-item-danger">
+              {% elif i.countdown < 5 %}
+                <li class="list-group-item list-group-item-warning">
+              {% else %}
+                <li class="list-group-item">
+              {% endif %}
+                <!-- TODO:set link to deliveries page -->
+                <a href="#">Delivery from {{ i.vend }}, expected <span class="label label-info">{{ i.expected.date() }}</span> for {{ i.job }}</a>
+              </li>
+            {% endfor %}
+          {% endif %}<!-- /.list-group-item -->
+        </ul><!-- /.list-group -->
+      </div><!-- /.panel -->
+    {% endif %}
 		<div class="panel panel-primary">
 			<div class="panel-heading">
 				Schedule Delivery/Backorder
@@ -214,23 +216,27 @@
 						</div>
 
 				{% endif %}<!-- /.form-group -->
-					<div class="form-group col-sm-12">
-						<label for="materialList">
-							Material List to Deliver:
-						</label>
-						<select name="materialListHash" id="materialList" class="form-control">
-							<option selected>Select Quote/Material List</option>
-							{% if job %}
-								{% for i in job.materials.itervalues() if (i.fulfilled and not i.delivered) %}
-									<option value="{{ i.hash }}">{{ i }}</option>
-								{% endfor %}
-							{% else %}
-								{% for i in MaterialList.db.itervalues() if (i.fulfilled and not i.delivered) %}
-									<option value="{{ i.hash }}">{{ i }}</option>
-								{% endfor %}
-							{% endif %}
-						</select>
-					</div><!-- /.form-group -->
+          {% if not obj %}
+            <div class="form-group col-sm-12">
+              <label for="materialList">
+                Material List to Deliver:
+              </label>
+              <select name="materialListHash" id="materialList" class="form-control">
+                <option selected>Select Quote/Material List</option>
+                {% if job %}
+                  {% for i in job.materials.itervalues() if (i.fulfilled and not i.delivered) %}
+                    <option value="{{ i.hash }}">{{ i }}</option>
+                  {% endfor %}
+                {% else %}
+                  {% for i in MaterialList.db.itervalues() if (i.fulfilled and not i.delivered) %}
+                    <option value="{{ i.hash }}">{{ i }}</option>
+                  {% endfor %}
+                {% endif %}
+              </select>
+            </div><!-- /.form-group -->
+          {% else %}
+            <input type="hidden" name="materialListHash" value={{ obj.hash }}>
+          {% endif %}
 
 					<div class="form-group col-sm-12">
 						<label for="destination">
@@ -407,7 +413,7 @@
 		        <form id="uploadForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
 			        <div class="form-group itemLineDiv">
 				        <label for="listLabel">
-					        List Label
+					        Label for Material List:
 				        </label>
 				        <input type="text" id="listLabel" class="form-control" name="listLabel" placeholder="Descriptive Label">
 				      </div>
@@ -492,7 +498,7 @@
 							<input type="hidden" value="0" id="itemCounter" name="itemCounter">
 			        <div class="form-group itemLineDiv">
 				        <label for="listLabel">
-					        List Label
+					        Label for Material List:
 				        </label>
 				        <a class="pull-right" href="javascript:;" onclick="addMaterialItem();">
 					        <span class="glyphicon glyphicon-plus"></span>

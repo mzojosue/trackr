@@ -1,17 +1,25 @@
 import os
 import core
 import pymongo
-from mongodict import MongoDict
+from mongodict import *
 
 
 def init_db(db='trackr_db'):
-	# TODO:implement job number storage
-	core.Worker.db = MongoDict(database=db, collection='workers')
-	core.Job.db = MongoDict(database=db, collection='jobs')
-	core.MaterialList.db = MongoDict(database=db, collection='materials')
-	core.Delivery.db = MongoDict(database=db, collection='deliveries')
-	core.Todo.db = MongoDict(database=db, collection='todos')
-	core.Todo.completed_db = MongoDict(database=db, collection='completed_todos')
+	try:
+		core.Worker.db = MongoDict(database=db, collection='workers')
+		core.Job.db = MongoDict(database=db, collection='jobs')
+		core.MaterialList.db = MongoDict(database=db, collection='materials')
+		core.Delivery.db = MongoDict(database=db, collection='deliveries')
+		core.Todo.db = MongoDict(database=db, collection='todos')
+		core.Todo.completed_db = MongoDict(database=db, collection='completed_todos')
+	except:
+		print "Cannot connect to MongoDBDatabase... Job storage will not be implemented"
+		core.Worker.db = {}
+		core.Job.db = {}
+		core.MaterialList.db = {}
+		core.Delivery.db = {}
+		core.Todo.db = {}
+		core.Todo.completed_db = {}
 	return True
 
 
