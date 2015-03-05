@@ -75,6 +75,9 @@
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
 			{{ job.name }}&nbsp;
+			<button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#jobInfo" aria-expanded="false" aria-controls="jobInfo">
+				<span class="glyphicon glyphicon-info-sign"></span>
+			</button>
 			<!-- TODO:implement link to unlock and edit job -->
 			<a href="" class="btn btn-default btn-sm">
 				Unlock for Editing
@@ -82,75 +85,76 @@
 		</h1>
 
 		<div class="row">
-
-			<div class="col-xs-3">
-				<label for="jobAddress">Address:</label>
-				<textarea name="jobAddress" id="jobAddress" class="form-control" rows="3" onclick="this.select();" readonly>
-					{{- job.address -}}
-				</textarea>
-				<br>
-				<label for="jobDesc">Description:</label>
-				<textarea name="jobDesc" id="jobDesc" class="form-control" rows="3" onclick="this.select();" readonly>
-					{{- job.desc -}}
-				</textarea>
-			</div><!-- /#jobDesc-->
-			<div class="col-xs-2">
-				<label for="foremanInfo">
-					Foreman's Information:
-				</label>
-				<div class="well" id="foremanInfo">
-					<label for="foremanName">
-						Name:
+			<div id="jobInfo" class="collapse">
+				<div class="col-xs-3">
+					<label for="jobAddress">Address:</label>
+					<textarea name="jobAddress" id="jobAddress" class="form-control" rows="3" onclick="this.select();" readonly>
+						{{- job.address -}}
+					</textarea>
+					<br>
+					<label for="jobDesc">Description:</label>
+					<textarea id="jobDesc" name="jobDesc" class="form-control" rows="3" onclick="this.select();" readonly>
+						{{- job.desc -}}
+					</textarea>
+				</div><!-- /#jobDesc-->
+				<div class="col-xs-2">
+					<label for="foremanInfo">
+						Foreman's Information:
 					</label>
-					<input type="tel" class="form-control" id="foremanName" onclick="this.select();" value="{# job.foreman.name #}" readonly>
+					<div class="well" id="foremanInfo">
+						<label for="foremanName">
+							Name:
+						</label>
+						<input type="tel" class="form-control" id="foremanName" onclick="this.select();" value="{# job.foreman.name #}" readonly>
 
-					<label for="foremanPhone">
-						Phone #
+						<label for="foremanPhone">
+							Phone #
+						</label>
+						<input type="text" class="form-control" id="foremanPhone" onclick="this.select();" value="856.873.3210" readonly>
+
+						<label for="foremanEmail">
+							Email:
+						</label>
+						<input type="email" class="form-control" id="foremanEmail" onclick="this.select();" value="{# job.foreman.email #}" readonly>
+
+					</div>
+				</div><!-- /#foremanInfo -->
+
+				<div class="col-xs-2">
+					<label for="nextPO">
+						Next Available PO:
 					</label>
-					<input type="text" class="form-control" id="foremanPhone" onclick="this.select();" value="856.873.3210" readonly>
-
-					<label for="foremanEmail">
-						Email:
-					</label>
-					<input type="email" class="form-control" id="foremanEmail" onclick="this.select();" value="{# job.foreman.email #}" readonly>
-
+					<div id="nextPO" class="input-group">
+						<input type="text" class="form-control" onclick="this.select();" value="{{ job.show_po }}" readonly>
+						<a class="input-group-btn">
+							<button class="btn btn-success">
+								<span class="glyphicon glyphicon-plus"></span>
+							</button>
+						</a>
+					</div>
 				</div>
-			</div><!-- /#foremanInfo -->
 
-			<div class="col-xs-2">
-				<label for="nextPO">
-					Next Available PO:
-				</label>
-				<div id="nextPO" class="input-group">
-					<input type="text" class="form-control" onclick="this.select();" value="{{ job.show_po }}" readonly>
-					<a class="input-group-btn">
-						<button class="btn btn-success">
-							<span class="glyphicon glyphicon-plus"></span>
-						</button>
-					</a>
+				<div id="workerList" class="col-xs-4 pull-right">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							Workers
+						</div>
+						<ul class="list-group">
+							<li class="list-group-item">
+								Test
+							</li>
+						</ul>
+					</div>
 				</div>
+
+				<div class="clearfix visible-lg-block"></div>
+				<hr>
 			</div>
-
-			{{ objects.task_widget(todos=todos, job=job) }}
-			<div class="clearfix visible-lg-block"></div>
-			<hr>
-
 			{{ objects.delivery_widget(job=job) }}
 
 			{{ objects.materials_widget(job=job) }}
 
-			<div class="col-xs-4">
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						Workers
-					</div>
-					<ul class="list-group">
-						<li class="list-group-item">
-							Test
-						</li>
-					</ul>
-				</div>
-			</div>
+			{{ objects.task_widget(todos=todos, job=job) }}
 
 			<!-- TODO:list contract amount and updated job cost. -->
 			<!-- TODO:list start and end date -->
