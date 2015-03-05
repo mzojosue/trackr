@@ -1,3 +1,3 @@
 from objects import *
-from page import *
+from core.frontend.page import *
 from parsing import *

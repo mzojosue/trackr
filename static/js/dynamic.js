@@ -62,3 +62,10 @@ document.onpaste = function(event){
     console.log(event.target.result)}; // data url!
   reader.readAsDataURL(blob);
 }
+
+function update_mat_list() {
+
+        var jobNum = document.getElementById("jobSelect").value;
+        $("#materialList").load("/dynamic/j/" + jobNum + "/materials");
+
+}

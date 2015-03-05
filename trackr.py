@@ -1,7 +1,9 @@
 import os
-import core
+
 import pymongo
 from mongodict import *
+
+import core
 
 
 def init_db(db='trackr_db'):
@@ -43,4 +45,4 @@ def reset_db(db='trackr_db', log='betterPOlog.xlsx'):
 init_db()
 
 if __name__ == "__main__":
-	core.page.app.run(debug=True)
+	core.frontend.page.app.run(debug=True)

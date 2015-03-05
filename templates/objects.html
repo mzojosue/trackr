@@ -207,7 +207,7 @@
 				{% else %}
 					<form class="form-horizontal" action="{{ url_for('schedule_delivery') }}" method="post">
 						<div class="form-group col-sm-12">
-							<select name="job-number" class="form-control">
+							<select name="job-number" id="jobSelect" class="form-control" onchange="update_mat_list()">
 								<option selected>Please select a job</option>
 								{% for i in Job.db.itervalues() %}
 									<option value="{{ i.number }}">{{ i.name }}</option>
@@ -228,9 +228,10 @@
                     <option value="{{ i.hash }}">{{ i }}</option>
                   {% endfor %}
                 {% else %}
-                  {% for i in MaterialList.db.itervalues() if (i.fulfilled and not i.delivered) %}
+                  <!--{% for i in MaterialList.db.itervalues() if (i.fulfilled and not i.delivered) %}
                     <option value="{{ i.hash }}">{{ i }}</option>
-                  {% endfor %}
+                  {% endfor %}-->
+
                 {% endif %}
               </select>
             </div><!-- /.form-group -->

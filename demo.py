@@ -6,7 +6,7 @@ for i in xrange(1, 11):
 	core.Todo( name=name )
 
 if __name__ == "__main__":
-	core.page.app.run(debug=True)
+	core.frontend.page.app.run(debug=True)
 	trackr_db.close()
 
 	print "\n\n ** Database saved ** \n"
