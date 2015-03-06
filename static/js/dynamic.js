@@ -65,7 +65,8 @@ document.onpaste = function(event){
 
 function update_mat_list() {
 
-        var jobNum = document.getElementById("jobSelect").value;
-        $("#materialList").load("/dynamic/j/" + jobNum + "/materials");
+  var jobNum = document.getElementById("jobSelect").value;
+  $("#materialList").load("/dynamic/j/" + jobNum + "/materials");
+
 
 }

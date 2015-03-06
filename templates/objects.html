@@ -207,6 +207,7 @@
 				{% else %}
 					<form class="form-horizontal" action="{{ url_for('schedule_delivery') }}" method="post">
 						<div class="form-group col-sm-12">
+							<label for="jobSelect">Select a Job:</label>
 							<select name="job-number" id="jobSelect" class="form-control" onchange="update_mat_list()">
 								<option selected>Please select a job</option>
 								{% for i in Job.db.itervalues() %}
@@ -222,7 +223,7 @@
                 Material List to Deliver:
               </label>
               <select name="materialListHash" id="materialList" class="form-control">
-                <option selected>Select Quote/Material List</option>
+                <option selected>Please select a job first</option>
                 {% if job %}
                   {% for i in job.materials.itervalues() if (i.fulfilled and not i.delivered) %}
                     <option value="{{ i.hash }}">{{ i }}</option>
