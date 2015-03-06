@@ -14,6 +14,8 @@ def init_db(db='trackr_db'):
 		core.Delivery.db = MongoDict(database=db, collection='deliveries')
 		core.Todo.db = MongoDict(database=db, collection='todos')
 		core.Todo.completed_db = MongoDict(database=db, collection='completed_todos')
+		core.InventoryItem.db = MongoDict(database=db, collection='inventory_items')
+		core.InventoryOrder.db = MongoDict(database=db, collection='inventory_orders')
 	except:
 		print "Cannot connect to MongoDBDatabase... Job storage will not be implemented"
 		core.Worker.db = {}
@@ -22,6 +24,8 @@ def init_db(db='trackr_db'):
 		core.Delivery.db = {}
 		core.Todo.db = {}
 		core.Todo.completed_db = {}
+		core.InventoryItem.db = {}
+		core.InventoryOrder.db = {}
 	return True
 
 

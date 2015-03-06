@@ -225,15 +225,11 @@
               <select name="materialListHash" id="materialList" class="form-control">
                 <option selected>Please select a job first</option>
                 {% if job %}
+	                {# Only populate element if job is specified because javascript dynamically fetches content when job is not specified #}
                   {% for i in job.materials.itervalues() if (i.fulfilled and not i.delivered) %}
                     <option value="{{ i.hash }}">{{ i }}</option>
                   {% endfor %}
-                {% else %}
-                  <!--{% for i in MaterialList.db.itervalues() if (i.fulfilled and not i.delivered) %}
-                    <option value="{{ i.hash }}">{{ i }}</option>
-                  {% endfor %}-->
-
-                {% endif %}
+	              {% endif %}
               </select>
             </div><!-- /.form-group -->
           {% else %}
