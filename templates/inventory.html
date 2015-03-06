@@ -1,25 +1,25 @@
 {% extends "layout.html" %}
 
 {% block title %}
-	Campano Dashboard
+	{{ Inventory }}
 {% endblock %}
 
 
 {% block styles %}
 
-	<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+	<link href="{{ url_for('static', filename='css/job.css') }}" rel="stylesheet">
 
 {% endblock %}
 
 
 {% block nav_links %}
-	<li class="active">
+	<li>
 		<a href="{{ url_for('home') }}">Dashboard</a>
 	</li>
 	<li>
 		<a href="#">Estimating</a>
 	</li>
-	<li>
+	<li class="active">
 		<a href="{{ url_for('all_jobs') }}">Jobs</a>
 	</li>
 	<li>
@@ -35,7 +35,7 @@
 
 	<div class="col-sm-3 col-md-2 sidebar">
 		<ul class="nav nav-sidebar">
-			<li class="active">
+			<li>
 				<a href="{{ url_for('home') }}" class="active">
 					<span class="glyphicon glyphicon-eye-open"></span>&nbsp;
 					Overview
@@ -60,21 +60,48 @@
 				</a>
 			</li>
 			<li><a href="#">Rental Logs</a></li>
-			<li><a href="{{ url_for('inventory') }}">Inventory</a></li>
+			<li class="active">
+        <a href="{{ url_for('inventory') }}">
+          Inventory
+        </a>
+      </li>
 		</ul>
 	</div><!-- /.sidebar -->
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-		<h1 class="page-header">Dashboard</h1>
+		<h1 class="page-header">
+			Shop Inventory&nbsp;
+			<!-- TODO:implement link to unlock and edit job -->
+			<a href="" class="btn btn-default btn-sm">
+				Unlock for Editing
+			</a>
+		</h1>
+
+		<h4 class="sub-header">
+			Purchase Orders:
+		</h4>
 
 		<div class="row">
 
-			{{ objects.delivery_widget() }}
+			<table class="table table-striped">
+				<tr id="tableHeadings">
+					<th>Item ID:</th>
+          <th>Item Name:</th>
+          <th>Stock:</th>
+          <th>Demand past 2 weeks:</th>
+					<!--th>Ordered By:</th-->
+				</tr>
+				{# iter for inventory #}
+					<tr>
+						<td>GSDF</td>
+            <td>1/4" Screws</td>
+            <td>4 boxes</td>
+            <td>Medium</td>
+						<!--td>Ordered by...</td-->
+					</tr>
+				{# endfor #}
+			</table>
 
-			{{ objects.materials_widget() }}
-
-			{{ objects.task_widget(todos, completed) }}
-
-		</div>
-	</div><!-- /.row -->
+		</div><!-- /.row -->
+	</div><!-- /.main -->
 
 {% endblock %}

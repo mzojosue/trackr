@@ -432,10 +432,12 @@ def del_todo(t_hash):
 		# TODO:display error on redirect
 		return redirect(request.referrer)
 
-
+@app.route('/inventory')
+def inventory():
+	return render_template('inventory.html')
 
 @app.route('/dynamic/j/<int:job_num>/materials')
-def dynamic_test(job_num):
+def get_mat_lists(job_num):
 	""" Populates <select> object contents for displaying the material lists for `job_num`
 	:param job_num: specifies job number to iterate over
 	:return:
