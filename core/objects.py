@@ -638,36 +638,6 @@ class Todo(object):
 			self.target.add_task(self)
 
 
-class InventoryItem(object):
-	def __init__(self, label, id=None, unit=None):
-		self.label = label
-		self.id = id
-		self.unit = unit
-
-		# Dictionary which stores additions and deductions to item stock
-		self.orders = {}
-
-	@property
-	def stock(self):
-		""" Iterates over self.orders, then calculates the final item stock """
-		return NotImplemented
-
-class InventoryOrder(object):
-	def __init__(self, item, po=None, vend=None, price=None, quantity=None, delivery=None):
-		self.hash = abs(hash(now()))
-
-		self.item = item
-		self.po = po
-		self.vend = vend
-		self.price = price
-		self.quantity = quantity
-		if delivery:
-			self.delivery = delivery
-
-		self.item.orders[self.hash] = self
-
-
-
 def get_job_num(*args):
 	try:
 		if hasattr(Job, 'db'):
