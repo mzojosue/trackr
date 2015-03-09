@@ -31,7 +31,17 @@ def home():
 
 @app.route('/inventory')
 def inventory():
-	return render_template('inventory.html')
+	if hasattr(InventoryItem, 'db'):
+		_inventory = InventoryItem.db.itervalues()
+		return render_template('inventory.html', inventory=_inventory)
+
+@app.route('/inventory/item', methods=['POST'])
+def new_inventory_item():
+	return NotImplemented
+
+@app.route('/inventory/order', methods=['POST'])
+def inventory_item_order():
+	return NotImplemented
 
 
 @app.route('/task/new', methods=['POST'])

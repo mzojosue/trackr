@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
 
 {% block title %}
-	{{ Inventory }}
+	Inventory
 {% endblock %}
 
 
 {% block styles %}
 
-	<link href="{{ url_for('static', filename='css/job.css') }}" rel="stylesheet">
+	<link href="{{ url_for('static', filename='css/inventory.css') }}" rel="stylesheet">
 
 {% endblock %}
 
@@ -76,9 +76,10 @@
 			</a>
 		</h1>
 
-		<h4 class="sub-header">
-			Purchase Orders:
-		</h4>
+    <div class="widgetWell">
+      {{ objects.inventory_item_modal() }}
+      {{ objects.inventory_order_modal() }}
+    </div>
 
 		<div class="row">
 
@@ -90,15 +91,15 @@
           <th>Demand past 2 weeks:</th>
 					<!--th>Ordered By:</th-->
 				</tr>
-				{# iter for inventory #}
+				{% for item in inventory %}
 					<tr>
-						<td>GSDF</td>
-            <td>1/4" Screws</td>
-            <td>4 boxes</td>
-            <td>Medium</td>
+						<td>{{ item.item_id }}</td>
+            <td>{{ item.item_label }}</td>
+            <td>{{ item.stock }}</td>
+            <td>{{ item.orders|length }}</td>
 						<!--td>Ordered by...</td-->
 					</tr>
-				{# endfor #}
+				{% endfor %}
 			</table>
 
 		</div><!-- /.row -->
