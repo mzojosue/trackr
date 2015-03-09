@@ -556,15 +556,126 @@
 	      </div>
 
 	      <div class="modal-body">
-		      <ul class="list-group">
-			      {% if obj.items is not string %}
+		      {% if obj.items is not string %}
+            <ul class="list-group">
 				      {% for item in obj.items %}
 				        <li class="list-group-item">{{ item }}</li>
 				      {% endfor %}
-			      {% else %}
-			        <p>{{ obj.items }}</p>
-			      {% endif %}
-			    </ul>
+            </ul>
+          {% else %}
+            {# usually executes if material list was imported from PO log #}
+            <span>{{ obj.items }}</span>
+          {% endif %}
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary">Edit</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro inventory_item_modal() %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#invModal">
+	  New Item List
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="invModal" tabindex="-1" role="dialog" aria-labelledby="invModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="invModalLabel">
+		        New Inventory Item
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+          <form action="{{ url_for('new_inventory_item') }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="itemID">
+                Item ID:
+              </label>
+              <input id="itemID" name="itemID" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="itemLabel">
+                Item Label:
+              </label>
+              <input id="itemLabel" name="itemLabel" type="text" class="form-control">
+            </div>
+          </form>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary">Edit</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro inventory_order_modal() %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#invOrderModal">
+	  Input Order
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="invOrderModal" tabindex="-1" role="dialog" aria-labelledby="invOrderModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="invOrderModalLabel">
+		        New Inventory Item
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+          <form action="{{ url_for('inventory_item_order') }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="itemOrderID">
+                Item ID:
+              </label>
+              <input id="itemOrderID" name="itemOrderID" type="text" class="form-control">
+              <p class="help-block">Input item name or ID</p>
+            </div>
+            <div class="form-group">
+              <label for="vendorName">
+                Vendor:
+              </label>
+              <input id="vendorName" name="vendName" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="orderPrice">
+                Order Price
+              </label>
+              <input id="orderPrice" name="orderPrice" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="orderAmount">
+                Order Amount
+              </label>
+              <!-- TODO:create javascript to listen on #itemOrderID to change input type based on the items unit of measure -->
+              <input id="orderAmount" name="orderAmount" type="text" class="form-control">
+            </div>
+          </form>
 	      </div>
 
 	      <div class="modal-footer">
