@@ -37,11 +37,19 @@ def inventory():
 
 @app.route('/inventory/item', methods=['POST'])
 def new_inventory_item():
-	return NotImplemented
+	_item_id = request.form['itemID']
+	_item_label = request.form['itemLabel']
+	InventoryItem(_item_id, _item_label)
+	return redirect(request.referrer)
 
 @app.route('/inventory/order', methods=['POST'])
 def inventory_item_order():
-	return NotImplemented
+	_item_id = request.form['itemOrderID']
+	_vend_name = request.form['vendorName']
+	_order_price = request.form['orderPrice']
+	_order_amount = request.form['orderAmount']
+	InventoryOrder(_item_id, _order_price, _vend_name, _order_amount)
+	return redirect(request.referrer)
 
 
 @app.route('/task/new', methods=['POST'])

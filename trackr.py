@@ -49,4 +49,4 @@ def reset_db(db='trackr_db', log='betterPOlog.xlsx'):
 init_db()
 
 if __name__ == "__main__":
-	core.frontend.page.app.run(debug=True)
+	core.frontend.page.app.run(host='0.0.0.0', port=8080, debug=True)
