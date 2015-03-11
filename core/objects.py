@@ -641,7 +641,7 @@ class Todo(object):
 class InventoryItem(object):
 	def __init__(self, item_id, item_label, stock=None):
 
-		self.hash = abs(hash(''.join([str(item_id), str(item_label)])))
+		self.hash = abs(hash(str(item_id)))
 
 		self.item_id = item_id
 		self.item_label = item_label
@@ -667,6 +667,14 @@ class InventoryItem(object):
 		if hasattr(InventoryItem, 'db'):
 			InventoryItem.db[self.hash] = self
 		return None
+
+	@staticmethod
+	def find(query):
+		try:
+			_hash = abs(hash(str(query)))
+			return InventoryItem.db[_hash]
+		except KeyError:
+			return False
 
 class InventoryOrder(object):
 	def __init__(self, item, price=0.0, vend=None, quantity=0, date_ordered=today(), po=None):
