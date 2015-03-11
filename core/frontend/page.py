@@ -42,13 +42,23 @@ def new_inventory_item():
 	InventoryItem(_item_id, _item_label)
 	return redirect(request.referrer)
 
-@app.route('/inventory/order', methods=['POST', 'get'])
+@app.route('/inventory/order', methods=['POST'])
 def inventory_item_order():
 	_item = InventoryItem.find(request.form['itemOrderID'])
 	_vend_name = request.form['vendorName']
 	_order_price = request.form['orderPrice']
 	_order_amount = request.form['orderAmount']
 	InventoryOrder(_item, _order_price, _vend_name, _order_amount)
+	return redirect(request.referrer)
+
+@app.route('/inventory/<int:item_hash>/del')
+def del_inventory_item(item_hash):
+	_item = InventoryItem.find(item_hash)
+	if _item.orders and hasattr(InventoryOrder, 'db'):
+		for i in _item.orders:
+			del InventoryOrder.db[i]
+	if hasattr(InventoryItem, 'db'):
+		del InventoryItem.db[item_hash]
 	return redirect(request.referrer)
 
 

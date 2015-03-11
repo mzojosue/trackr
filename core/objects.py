@@ -671,8 +671,8 @@ class InventoryItem(object):
 	@staticmethod
 	def find(query):
 		try:
-			_hash = abs(hash(str(query)))
-			return InventoryItem.db[_hash]
+			if hasattr(InventoryItem, 'db'):
+				return InventoryItem.db[int(query)]
 		except KeyError:
 			return False
 
@@ -705,6 +705,14 @@ class InventoryOrder(object):
 			self.item.orders[self.hash] = self
 			self.item.update()
 		return None
+
+	@staticmethod
+	def find(query):
+		try:
+			if hasattr(InventoryOrder, 'db'):
+				return InventoryOrder.db[int(query)]
+		except KeyError:
+			return False
 
 def get_job_num(*args):
 	try:

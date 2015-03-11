@@ -89,6 +89,7 @@
           <th>Item Name:</th>
           <th>Stock:</th>
           <th>Demand past 2 weeks:</th>
+					<th>Del:</th>
 					<!--th>Ordered By:</th-->
 				</tr>
 				{% for item in inventory %}
@@ -96,7 +97,12 @@
 						<td>{{ item.item_id }}</td>
             <td>{{ item.item_label }}</td>
             <td>{{ item.stock }}</td>
-            <td></td>
+            <td>&nbsp;</td>
+						<td>
+							<a href="{{ url_for('del_inventory_item', item_hash=item.hash) }}">
+								<span class="glyphicon glyphicon-trash"></span>
+							</a>
+						</td>
 						<!--td>Ordered by...</td-->
 					</tr>
 				{% endfor %}
