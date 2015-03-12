@@ -676,6 +676,7 @@ class InventoryItem(object):
 		except KeyError:
 			return False
 
+
 class InventoryOrder(object):
 	def __init__(self, item, price=0.0, vend=None, quantity=0, date_ordered=today(), po=None):
 
@@ -713,6 +714,7 @@ class InventoryOrder(object):
 				return InventoryOrder.db[int(query)]
 		except KeyError:
 			return False
+
 
 def get_job_num(*args):
 	try:
