@@ -26,16 +26,19 @@ class Worker(object):
 		elif rate is 'b':
 			self.rate = Worker.B_RATE
 
+		self.timesheets = []    # list that includes timesheet hashes that worker has been at
+
 
 	def __setattr__(self, name, value):
 		""" Alters attribute setting to listen to when self.job is changed,
 			the previous job is stored in self.prev_jobs
 		"""
 		if name is 'job':
-			value.workers[self.hash] = self
+			value.add_worker(self)
 			try:
 				self.prev_jobs.append(self.job)
-				del self.job.workers[self.hash]
+				del self.job.workers[self.name]
+				self.job.update()
 			except AttributeError:
 				pass
 
@@ -54,7 +57,7 @@ class Worker(object):
 			return Todo.db[q_hash]
 
 	def update(self):
-		if hasattr(Worker, 'db'):
+		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
 			Worker.db[self.hash] = self
 			if hasattr(self, 'job'):
 				self.job.add_worker(self)
@@ -101,13 +104,9 @@ class Job(object):
 			elif not os.path.exists(os.path.join(Job.default_sub_dir, self.name)):
 				os.mkdir(os.path.join(Job.default_sub_dir, self.name))
 				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
-				os.mkdir(os.path.join(self.sub_path, 'Materials'))
-				os.mkdir(os.path.join(self.sub_path, 'Quotes'))
-				os.mkdir(os.path.join(self.sub_path, 'Drawings'))
-				os.mkdir(os.path.join(self.sub_path, 'Documents'))
-				os.mkdir(os.path.join(self.sub_path, 'Specs'))
-				os.mkdir(os.path.join(self.sub_path, 'Addendums'))
-				os.mkdir(os.path.join(self.sub_path, 'Submittals'))
+				_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents', 'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
+				for _folder in _folders:
+					os.mkdir(os.path.join(self.sub_path, _folder))
 			else:
 				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
 		except OSError:
@@ -120,8 +119,8 @@ class Job(object):
 		self.quotes = {}
 		self.deliveries = {}
 		self.tasks = {}
-		# Job.timesheets.key is datetime.datetime object
-		# Job.timesheets.value is [ 'pathname/to/timesheet', hours ]
+		# Job.timesheets.key is datetime.datetime object for the week-ending
+		# Job.timesheets.value is [ 'pathname/to/timesheet', { worker.hash: (worker, hours) } ]
 		self.timesheets = {}
 
 	def update(self):
@@ -250,6 +249,7 @@ class Job(object):
 
 	def add_worker(self, wrkr_obj):
 		self.workers[wrkr_obj.hash] = wrkr_obj
+		self.update()
 
 	def del_material_list(self, mlist_hash):
 		del self.materials[mlist_hash]
@@ -275,7 +275,6 @@ class MaterialList(object):
 
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
 		self.hash = abs(hash(str(now())))
-
 
 		self.job = job
 		self.items = items
@@ -715,6 +714,56 @@ class InventoryOrder(object):
 		except KeyError:
 			return False
 
+
+class Timesheet(object):
+	def __init__(self, job, start_date=None, end_date=None, doc=None, timesheet=dict()):
+		self.hash = abs(hash(''.join([str(job.number), str(start_date), str(end_date)])))
+		self.job = job
+		self.start_date = start_date
+		self.end_date = end_date
+		self.doc = doc
+
+		# self.timesheet.key is worker.hash
+		# self.timesheet.value is list of dates worked and hours
+		self.timesheet = timesheet
+
+	@property
+	def hours(self):
+		"""
+		:return: total amount of hours as float
+		"""
+		_hrs = 0.0
+		for _work in self.timesheet.itervalues():
+			_hrs += float(_work[1])
+		return _hrs
+
+	def __setattr__(self, key, value):
+		_return = super(Timesheet, self).__setattr__(key, value)
+		self.update()
+		return _return
+
+	def __repr__(self):
+		if not self.end_date:
+			return "%d hours worked at %s. Dates unknown." % (self.hours, self.job)
+		else:
+			return "%d hours worked at %s for week ending %s" % (self.hours, self.job, self.end_date)
+
+	def add_labor(self, worker, date_worked, hours):
+		if hasattr(worker, 'hash'):
+			if worker.hash in self.timesheet:
+				self.timesheet[worker.hash].append([date_worked, float(hours)])
+			else:
+				self.timesheet[worker.hash] = [date_worked, float(hours)]
+			if not self.hash in worker.timesheets:
+				worker.timesheets.append(self.hash)
+				worker.update()
+
+	def update(self):
+		if hasattr(Timesheet, 'db'):
+			Timesheet.db[self.hash] = self
+		if hasattr(self, 'job'):
+			self.job.timesheets[self.hash] = self
+			self.job.update()
 
 def get_job_num(*args):
 	try:

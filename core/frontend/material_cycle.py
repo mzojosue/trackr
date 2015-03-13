@@ -1,4 +1,5 @@
 from config import *
+from werkzeug import secure_filename
 
 @app.route('/j/<int:job_num>/materials', methods=['POST', 'GET'])
 def job_materials(job_num=None):
