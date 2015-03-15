@@ -33,40 +33,8 @@
 
 {% block body %}
 
-	<div class="col-sm-3 col-md-2 sidebar">
-		<ul class="nav nav-sidebar">
-			<li>
-				<a href="{{ url_for('home') }}" class="active">
-					<span class="glyphicon glyphicon-eye-open"></span>&nbsp;
-					Overview
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<span class="glyphicon glyphicon-stats"></span>&nbsp;
-					Analytics
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<span class="glyphicon glyphicon-plane"></span>&nbsp;
-					Deliveries
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<span class="glyphicon glyphicon-piggy-bank"></span>&nbsp;
-					Estimating
-				</a>
-			</li>
-			<li><a href="#">Rental Logs</a></li>
-			<li class="active">
-        <a href="{{ url_for('inventory') }}">
-          Inventory
-        </a>
-      </li>
-		</ul>
-	</div><!-- /.sidebar -->
+	{{ objects.sidebar_links('inventory') }}
+
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
 			Shop Inventory&nbsp;
