@@ -62,9 +62,11 @@
 			<div class="col-xs-8 widgetWell">
         {% if not mlist.po %}
 				  {{ objects.upload_modal(job=job, obj=mlist, meth='quote') }}
-				{% elif mlist.items %}
+				{% endif %}
+				{% if mlist.items %}
 					{{ objects.list_modal(job=job, obj=mlist) }}
-				{% elif mlist.doc %}
+				{% endif %}
+				{% if mlist.doc %}
 					<a href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=mlist.hash) }}" target="_blank" class="btn btn-info">
 	          View Material Document
 					</a>
