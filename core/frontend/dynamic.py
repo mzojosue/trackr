@@ -34,13 +34,13 @@ def get_mat_lists(job_num, query=None):
 def job_with_open_list():
 	_return = []
 	if hasattr(Job, 'db'):
+		_return.append('<option>Please select a job</option>')
 		for job in Job.db.itervalues():
-			_return.append('<option>Please select a job</option>')
 			_open = job.has_open_lists
 			if _open:
 				_opt = '<option value="%s">%s  (%d open lists)</option>' % (job.number, job, _open)
 				_return.append(_opt)
-		if _return:
+		if len(_return) > 1:
 			return ''.join(_return)
 		else:
 			return '<option>No jobs w/ open material lists</option>'
