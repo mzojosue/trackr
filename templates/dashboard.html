@@ -50,3 +50,14 @@
 	</div><!-- /.row -->
 
 {% endblock %}
+
+
+{% block post_script %}
+
+	<script>
+		$(document).ready(function() {
+      $("#openJobSelect").load("/dynamic/j/has_open_lists");
+		});
+	</script>
+
+{% endblock %}

@@ -211,6 +211,18 @@ class Job(object):
 			amt += i.quote.price
 		return amt
 
+	@property
+	def has_open_lists(self):
+		"""
+		Returns 0 if job has no open material lists
+		:return:
+		"""
+		open_lists = 0
+		for mlist in self.materials.itervalues():
+			if not mlist.fulfilled:
+				open_lists += 1
+		return open_lists
+
 	@staticmethod
 	def find(num):
 		if hasattr(Job, 'db'):

@@ -206,9 +206,9 @@
 
 				{% else %}
 					<form class="form-horizontal" action="{{ url_for('schedule_delivery') }}" method="post">
-						<div class="form-group col-sm-12">
+						<div class="form-group col-xs-12">
 							<label for="jobSelect">Select a Job:</label>
-							<select name="job-number" id="jobSelect" class="form-control" onchange="update_mat_list()">
+							<select name="job-number" id="jobSelect" class="form-control" onchange="update_mat_list('jobSelect', '#materialList')">
 								<option selected>Please select a job</option>
 								{% for i in Job.db.itervalues() %}
 									<option value="{{ i.number }}">{{ i.name }}</option>
@@ -218,21 +218,19 @@
 
 				{% endif %}<!-- /.form-group -->
           {% if not obj %}
-            <div class="form-group col-sm-12">
+            <div class="form-group col-xs-12">
               <label for="materialList">
                 Material List to Deliver:
               </label>
               <select name="materialListHash" id="materialList" class="form-control">
-                <option selected>Please select a job first</option>
                 {% if job %}
                   {% for i in job.materials.itervalues() if (i.fulfilled and not i.delivered) %}
                     <option value="{{ i.hash }}">{{ i }}</option>
+	                {% else %}
+	                  <option>No material lists ready for delivery</option>
                   {% endfor %}
                 {% else %}
-                  <!--{% for i in MaterialList.db.itervalues() if (i.fulfilled and not i.delivered) %}
-                    <option value="{{ i.hash }}">{{ i }}</option>
-                  {% endfor %}-->
-
+									<option selected>Please select a job first</option>
                 {% endif %}
               </select>
             </div><!-- /.form-group -->
@@ -240,7 +238,7 @@
             <input type="hidden" name="materialListHash" value={{ obj.hash }}>
           {% endif %}
 
-					<div class="form-group col-sm-12">
+					<div class="form-group col-xs-12">
 						<label for="destination">
 							Delivery Destination:
 						</label>
@@ -288,69 +286,29 @@
 					</a>
 				{% endif %}
 			</div><!-- /.panel-heading -->
-			<ul class="list-group">
-				{% if job %}
-					{% for mlist in job.materials.itervalues() if not mlist.fulfilled %}
-						<li class="list-group-item">
-							<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
-								{{ mlist }}
-							</a>
-							{% if mlist.quotes|length %}
-								<span class="glyphicon glyphicon-paperclip"></span>
-							{% endif %}
-							{% if mlist.doc %}
-								<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
-									<span class="glyphicon glyphicon-open-file"></span>
-								</a>
-							{% elif mlist.items %}
-								<span class="glyphicon glyphicon-th-list"></span>
-							{% endif %}
-						</li>
-					{% else %}
-						<li class="list-group-item">
-							No open material lists.
-						</li>
-					{% endfor %}
-				{% else %}
-					{% for mlist in MaterialList.db.itervalues() if not mlist.fulfilled %}
-						<li class="list-group-item">
-							<a href="{{ url_for('material_list', m_hash=mlist.hash) }}">
-								{{ mlist }}
-							</a>
-							{% if mlist.quotes|length %}
-								<span class="glyphicon glyphicon-paperclip"></span>
-							{% endif %}
-							{% if mlist.doc %}
-								<a target="_blank" href="{{ url_for('job_material_doc', doc_hash=mlist.hash) }}">
-									<span class="glyphicon glyphicon-open-file"></span>
-								</a>
-							{% endif %}
-						</li>
-					{% else %}
-						<li class="list-group-item">
-							No open material lists.
-						</li>
-					{% endfor %}
-				{% endif %}
-				<!-- /.list-group-item -->
-			</ul><!-- /.list-group -->
 			{# TODO:check if material list iterable is >0 #}
 			<div class="panel-body" id="quoteUpload">
-				<h5>Add quote:</h5>
 				<form class="form-horizontal" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
+					{% if not job %}
+						<div class="form-group col-xs-12">
+							<label for="openJobSelect">
+								Select Job:
+							</label>
+							<select name="jobSelect" id="openJobSelect" class="form-control" onchange="update_mat_list('openJobSelect', '#matListforQuote')">
+								{# Select element populates itself via javascript #}
+							</select>
+						</div>
+					{% endif %}
 					<div class="form-group col-xs-12">
-						<select class="form-control" name="materialList">
+						<label for="matListforQuote">
+							Add quote:
+						</label>
+						<select class="form-control" name="matListforQuote" id="matListforQuote">
 							<option selected>Select Material List</option>
 							{% if job %}
 								{% for i in job.materials.itervalues() if not i.fulfilled %}
 									<option value="{{ i.hash }}">{{ i }}</option>
 								{% else %}
-									<option>No open material lists</option>
-								{% endfor %}
-							{% else %}
-								{% for i in MaterialList.db.itervalues() if not i.fulfilled %}
-									<option value="{{ i.hash }}">{{ i }}</option>
-							  {% else %}
 									<option>No open material lists</option>
 								{% endfor %}
 							{% endif %}
@@ -736,7 +694,6 @@
                   <th>Sat</th>
                 </tr>
                 {# Rows are added here #}
-                </tr>
               </tbody>
             </table>
           </form>

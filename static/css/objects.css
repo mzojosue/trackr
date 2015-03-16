@@ -20,3 +20,7 @@
 #itemModal .itemLineDiv {
   margin-bottom: 10px;
 }
+
+div .col-xs-12 {
+  width: 107% !important;
+}

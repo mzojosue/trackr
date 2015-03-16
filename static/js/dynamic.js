@@ -118,19 +118,20 @@ function removeMaterialItem(divNum) {
 }
 
 // window.addEventListener('paste', ... or
-document.onpaste = function(event){
-  var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-  console.log(JSON.stringify(items)); // will give you the mime types
-  var blob = items[0].getAsFile();
-  var reader = new FileReader();
-  reader.onload = function(event){
-    console.log(event.target.result)}; // data url!
-  reader.readAsDataURL(blob);
-}
+document.onpaste = function(event) {
+    var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+    console.log(JSON.stringify(items)); // will give you the mime types
+    var blob = items[0].getAsFile();
+    var reader = new FileReader();
+    reader.onload = function (event) {
+        console.log(event.target.result);
+    }; // data url!
+    reader.readAsDataURL(blob);
+};
 
-function update_mat_list() {
+function update_mat_list(selfID, matListID) {
 
-  var jobNum = document.getElementById("jobSelect").value;
-  $("#materialList").load("/dynamic/j/" + jobNum + "/materials");
+  var jobNum = document.getElementById(selfID).value;
+  $(matListID).load("/dynamic/j/" + jobNum + "/materials");
 
 }
