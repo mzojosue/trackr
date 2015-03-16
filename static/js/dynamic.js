@@ -1,5 +1,5 @@
 function addMaterialItem() {
-    var itemForm = document.getElementById('itemizedMaterialArea');
+    var itemArea = document.getElementById('itemizedMaterialArea');
     var numi = document.getElementById('itemCounter');
     var num = (document.getElementById('itemCounter').value -1)+ 2;
     numi.value = num;
@@ -20,34 +20,50 @@ function addMaterialItem() {
     qtyDiv.appendChild(qtyInput);
 
 
-    // Create div to add item input to
+    // Create div to add item description input to
     var itemDiv = document.createElement('div');
-    itemDiv.setAttribute('class', 'col-xs-10');
+    itemDiv.setAttribute('class', 'form-inline col-xs-10');
 
-    // Populate input element for quantity
+    // Populate input element for item description
     var itemInput = document.createElement('input');
     var itemIdName = 'item-'+num+'-desc';
     itemInput.setAttribute('name', itemIdName);
     itemInput.setAttribute('type', 'text');
     itemInput.setAttribute('class', 'form-control');
+    itemInput.setAttribute('style', 'width: 90%;');
     itemInput.setAttribute('placeholder', 'Item Description Goes Here');
 
-    // Append text input to div
+    // Create deletion button
+    var itemDelete = document.createElement('a');
+    var trashSpan  = document.createElement('span');
+    itemDelete.setAttribute('class', 'btn btn-link');
+    itemDelete.setAttribute('href', 'javascript:;');
+    itemDelete.setAttribute('onclick', 'removeMaterialItem('+num+');');
+    trashSpan.setAttribute('class', 'glyphicon glyphicon-trash');
+    itemDelete.appendChild(trashSpan);
+
+    // Append text input and delete button to div
     itemDiv.appendChild(itemInput);
+    itemDiv.appendChild(itemDelete);
 
     var lineDiv = document.createElement('div');
     lineDiv.setAttribute('class', 'col-xs-12 form-group itemLineDiv');
+    lineDiv.setAttribute('id', 'itemID-'+num);
 
     lineDiv.appendChild(qtyDiv);
     lineDiv.appendChild(itemDiv);
 
-    itemForm.appendChild(lineDiv);
+    itemArea.appendChild(lineDiv);
 }
 
-function removeElement(divNum) {
 
-  var d = document.getElementById('itemizedMaterialForm');
-  var olddiv = document.getElementById(divNum);
+
+
+function removeMaterialItem(divNum) {
+
+  var d = document.getElementById('itemizedMaterialArea');
+  var getID = 'itemID-' + divNum;
+  var olddiv = document.getElementById(getID);
   d.removeChild(olddiv);
 
 }
@@ -67,6 +83,5 @@ function update_mat_list() {
 
   var jobNum = document.getElementById("jobSelect").value;
   $("#materialList").load("/dynamic/j/" + jobNum + "/materials");
-
 
 }
