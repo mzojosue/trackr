@@ -1,0 +1,12 @@
+.widgetWell {
+  padding: 14px;
+  margin-top: -20px;
+}
+
+.timecardTable {
+  table-layout: fixed;
+}
+
+.workerFormName {
+  width: 200px;
+}

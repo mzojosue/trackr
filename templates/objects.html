@@ -690,6 +690,70 @@
 {% endmacro %}
 
 
+{% macro timesheet_input_modal() %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-success" data-toggle="modal" data-target="#timesheetModal">
+	  New Timesheet
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="timesheetModal" tabindex="-1" role="dialog" aria-labelledby="timesheetModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="timesheetModalLabel">
+		        New Timesheet
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+          <form action="{{ url_for('upload_timesheet') }}" name="timesheetUploadForm" id="timesheetUploadForm" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="jobSelect">
+                Select a job:
+              </label>
+              <select name="jobSelect" class="form-control">
+                {% for job in jobs %}
+                  <option value="{{ job.num }}">{{ job.name }}</option>
+                {% else %}
+                  <option>No jobs available</option>
+                {% endfor %}
+              </select>
+            </div>
+            <input type="hidden" value="0" id="workerCounter" name="workerCounter">
+            <table class="table table-condensed timecardTable">
+              <tbody id="timecardTable">
+                <tr class="tableHeadings">
+                  <th class="workerFormName">Worker Name</th>
+                  <th>Mon</th>
+                  <th>Tue</th>
+                  <th>Wed</th>
+                  <th>Thur</th>
+                  <th>Fri</th>
+                  <th>Sat</th>
+                </tr>
+                {# Rows are added here #}
+                </tr>
+              </tbody>
+            </table>
+          </form>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="itemOrderForm">Submit</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
 {% macro sidebar_links(active_link) %}
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
@@ -697,6 +761,7 @@
                   ('analytics', 'Analytics', 'stats'),
                   ('deliveries', 'Deliveries', 'plane'),
                   ('estimating', 'Estimating', 'piggy-bank'),
+                  ('timesheets', 'Timesheets', 'time'),
                   ('rental_log', 'Rental Logs'),
                   ('inventory', 'Inventory')] %}
 

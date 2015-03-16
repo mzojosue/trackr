@@ -765,6 +765,10 @@ class Timesheet(object):
 			self.job.timesheets[self.hash] = self
 			self.job.update()
 
+	def bodies_on_field(self):
+		return len(self.timesheet)
+
+
 def get_job_num(*args):
 	try:
 		if hasattr(Job, 'db'):

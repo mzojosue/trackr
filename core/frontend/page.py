@@ -62,6 +62,17 @@ def del_inventory_item(item_hash):
 	return redirect(request.referrer)
 
 
+@app.route('/timesheets')
+def timesheets():
+	if hasattr(Timesheet, 'db'):
+		_jobs = Job.db.itervalues()
+		_timesheets = Timesheet.db.itervalues()
+		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs)
+
+@app.route('/timesheets/upload')
+def upload_timesheet():
+	return NotImplemented
+
 @app.route('/analytics')
 def analytics():
 	return NotImplemented

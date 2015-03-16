@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block title %}
+	Timesheets
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/timesheets.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+	<li>
+		<a href="{{ url_for('home') }}">Dashboard</a>
+	</li>
+	<li>
+		<a href="#">Estimating</a>
+	</li>
+	<li>
+		<a href="{{ url_for('all_jobs') }}">Jobs</a>
+	</li>
+	<li>
+		<a href="#">Settings</a>
+	</li>
+	<li>
+		<a href="#">Help</a>
+	</li>
+{% endblock %}
+
+
+{% block body %}
+
+	{{ objects.sidebar_links('inventory') }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+			Shop Inventory&nbsp;
+			<!-- TODO:implement link to unlock and edit job -->
+			<a href="" class="btn btn-default btn-sm">
+				Unlock for Editing
+			</a>
+		</h1>
+
+    <div class="widgetWell">
+      {{ objects.timesheet_input_modal() }}
+    </div>
+
+		<div class="row">
+
+			<table class="table table-striped">
+				<tr id="tableHeadings">
+					<th>Job Name:</th>
+          <th>Week Finished:</th>
+          <th>On Field:</th>
+          <th>Timesheet Document:</th>
+					<th>Del:</th>
+					<!--th>Ordered By:</th-->
+				</tr>
+				{% for ts in timesheets %}
+					<tr>
+						<td>{{ ts.job }}</td>
+            <td>{{ ts.end_date }}</td>
+            <td>{{ ts.bodies_on_field() }}</td>
+            <td>(( ts.doc ))</td>
+						<td>
+              <!-- TODO: implement delete function to timesheet element -->
+							<a href="#">
+								<span class="glyphicon glyphicon-trash"></span>
+							</a>
+						</td>
+						<!--td>Ordered by...</td-->
+					</tr>
+				{% endfor %}
+			</table>
+
+		</div><!-- /.row -->
+	</div><!-- /.main -->
+
+{% endblock %}
