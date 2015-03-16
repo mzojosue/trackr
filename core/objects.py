@@ -365,7 +365,6 @@ class MaterialList(object):
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
-		self.fulfilled = True
 		self.sent_out = True
 		self.update()
 		return None

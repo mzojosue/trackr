@@ -194,7 +194,7 @@
         </ul><!-- /.list-group -->
       </div><!-- /.panel -->
     {% endif %}
-		<div class="panel panel-primary">
+		<div class="panel panel-primary" {% if not job %}style="height:372px;"{% endif %}>
 			<div class="panel-heading">
 				Schedule Delivery/Backorder
 			</div>
@@ -301,9 +301,9 @@
 					{% endif %}
 					<div class="form-group col-xs-12">
 						<label for="matListforQuote">
-							Add quote:
+							Add quote to:
 						</label>
-						<select class="form-control" name="matListforQuote" id="matListforQuote">
+						<select class="form-control" name="materialList" id="matListforQuote">
 							<option selected>Select Material List</option>
 							{% if job %}
 								{% for i in job.materials.itervalues() if not i.fulfilled %}
@@ -313,6 +313,21 @@
 								{% endfor %}
 							{% endif %}
 						</select>
+					</div>
+					<div class="form-group col-xs-12">
+						<label for="quoteVendName">
+							Vendor Name:
+						</label>
+						<input name="vendor" id="quoteVendName" placeholder="Enter Vendor Name" type="text" class="form-control">
+					</div>
+					<div class="form-group col-xs-12">
+						<label for="quotePrice">
+							Quote Amount:
+						</label>
+						<div class="input-group">
+							<span class="input-group-addon">$</span>
+							<input id="vendPrice" name="quotePrice" type="text" class="form-control" placeholder="0.00">
+						</div>
 					</div>
           <!-- /.form-group -->
 					<div class="form-group form-inline col-xs-12">
@@ -765,7 +780,6 @@
         {% else %}
           <li>
         {% endif %}
-
           <a href="{{ url_for(_link[0], job_num=job_num) }}">
 
             {% if _link[2] %}

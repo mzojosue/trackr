@@ -33,7 +33,7 @@
 
 {% block body %}
 
-	{{ objects.job_sidebar('job_overiew', job_num=job.number) }}
+	{{ objects.job_sidebar('job_materials', job_num=job.number) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
@@ -73,7 +73,12 @@
 					<th>Date Uploaded:</th>
 					<th>Date Due:</th>
 					<th>No. of Quotes:</th>
-					<th>Del. List:</th>
+					<th id="delColumn">
+						Del. List:
+					</th>
+					<th id="doneEdits" class="hidden">
+						<span class="glyphicon glyphicon-ok"></span>
+					</th>
 				</tr>
 				{% for i in job.materials.itervalues() %}
 				<!-- TODO:style rows based on age -->
