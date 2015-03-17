@@ -45,7 +45,8 @@ def job_materials(job_num=None):
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label)
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
-		return "Error: Job does not exist"
+		flash('Error! Job does not exist.', 'danger')
+		return redirect(request.referrer)
 
 @app.route('/material', methods=['GET', 'POST'])
 def material():
@@ -85,6 +86,7 @@ def update_material_list(m_hash):
 	if 'sentOut' in request.form:
 		_list.sent_out = True
 		_list.update()
+		flash('Material list updated', 'warning')
 		return redirect(request.referrer)
 
 
@@ -110,6 +112,7 @@ def schedule_delivery(job_num=None):
 	_dest = str(request.form['destination'])
 	_deliveryDate = datetime.strptime(request.form['deliveryDate'], '%Y-%m-%d')
 	__obj = Delivery(mat_list=_mlist, expected=_deliveryDate, destination=_dest)
+	flash('Delivery successfully scheduled.', 'success')
 	return redirect(request.referrer)
 
 @app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
@@ -143,4 +146,5 @@ def quote():
 			_obj = Quotes(mat_list=_list, doc=filename, price=__price, vend=__vend)
 		elif __price and __vend:
 			_obj = Quotes(mat_list=_list, price=__price, vend=__vend)
+		flash('Quote successfully uploaded.', 'success')
 		return redirect(request.referrer)

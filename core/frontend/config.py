@@ -11,6 +11,7 @@ UPLOAD_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/uploads/'
 ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'png', 'jpg'}
 
 app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLDER)
+app.secret_key = "!campanohvac_2015"
 
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo

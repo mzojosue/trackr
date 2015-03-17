@@ -249,14 +249,16 @@
 						</select>
 					</div>
 
-					<label for="deliveryDate">
-						Delivery Date:
-					</label>
-					<div class="form-inline">
-						<input type="date" name="deliveryDate" id="deliveryDate" class="form-control">
-						<input class="btn btn-sm btn-primary" type="submit">
-					</div><!-- /.form-inline -->
-				{% if job %}
+					<div class="form-group col-xs-12">
+            <label for="deliveryDate">
+						  Delivery Date:
+					  </label>
+            <div class="form-inline">
+              <input type="date" name="deliveryDate" id="deliveryDate" class="form-control">
+            </div><!-- /.form-inline -->
+            <input class="btn btn-sm btn-primary pull-right" type="submit">
+          </div>
+        {% if job %}
 					</form>
 				{% else %}
 					</form>
