@@ -14,6 +14,15 @@ class Worker(object):
 	B_RATE = 51.76
 
 	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None):
+		"""
+		Initializes employee representation object.
+		:param name: employee's name. hash/key is created from this variable.
+		:param job: current job that employee is at. if changed, the previous job will be added to self.prev_jobs
+		:param phone: listed phone number for employee
+		:param email: listed email address
+		:param role: worker's role on the jobsite. ie: foreman, installer/mechanic, pipe fitter, etc
+		:param rate: pay rate for employee. can be arbitrary value
+		"""
 		self.name = name
 		self.hash = abs(hash(str(self.name)))
 		self.job = job
@@ -47,16 +56,28 @@ class Worker(object):
 		return _return
 
 	def __repr__(self):
+		"""
+		:return: describes object by self.name, self.role, and self.job.name
+		"""
 		# TODO:update output format
 		# TODO:return date since working at job
 		return "\"%s\". %s at %s" % (self.name, self.role, self.job.name)
 
 	@staticmethod
 	def find(q_hash):
+		"""
+
+		:param q_hash: hash to query database for
+		:return: returns worker object that matches description
+		"""
 		if hasattr(Todo, 'db'):
 			return Todo.db[q_hash]
 
 	def update(self):
+		"""
+		Function re-initializes self.hash as the dictionary key pointed to self. Also adds itself to self.job.workers.
+		:return: None
+		"""
 		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
 			Worker.db[self.hash] = self
 			if hasattr(self, 'job'):
@@ -72,8 +93,26 @@ class Job(object):
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
 	             gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
 	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None):
+		"""
+		:param job_num: desired job number
+		:param name: primary job name
+		:param start_date: planned job start date
+		:param end_date: planned job completion date
+		:param alt_name: secondary name/nickname for job
+		:param po_pre: desired po prefix. defaults to job name
+		:param address: listed address for jobsite
+		:param gc: listed general contractor
+		:param gc_contact: listed general contractor contact
+		:param scope: scope of work. ie: full-airside, fabrication only, etc
+		:param foreman: listed sheet metal foreman on job
+		:param desc: short description of scope of work
+		:param rate: default rate for workers on jobsite
+		:param contract_amount: listed contract amount for job completion. job completion percentage is based off of this.
+		:param tax_exempt: Boolean. True if job is tax exempt
+		:param certified_pay: Boolean. True is job is a certified payroll job
+		:param sub_path: The directory sub path for the job
+		"""
 		# TODO:implement better document storage
-
 		self.number = int(job_num)
 		self._name = str(name)
 		self.start_date = start_date
@@ -104,7 +143,8 @@ class Job(object):
 			elif not os.path.exists(os.path.join(Job.default_sub_dir, self.name)):
 				os.mkdir(os.path.join(Job.default_sub_dir, self.name))
 				self.sub_path = os.path.join(Job.default_sub_dir, self.name)
-				_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents', 'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
+				_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
+				            'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
 				for _folder in _folders:
 					os.mkdir(os.path.join(self.sub_path, _folder))
 			else:
@@ -141,6 +181,10 @@ class Job(object):
 
 	@property
 	def next_po(self):
+		"""
+		Optimizes PO# usage by ensuring that all PO numbers are used, and none are skipped.
+		:return: returns claimed PO number
+		"""
 		_keys = self.POs.keys()
 		_k_len = len(_keys)
 
@@ -148,7 +192,7 @@ class Job(object):
 			# calculate ideal sum of continuous sequence of equal length
 			_ideal_seq_sum = (_k_len/2) * (0 + (_k_len - 1))
 
-			# calculate the sum of existing po# sequence
+			# calculate the real sum of existing po# sequence
 			_seq_sum = (_k_len/2) * (_keys[0] - _keys[-1])
 
 			# check to see if current sequence is continuous
@@ -167,19 +211,12 @@ class Job(object):
 
 	@property
 	def show_po(self):
-		""" Used for showing what PO# is available next.
+		""" Shows formatted PO# that's available next.
 		:return: returns the formatted value of the next available PO for considering it being given to a vendor
 		"""
-		_po = self.next_po
+		_po = self._PO
 		_po = '%03d' % _po        # add padding to PO #
 		return '-'.join([self.name, _po])
-
-	def claim_po(self):
-		""" Used for storing a PO number with a quote and sending it a vendor
-		:return: returns unformatted PO number
-		"""
-
-		return self.next_po
 
 	@staticmethod
 	def init_struct(self):
@@ -203,7 +240,9 @@ class Job(object):
 
 	@property
 	def cost(self):
-		""" Calculates job cost totals """
+		""" Calculates job cost total/progress taking into account materials purchased and labor paid.
+		:returns: float for projected cost.
+		"""
 		amt = 0.0
 		for i in self.timesheets.itervalues():
 			amt += (float(i[1]) * float(self.rate))
@@ -215,7 +254,7 @@ class Job(object):
 	def has_open_lists(self):
 		"""
 		Returns 0 if job has no open material lists
-		:return:
+		:return: Integer of material lists that have not been purchased.
 		"""
 		open_lists = 0
 		for mlist in self.materials.itervalues():
@@ -229,52 +268,99 @@ class Job(object):
 			return Job.db[num]
 
 	def add_task(self, task_obj):
+		"""
+		Blindly adds task object to self
+		:param task_obj: task object to add to self.tasks
+		:return: None
+		"""
 		self.tasks[task_obj.hash] = task_obj
 		self.update()
 		return None
 
 	def add_mat_list(self, mlist_obj):
+		"""
+		Blindly adds material list object to self.
+		:param mlist_obj: material list object to add to self
+		:return: None
+		"""
 		self.materials[mlist_obj.hash] = mlist_obj
 		self.update()
 		return None
 
 	def add_quote(self, quote_obj):
-		self.materials[quote_obj.mat_list.hash].add_quote(quote_obj)
+		"""
+		Blindly adds quote object to self.
+		:param quote_obj: quote object to add to self
+		:return: None
+		"""
 		self.quotes[quote_obj.hash] = quote_obj
+		self.materials[quote_obj.mat_list.hash].add_quote(quote_obj)
 		self.update()
 		return None
 
 	def add_delivery(self, deliv_obj):
+		"""
+		Blindly adds delivery object to self.
+		:param deliv_obj: delivery object to add to self
+		:return: None
+		"""
 		self.deliveries[deliv_obj.hash] = deliv_obj
 		self.update()
 		return None
 
 	def add_po(self, po_obj):
-
-		# TODO:optimize the use of PO numbers
-
+		"""
+		Blindly adds PO object to self.
+		:param po_obj: PO object to add to self.
+		:return: None
+		"""
 		self.POs[po_obj.num] = po_obj
-		if not (self._PO+1 < po_obj.num):
-			self._PO = po_obj.num
 		self.update()
 		return None
 
 	def add_worker(self, wrkr_obj):
+		"""
+		Blindly adds worker object to self.
+		:param wrkr_obj: Worker object to add to self
+		:return: None
+		"""
 		self.workers[wrkr_obj.hash] = wrkr_obj
 		self.update()
 
-	def del_material_list(self, mlist_hash):
+	def del_material_list(self, mlist_hash, delete=False):
+		"""
+		Deletes material list object from self.materials
+		:param mlist_hash: hash to delete from self.materials
+		:param delete: if True is passed, then the document is deleted from the filesystem
+		:return: None
+		"""
 		del self.materials[mlist_hash]
-		# TODO:delete document in filesystem
+		if delete:
+			# TODO:delete document in filesystem
+			pass
 		self.update()
 		return None
 
-	def del_quote(self, quote_hash):
+	def del_quote(self, quote_hash, delete=False):
+		"""
+		Deletes quote object from self.quotes
+		:param quote_hash: hash to delete from self.quotes
+		:param delete: if True is passed, then the document is deleted from the filesystem
+		:return: None
+		"""
 		del self.quotes[quote_hash]
+		if delete:
+			# TODO:delete document in filesystem
+			pass
 		self.update()
 		return None
 
 	def del_task(self, task_hash):
+		"""
+		Delete task object from self.tasks
+		:param task_hash: hash of task object to delete from internal db
+		:return: None
+		"""
 		del self.tasks[task_hash]
 		self.update()
 		return None
@@ -286,6 +372,19 @@ class MaterialList(object):
 	_steps = ('send_out', 'assess_quotes', 'send_po', 'receive_delivery', 'complete')
 
 	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
+		"""
+		Initializes a representational object for a material list document.
+		:param job: Job that material list is for
+		:param items: A quantity/item tuple for items on the material list.
+		:param doc: Document location in filesystem
+		:param foreman: Foreman/worker who requested list
+		:param date_sent: Date that material list was sent/uploaded
+		:param date_due: Date that the material list was requested
+		:param comments: Comments that foreman gave on material list
+		:param label: Human readable label for material list
+		:param task: Boolean. If True, SHOULD create a Todo object linked to self
+		:return: None
+		"""
 		self.hash = abs(hash(str(now())))
 
 		self.job = job
@@ -332,7 +431,8 @@ class MaterialList(object):
 
 	@property
 	def age(self):
-		""" Used for highlighting unfulfilled material lists when displayed in a table.
+		"""
+		Used for highlighting unfulfilled material lists when displayed in a table.
 		:return: days since material list was received. If fulfilled, returns False.
 		"""
 		try:
@@ -476,7 +576,7 @@ class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
 	             quote=None, desc=None, deliveries=None, po_num=None, po_pre=None):
 		if not po_num:
-			self.num = job.claim_po()
+			self.num = job.next_po()
 		else:
 			self.num = int(po_num)
 		self.job = job
@@ -492,7 +592,7 @@ class PO(object):
 		self.backorders = None  # stores any backorder delivery dates
 
 		# update job object
-		self.job.add_po(self)
+		self.job.lladd_po(self)
 		# update material list object
 		self.mat_list.add_po(self)
 		# update quote object
