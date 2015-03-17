@@ -108,6 +108,9 @@ class Job(object):
 		self.tax_exempt = tax_exempt
 		self.certified_pay = certified_pay
 
+		self.documents = {}
+		self.drawings = {}
+
 
 class AwardedJob(Job):
 	jobs = {}
