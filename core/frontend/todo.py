@@ -6,7 +6,7 @@ def new_todo():
 	_task = request.form['task']
 	if 'job' in request.form:
 		_job = request.form['job']
-		_job = Job.find(int(_job))
+		_job = AwardedJob.find(int(_job))
 
 		_title = ' '.join([_title, 'for', _job.name])
 		_todo = Todo(_title, task=_task, job=_job)

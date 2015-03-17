@@ -16,11 +16,11 @@ def job_overview(job_num=None):
 	:param job_num: specifies job number
 	"""
 	try:
-		_job = Job.find(job_num)
+		_job = AwardedJob.find(job_num)
 		_todos = _job.tasks.itervalues()
 		return render_template('job_overview.html', job=_job, todos=_todos)
 	except KeyError:
-		return "Error: Job does not exist"
+		return "Error: AwardedJob does not exist"
 
 
 @app.route('/j/<int:job_num>/analytics')
@@ -38,7 +38,7 @@ def job_material_doc(doc_hash, job_num=None):
 		_doc = MaterialList.db[int(doc_hash)]
 		_job = _doc.job
 	else:
-		_job = Job.find(job_num)
+		_job = AwardedJob.find(job_num)
 		_doc = _job.materials[int(doc_hash)]
 		if type(_doc.doc) is tuple:
 			return send_from_directory(*_doc.doc)
@@ -50,7 +50,7 @@ def job_material_doc(doc_hash, job_num=None):
 @app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
 def delete_material_doc(doc_hash, job_num=None):
 	# TODO:delete document in filesystem
-	Job.db[job_num].del_material_list(doc_hash)
+	AwardedJob.db[job_num].del_material_list(doc_hash)
 	del MaterialList.db[doc_hash]
 	return redirect(request.referrer)
 
@@ -62,7 +62,7 @@ def job_quote_doc(doc_hash, job_num=None):
 		_doc = MaterialList.db[int(doc_hash)]
 		_job = _doc.job
 	else:
-		_job = Job.find(job_num)
+		_job = AwardedJob.find(job_num)
 		_doc = _job.quotes[int(doc_hash)]
 		if type(_doc.doc) is tuple:
 			return send_from_directory(*_doc.doc)
@@ -73,13 +73,13 @@ def job_quote_doc(doc_hash, job_num=None):
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
 def delete_job_quote(job_num, doc_hash):
 	# TODO:implement quote deletion functions
-	Job.db[job_num].del_quote(doc_hash)
+	AwardedJob.db[job_num].del_quote(doc_hash)
 	return redirect(request.referrer)
 
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/award')
 def job_quote_award_po(doc_hash, job_num=None):
-	_job = Job.find(job_num)
+	_job = AwardedJob.find(job_num)
 	_doc = _job.quotes[doc_hash]
 	_doc.mat_list.issue_po(_doc)
 	return redirect(request.referrer)
@@ -99,10 +99,10 @@ def job_deliveries(job_num=None):
 @app.route('/j/<int:job_num>/purchases')
 def job_pos(job_num=None):
 	try:
-		_job = Job.find(int(job_num))
+		_job = AwardedJob.find(int(job_num))
 		return render_template('job_purchases.html', job=_job)
 	except KeyError:
-		return "Error: Job does not exist"
+		return "Error: AwardedJob does not exist"
 
 
 @app.route('/j/<int:job_num>/rentals')
@@ -113,7 +113,7 @@ def job_rentals(job_num=None):
 @app.route('/j/create', methods=['GET', 'POST'])
 def create_job():
 	"""
-	First renders job creation page, then processes POST request and creates Job object.
+	First renders job creation page, then processes POST request and creates AwardedJob object.
 	:return:
 	"""
 	if request.method == 'POST':
@@ -149,7 +149,7 @@ def create_job():
 		_desc = str(request.form['jobDesc'])
 		# TODO:figure out how to accept then save uploaded file
 
-		_job = Job(job_num=_job_num, name=_name, gc=_gc, gc_contact=_gc_contact, address=_job_address,
+		_job = AwardedJob(job_num=_job_num, name=_name, gc=_gc, gc_contact=_gc_contact, address=_job_address,
 					start_date=_start, end_date=_end, desc=_desc,
 					contract_amount=_contract_amt, scope=_scope,
 					tax_exempt=_tax_exempt, certified_pay=_certified_pay)

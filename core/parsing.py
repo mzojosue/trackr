@@ -10,7 +10,7 @@ def parse_PO_log(poLog, sheet=None, create=False):
 		_sheet = log.sheet_by_index(_sheetNum)
 		if create:
 			try:
-				_job = objects.Job(*[i for i in parse("{} - {}", _sheet.name)])
+				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.name)])
 				print _job.name
 			except TypeError:
 				pass    # Sheet name does not match regex
@@ -61,9 +61,9 @@ def parse_PO_log(poLog, sheet=None, create=False):
 
 				# Create Quote objects
 				if '\\' in __quote_val:
-					_quote = objects.Quotes(mat_list=_mat_list, price=__price, vend=__vend, doc=objects.os.path.split(__quote_val))
+					_quote = objects.MaterialListQuote(mat_list=_mat_list, price=__price, vend=__vend, doc=objects.os.path.split(__quote_val))
 				else:
-					_quote = objects.Quotes(mat_list=_mat_list, price=__price, vend=__vend)
+					_quote = objects.MaterialListQuote(mat_list=_mat_list, price=__price, vend=__vend)
 
 				# Create PO objects
 				_pre = parse("{pre}-{:d}", __po)['pre']

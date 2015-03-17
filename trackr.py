@@ -13,7 +13,7 @@ except IOError:
 	print "Unable to load settings. Using default root directory location"
 
 JOB_SUB_DIR = os.path.join(ROOT_DIR, 'Jobs')
-core.Job.default_sub_dir = JOB_SUB_DIR
+core.AwardedJob.default_sub_dir = JOB_SUB_DIR
 
 core.init_db()
 

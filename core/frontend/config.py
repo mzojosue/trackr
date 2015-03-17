@@ -16,7 +16,7 @@ app.secret_key = "!campanohvac_2015"
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo
 app.jinja_env.globals['MaterialList'] = MaterialList
-app.jinja_env.globals['Job'] = Job
+app.jinja_env.globals['Job'] = AwardedJob
 app.jinja_env.globals['Delivery'] = Delivery
 app.jinja_env.globals['get_job_num'] = get_job_num
 app.jinja_env.globals['today'] = today

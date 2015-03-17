@@ -18,10 +18,10 @@ def root():
 ## _Todo functions ##
 @app.route('/home')
 def home():
-	if hasattr(Todo, 'db') and hasattr(MaterialList, 'db') and hasattr(Job, 'db'):
+	if hasattr(Todo, 'db') and hasattr(MaterialList, 'db') and hasattr(AwardedJob, 'db'):
 		_todos = Todo.db.itervalues()
 		_completed = Todo.completed_db.itervalues()
-		_jobs = Job.db.itervalues()
+		_jobs = AwardedJob.db.itervalues()
 		_lists = MaterialList.db.itervalues()
 		return render_template('dashboard.html', jobs=_jobs, lists=_lists, todos=_todos, completed=_completed)
 	else:
@@ -65,7 +65,7 @@ def del_inventory_item(item_hash):
 @app.route('/timesheets')
 def timesheets():
 	if hasattr(Timesheet, 'db'):
-		_jobs = Job.db.itervalues()
+		_jobs = AwardedJob.db.itervalues()
 		_timesheets = Timesheet.db.itervalues()
 		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs)
 

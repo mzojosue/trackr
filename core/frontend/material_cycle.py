@@ -8,7 +8,7 @@ def job_materials(job_num=None):
 	:param job_num: specifies job number
 	"""
 	try:
-		_job = Job.find(int(job_num))
+		_job = AwardedJob.find(int(job_num))
 		if request.method == 'POST':
 			if 'file' in request.files:
 				""" This branch of logic is followed if a file is being uploaded """
@@ -45,7 +45,7 @@ def job_materials(job_num=None):
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label)
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
-		flash('Error! Job does not exist.', 'danger')
+		flash('Error! AwardedJob does not exist.', 'danger')
 		return redirect(request.referrer)
 
 @app.route('/material', methods=['GET', 'POST'])
@@ -58,7 +58,7 @@ def material():
 		f = request.files['list']
 		upload_file(f)
 		j = request.form['job']
-		j = Job.jobs[j]
+		j = AwardedJob.jobs[j]
 		due = request.form['shipping_date']
 		##TODO:turn due into datetime obj
 
@@ -66,7 +66,7 @@ def material():
 		MaterialList(j, doc=f.filename, date_due=due)
 		return "successfully uploaded"
 	else:
-		return render_template('job_materials.html', job=Job.jobs)
+		return render_template('job_materials.html', job=AwardedJob.jobs)
 
 
 @app.route('/material/<int:m_hash>/')
@@ -107,7 +107,7 @@ def schedule_delivery(job_num=None):
 	"""
 	if not job_num:
 		job_num = int(request.form['job-number'])
-	_job = Job.find(job_num)
+	_job = AwardedJob.find(job_num)
 	_mlist =  MaterialList.find(request.form['materialListHash'])
 	_dest = str(request.form['destination'])
 	_deliveryDate = datetime.strptime(request.form['deliveryDate'], '%Y-%m-%d')
@@ -143,8 +143,8 @@ def quote():
 			_path = os.path.join(_list.job.sub_path, 'quotes', filename)
 			_quote.save(_path)
 
-			_obj = Quotes(mat_list=_list, doc=filename, price=__price, vend=__vend)
+			_obj = MaterialListQuote(mat_list=_list, doc=filename, price=__price, vend=__vend)
 		elif __price and __vend:
-			_obj = Quotes(mat_list=_list, price=__price, vend=__vend)
+			_obj = MaterialListQuote(mat_list=_list, price=__price, vend=__vend)
 		flash('Quote successfully uploaded.', 'success')
 		return redirect(request.referrer)

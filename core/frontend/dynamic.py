@@ -7,7 +7,7 @@ def get_mat_lists(job_num, query=None):
 	:param job_num: specifies job number to iterate over
 	:return:
 	"""
-	_job = Job.find(job_num)
+	_job = AwardedJob.find(job_num)
 	_return = []
 	if hasattr(_job, 'materials') and _job.materials:
 		_return.append('<option>Please select a Material List/Quote</option>')
@@ -33,9 +33,9 @@ def get_mat_lists(job_num, query=None):
 @app.route('/dynamic/j/has_open_lists')
 def job_with_open_list():
 	_return = []
-	if hasattr(Job, 'db'):
+	if hasattr(AwardedJob, 'db'):
 		_return.append('<option>Please select a job</option>')
-		for job in Job.db.itervalues():
+		for job in AwardedJob.db.itervalues():
 			_open = job.has_open_lists
 			if _open:
 				_opt = '<option value="%s">%s  (%d open lists)</option>' % (job.number, job, _open)

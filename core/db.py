@@ -11,7 +11,7 @@ Database initialization functions should go here
 def init_db(db='trackr_db'):
 	try:
 		Worker.db = MongoDict(database=db, collection='workers')
-		Job.db = MongoDict(database=db, collection='jobs')
+		AwardedJob.db = MongoDict(database=db, collection='jobs')
 		MaterialList.db = MongoDict(database=db, collection='materials')
 		Delivery.db = MongoDict(database=db, collection='deliveries')
 		Todo.db = MongoDict(database=db, collection='todos')
@@ -20,9 +20,9 @@ def init_db(db='trackr_db'):
 		InventoryOrder.db = MongoDict(database=db, collection='inventory_orders')
 		Timesheet.db = MongoDict(database=db, collection='timesheets')
 	except:
-		print "Cannot connect to MongoDB Database... Job storage will not be implemented"
+		print "Cannot connect to MongoDB Database... AwardedJob storage will not be implemented"
 		Worker.db = {}
-		Job.db = {}
+		AwardedJob.db = {}
 		MaterialList.db = {}
 		Delivery.db = {}
 		Todo.db = {}
