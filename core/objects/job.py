@@ -111,6 +111,20 @@ class Job(object):
 		self.documents = {}
 		self.drawings = {}
 
+	@property
+	def name(self):
+		if hasattr(self, 'number'):
+			return '-'.join([str(self.number), str(self._name)])
+
+	def __setattr__(self, key, value):
+		_return = super(Job, self).__setattr__(key, value)
+		self.update()
+		return _return
+
+	def update(self):
+		if hasattr(self, 'db') and hasattr(self, 'number'):
+			self.db[self.number] = self
+
 
 class AwardedJob(Job):
 	jobs = {}
@@ -167,21 +181,8 @@ class AwardedJob(Job):
 
 		self.init_struct()
 
-	def update(self):
-		if hasattr(AwardedJob, 'db'):
-			AwardedJob.db[self.number] = self
-
-	def __setattr__(self, key, value):
-		_return = super(AwardedJob, self).__setattr__(key, value)
-		self.update()
-		return _return
-
 	def __repr__(self):
 		return self.name
-
-	@property
-	def name(self):
-		return '-'.join([str(self.number), str(self._name)])
 
 	@property
 	def next_po(self):
@@ -276,11 +277,6 @@ class AwardedJob(Job):
 			if not mlist.fulfilled:
 				open_lists += 1
 		return open_lists
-
-	@staticmethod
-	def find(num):
-		if hasattr(AwardedJob, 'db'):
-			return AwardedJob.db[num]
 
 	def add_task(self, task_obj):
 		"""
@@ -379,6 +375,11 @@ class AwardedJob(Job):
 		del self.tasks[task_hash]
 		self.update()
 		return None
+
+	@staticmethod
+	def find(num):
+		if hasattr(AwardedJob, 'db'):
+			return AwardedJob.db[num]
 
 
 def get_job_num(*args):

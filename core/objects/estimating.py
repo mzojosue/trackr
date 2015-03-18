@@ -25,6 +25,11 @@ class EstimatingJob(Job):
 			self.quotes[i] = {}
 
 	@property
+	def name(self):
+		if hasattr(self, 'number'):
+			return 'E%d-%s' % (self.number, self._name)
+
+	@property
 	def bid_date(self):
 		return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
 
@@ -34,9 +39,6 @@ class EstimatingJob(Job):
 		for i in self.bids.itervalues():
 			_gc.append(i['gc'])
 		return _gc
-
-	def update(self):
-		return NotImplemented
 
 	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None):
 		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received}
@@ -52,6 +54,11 @@ class EstimatingJob(Job):
 	def init_struct(self):
 		# TODO:implement function to create filesystem hieracrchy to store documents, drawings, etc
 		return NotImplemented
+
+	@staticmethod
+	def find(num):
+		if hasattr(EstimatingJob, 'db'):
+			return EstimatingJob.db[num]
 
 
 class EstimatingQuote(Quote):
