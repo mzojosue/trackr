@@ -736,7 +736,6 @@
   {% set links = [('home', 'Overview', 'eye-open'),
                   ('analytics', 'Analytics', 'stats'),
                   ('deliveries', 'Deliveries', 'plane'),
-                  ('estimating', 'Estimating', 'piggy-bank'),
                   ('timesheets', 'Timesheets', 'time'),
                   ('rental_log', 'Rental Logs'),
                   ('inventory', 'Inventory')] %}
@@ -753,7 +752,7 @@
           <a href="{{ url_for(_link[0]) }}">
 
             {% if _link[2] %}
-              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>
+              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
             {% endif %}
 
             {{ _link[1] }}
@@ -787,7 +786,7 @@
           <a href="{{ url_for(_link[0], job_num=job_num) }}">
 
             {% if _link[2] %}
-              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>
+              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
             {% endif %}
 
             {{ _link[1] }}
@@ -796,5 +795,34 @@
       {% endfor %}
 		</ul>
 	</div><!-- /.sidebar -->
+
+{% endmacro %}
+
+
+{% macro navbar_links(active_link) %}
+
+  {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
+  {% set links = [('home', 'Dashboard'),
+                  ('estimating_home', 'Estimating', 'piggy-bank'),
+                  ('all_jobs', 'Jobs'),
+                  ('user_settings', 'Settings'),
+                  ('help', 'Help')] %}
+
+  {% for _link in links %}
+    {% if _link[0] == active_link %}
+      <li class="active">
+    {% else %}
+      <li>
+    {% endif %}
+      <a href="{{ url_for(_link[0]) }}">
+
+        {% if _link[2] %}
+          <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
+        {% endif %}
+
+        {{ _link[1] }}
+      </a>
+    </li>
+  {% endfor %}
 
 {% endmacro %}
