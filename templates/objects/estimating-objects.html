@@ -1,0 +1,39 @@
+{# templates/objects/estimating-objects.html #}
+
+
+
+{# LAYOUT OBJECTS #}
+
+{% macro sidebar(active_link) %}
+
+  {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
+  {% set links = [('estimating_home', 'Overview', 'eye-open'),
+                  ('estimating_analytics', 'Analytics', 'stats'),
+                  ('current_bids', 'Current Bids', 'piggy-bank'),
+                  ('past_bids', 'Past Bids')] %}
+
+	<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar">
+      {% for _link in links %}
+        {% if _link[0] == active_link %}
+          <li class="active">
+        {% else %}
+          <li>
+        {% endif %}
+
+          <a href="{{ url_for(_link[0]) }}">
+
+            {% if _link[2] %}
+              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
+            {% endif %}
+
+            {{ _link[1] }}
+          </a>
+        </li>
+      {% endfor %}
+		</ul>
+	</div><!-- /.sidebar -->
+
+{% endmacro %}
+
+

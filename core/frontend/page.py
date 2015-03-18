@@ -77,10 +77,14 @@ def upload_timesheet():
 def analytics():
 	return NotImplemented
 
-@app.route('/estimating')
-def estimating():
-	return NotImplemented
-
 @app.route('/rentals')
 def rental_log():
+	return NotImplemented
+
+@app.route('/settings')
+def user_settings():
+	return NotImplemented
+
+@app.route('/help')
+def help():
 	return NotImplemented

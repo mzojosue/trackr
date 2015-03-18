@@ -1,0 +1,9 @@
+
+/* sidebar coloring for page */
+.nav-sidebar > .active > a {
+  background-color: #5cb85c;
+}
+
+.nav-sidebar > li > a {
+  color: #4cae4c;
+}
