@@ -19,7 +19,7 @@ class MaterialList(object):
 		:param task: Boolean. If True, SHOULD create a Todo object linked to self
 		:return: None
 		"""
-		self.hash = abs(hash(str(now())))
+		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 
 		self.job = job
 		self.items = items

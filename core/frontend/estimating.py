@@ -10,7 +10,9 @@ def estimating_analytics():
 
 @app.route('/estimating/bids/current')
 def current_bids():
-	return NotImplemented
+	if hasattr(EstimatingJob, 'db'):
+		_estimates = EstimatingJob.db.itervalues()
+		return render_template('current_bids.html', estimates=_estimates)
 
 @app.route('/estimating/bids/past')
 def past_bids():

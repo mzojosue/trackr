@@ -8,7 +8,7 @@ from material_cycle import Quote
 class EstimatingJob(Job):
 	def __init__(self, job_num, name, alt_name=None, date_received=today(), bid_date=None,
 	             address=None, gc=None, gc_contact=None, scope=None, desc=None, rate='a',
-	             tax_exempt=False, certified_pay=False, sub_path=None):
+	             tax_exempt=False, certified_pay=False, sub_path=None, rebid=False, group=False):
 		# TODO: create function to grab next job number
 		self.number = job_num
 
@@ -17,12 +17,21 @@ class EstimatingJob(Job):
 		                                    tax_exempt=tax_exempt, certified_pay=certified_pay)
 		self.docs = {}
 		self.quotes = {}
-		self.bids = {}
-		self.add_bid(date_received, gc, bid_date, gc_contact)
 
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
 			self.quotes[i] = {}
+		self.bids = {}
+		self.add_bid(date_received, gc, bid_date, gc_contact)
+
+		# False if job is not rebid.
+		# Variable is pointed to object that is being rebid
+		self.rebid = rebid
+
+		# False if job is not related to any other bid, current or past
+		# Variable is either pointed to a sister object, a tuple of objects, a group str label, or a tuple of labels
+		self.group = group
+
 
 	@property
 	def name(self):

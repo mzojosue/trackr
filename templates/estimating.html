@@ -36,11 +36,6 @@
 
 		<div class="row">
 
-			{{ objects.delivery_widget() }}
-
-			{{ objects.materials_widget() }}
-
-			{{ objects.task_widget(todos, completed) }}
 
 		</div>
 	</div><!-- /.row -->
@@ -50,10 +45,6 @@
 
 {% block post_script %}
 
-	<script>
-		$(document).ready(function() {
-      $("#openJobSelect").load("/dynamic/j/has_open_lists");
-		});
-	</script>
+
 
 {% endblock %}

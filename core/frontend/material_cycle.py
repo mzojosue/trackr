@@ -43,6 +43,7 @@ def job_materials(job_num=None):
 					_date_due  = None
 				_label = request.form['listLabel']
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label)
+			return redirect(url_for('material_list', m_hash=__obj.hash))
 		return render_template('job_materials.html', job=_job)
 	except KeyError:
 		flash('Error! AwardedJob does not exist.', 'danger')

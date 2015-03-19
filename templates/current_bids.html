@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	Current Bids - Campano HVAC
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+  {{ objects.navbar_links('estimating_home') }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.sidebar('current_bids') }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+			Shop Inventory&nbsp;
+			<!-- TODO:implement link to unlock and edit job -->
+			<a href="" class="btn btn-default btn-sm">
+				Unlock for Editing
+			</a>
+		</h1>
+
+		<div class="row">
+
+			<table class="table table-striped">
+				<tr id="tableHeadings">
+					<th>Bid #</th>
+          <th>Project Name:</th>
+          <th>Bid Date</th>
+          <th>Scope:</th>
+          <th>Quotes:</th>
+          <th>Rebid:</th>
+					<!--th>Ordered By:</th-->
+				</tr>
+				{% for bid in estimates %}
+					<tr>
+            <td>{{ bid.number }}</td>
+						<td>
+              <a href="{{ url_for('show_bid', bid_num=bid.number) }}">
+                {{ bid }}
+              </a>
+            </td>
+            <td>{{ bid.bid_date }}</td>
+            <td>
+              {% for s in bid.scope %}
+                <span>{{ s }}</span>
+                {%- if not loop.last -%}
+                  ,
+                {%- endif -%}
+              {% endfor %}
+            </td>
+            <td></td>
+						<td>No</td>
+					</tr>
+				{% endfor %}
+			</table>
+
+		</div><!-- /.row -->
+	</div><!-- /.main -->
+
+{% endblock %}

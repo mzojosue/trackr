@@ -81,7 +81,7 @@ class Worker(object):
 
 class Job(object):
 
-	valid_scope = ('E-M', 'E-E', 'E-B', 'E-I', 'E-P', 'fabrication')
+	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication')
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
@@ -95,7 +95,7 @@ class Job(object):
 		try:
 			self.scope = []
 			for i in scope:
-				if i in self.valid_scope:
+				if i in Job.valid_scope:
 					self.scope.append(i)
 		except TypeError:
 			self.scope = scope
@@ -121,13 +121,15 @@ class Job(object):
 		self.update()
 		return _return
 
+	def __repr__(self):
+		return self.name
+
 	def update(self):
 		if hasattr(self, 'db') and hasattr(self, 'number'):
 			self.db[self.number] = self
 
 
 class AwardedJob(Job):
-	jobs = {}
 
 	default_sub_dir = "//SERVER/Documents/Esposito/Jobs"
 
@@ -180,9 +182,6 @@ class AwardedJob(Job):
 		self.timesheets = {}
 
 		self.init_struct()
-
-	def __repr__(self):
-		return self.name
 
 	@property
 	def next_po(self):
