@@ -59,6 +59,35 @@ function addMaterialItem() {
 }
 
 
+function removeMaterialItem(divNum) {
+
+  var d = document.getElementById('itemizedMaterialArea');
+  var getID = 'itemID-' + divNum;
+  var olddiv = document.getElementById(getID);
+  d.removeChild(olddiv);
+
+}
+
+// window.addEventListener('paste', ... or
+document.onpaste = function(event) {
+    var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+    console.log(JSON.stringify(items)); // will give you the mime types
+    var blob = items[0].getAsFile();
+    var reader = new FileReader();
+    reader.onload = function (event) {
+        console.log(event.target.result);
+    }; // data url!
+    reader.readAsDataURL(blob);
+};
+
+function update_mat_list(selfID, matListID) {
+
+  var jobNum = document.getElementById(selfID).value;
+  $(matListID).load("/dynamic/j/" + jobNum + "/materials");
+
+}
+
+
 function newTimecardRow() {
 
   var tableArea = document.getElementById('timecardTable');
@@ -104,34 +133,5 @@ function newTimecardRow() {
 
   // Append new row to table
   tableArea.appendChild(newRow);
-
-}
-
-
-function removeMaterialItem(divNum) {
-
-  var d = document.getElementById('itemizedMaterialArea');
-  var getID = 'itemID-' + divNum;
-  var olddiv = document.getElementById(getID);
-  d.removeChild(olddiv);
-
-}
-
-// window.addEventListener('paste', ... or
-document.onpaste = function(event) {
-    var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-    console.log(JSON.stringify(items)); // will give you the mime types
-    var blob = items[0].getAsFile();
-    var reader = new FileReader();
-    reader.onload = function (event) {
-        console.log(event.target.result);
-    }; // data url!
-    reader.readAsDataURL(blob);
-};
-
-function update_mat_list(selfID, matListID) {
-
-  var jobNum = document.getElementById(selfID).value;
-  $(matListID).load("/dynamic/j/" + jobNum + "/materials");
 
 }
