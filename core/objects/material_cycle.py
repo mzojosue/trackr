@@ -173,10 +173,7 @@ class Quote(object):
 	def __init__(self, vend, price=0.0, doc=None):
 		self.hash = abs(hash(now()))
 		self.vend = vend
-		try:
-			self.price = float(price)
-		except ValueError:
-			self.price = 0.0
+		self.price = float(price)
 		self._doc = doc
 
 		self.date_uploaded = now()
