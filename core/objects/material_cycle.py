@@ -186,6 +186,7 @@ class Quote(object):
 	@property
 	def doc(self):
 		if self._doc:
+			global ENV_ROOT
 			return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
 		return False
 
