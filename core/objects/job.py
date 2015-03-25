@@ -131,7 +131,7 @@ class Job(object):
 
 class AwardedJob(Job):
 
-	default_sub_dir = "//SERVER/Documents/Esposito/Jobs"
+	default_sub_dir = "/home/ubuntu/server/Jobs"
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
 	             gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',

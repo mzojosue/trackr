@@ -1,5 +1,7 @@
 from objects import *
 
+global ENV_ROOT
+
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
 	listeners = ('sent_out', 'po', 'delivered')
@@ -82,6 +84,7 @@ class MaterialList(object):
 	def doc(self):
 		if type(self._doc) is not str:
 			try:
+				global ENV_ROOT
 				return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
 			except TypeError:
 				pass
