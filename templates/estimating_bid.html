@@ -1,1 +1,68 @@
-{{ bid.name }}
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	{{ bid }}
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+ {{ objects.navbar_links(False) }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.bid_sidebar('bid_overview', bid=bid) }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+      {{ bid }}
+    </h1>
+    {%- with messages = get_flashed_messages(with_categories=True) -%}
+      {%- if messages -%}
+        {%- for category, message in message -%}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endwith -%}
+
+    <h3 class="bid-status">
+      <span class="label label-danger">
+        <a href="#">
+          <small class="glyphicon glyphicon-unchecked"></small>
+        </a>
+        No duct takeoff
+      </span>
+    </h3>
+		<div class="row">
+
+      <div class="col-xs-4">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Scope: M
+          </div>
+          <div class="panel-body">
+            Iterate over quotes in scope here
+          </div>
+        </div>
+      </div>
+
+		</div>
+	</div><!-- /.row -->
+
+{% endblock %}
+
+
+{% block post_script %}
+
+
+
+{% endblock %}

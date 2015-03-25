@@ -18,11 +18,29 @@ def current_bids():
 def past_bids():
 	return NotImplemented
 
-@app.route('/estimating/bid/<int:bid_num>')
-def show_bid(bid_num):
+@app.route('/estimating/bid/<int:bid_num>/overview')
+def bid_overview(bid_num):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
 			return render_template('estimating_bid.html', bid=_bid)
+		except KeyError:
+			return "Error: Bid does not exist."
+
+@app.route('/estimating/bid/<int:bid_num>/documents')
+def bid_documents(bid_num):
+	if hasattr(EstimatingJob, 'db'):
+		try:
+			_bid = EstimatingJob.find(bid_num)
+			return render_template('bid_documents.html', bid=_bid)
+		except KeyError:
+			return "Error: Bid does not exist."
+
+@app.route('/estimating/bid/<int:bid_num>/drawings')
+def bid_drawings(bid_num):
+	if hasattr(EstimatingJob, 'db'):
+		try:
+			_bid = EstimatingJob.find(bid_num)
+			return render_template('bid_drawings.html', bid=_bid)
 		except KeyError:
 			return "Error: Bid does not exist."

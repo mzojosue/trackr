@@ -7,3 +7,8 @@
 .nav-sidebar > li > a {
   color: #4cae4c;
 }
+
+.bid-status > .label > a > small,
+.bid-status > .label > a > span {
+  color: #FFF;
+}

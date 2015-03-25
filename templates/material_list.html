@@ -71,8 +71,8 @@
 	          View Material Document
 					</a>
 				{% endif %}
-        {% if mlist.delivery %}
-          <a href="{{ url_for('accept_delivery', job_num=job.number, d_hash=124) }}" class="btn btn-success">Accept Delivery</a>
+        {% if mlist.delivery and not mlist.delivery.delivered %}
+          <a href="{{ url_for('accept_delivery', job_num=job.number, d_hash=mlist.delivery.hash) }}" class="btn btn-success">Accept Delivery</a>
         {% endif %}
 			</div>
 

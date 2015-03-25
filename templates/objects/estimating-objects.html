@@ -37,3 +37,35 @@
 {% endmacro %}
 
 
+{% macro bid_sidebar(active_link, bid) %}
+
+  {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
+  {% set links = [('bid_overview', 'View Bid', 'eye-open'),
+                  ('bid_documents', 'Documents'),
+                  ('bid_drawings', 'Drawings')] %}
+
+	<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar">
+      {% for _link in links %}
+        {% if _link[0] == active_link %}
+          <li class="active">
+        {% else %}
+          <li>
+        {% endif %}
+
+          <a href="{{ url_for(_link[0], bid_num=bid.number) }}">
+
+            {% if _link[2] %}
+              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
+            {% endif %}
+
+            {{ _link[1] }}
+          </a>
+        </li>
+      {% endfor %}
+		</ul>
+	</div><!-- /.sidebar -->
+
+{% endmacro %}
+
+
