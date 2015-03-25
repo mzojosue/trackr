@@ -152,18 +152,21 @@
       <div class="panel panel-info">
         <div class="panel-heading">
           {% if job %}
-            Deliveries scheduled for {{ job.name }}
+            Upcoming Deliveries for {{ job.name }}
+            <a href="{{ url_for('job_deliveries', job_num=job.number) }}">
+              <span class="glyphicon glyphicon-link"></span>
+            </a>
           {% else %}
-            Scheduled Deliveries
+            Upcoming Deliveries
+            <a href="{{ url_for('deliveries') }}">
+              <span class="glyphicon glyphicon-link"></span>
+            </a>
           {% endif %}
-          <a href="#">
-            <span class="glyphicon glyphicon-link"></span>
-          </a>
         </div>
         <!-- /.panel-heading -->
         <ul class="list-group">
           {% if job %}
-            {% for i in job.deliveries.itervalues() %}
+            {% for i in job.deliveries.itervalues() if not i.delivered %}
               {% if i.countdown < 2 %}
                 <li class="list-group-item list-group-item-danger">
               {% elif i.countdown < 5 %}
@@ -176,9 +179,13 @@
                   From {{ i.vend }} expected <span class="label label-info">{{ i.expected.date() }}</span>
                 </a>
               </li>
+            {% else %}
+              <li class="list-group-item">
+                No upcoming deliveries
+              </li>
             {% endfor %}
           {% else %}
-            {% for i in Delivery.db.itervalues() %}
+            {% for i in Delivery.db.itervalues() if not i.delivered %}
               {% if i.countdown < 2 %}
                 <li class="list-group-item list-group-item-danger">
               {% elif i.countdown < 5 %}
@@ -188,6 +195,10 @@
               {% endif %}
                 <!-- TODO:set link to deliveries page -->
                 <a href="#">Delivery from {{ i.vend }}, expected <span class="label label-info">{{ i.expected.date() }}</span> for {{ i.job }}</a>
+              </li>
+            {% else %}
+              <li class="list-group-item">
+                No upcoming deliveries
               </li>
             {% endfor %}
           {% endif %}<!-- /.list-group-item -->
@@ -270,7 +281,7 @@
 		</div><!-- /.panel -->
 	</div><!-- /.col -->
 
-{% endmacro %}
+{% endmacro %}l
 
 
 {% macro materials_widget(job=None) %}

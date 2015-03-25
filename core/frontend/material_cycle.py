@@ -119,7 +119,11 @@ def schedule_delivery(job_num=None):
 @app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
 def accept_delivery(job_num, d_hash):
 	# TODO:function should set delivery.delivered to True
-	return NotImplemented
+	_job = AwardedJob.find(job_num)
+	_dlvry = _job.deliveries[d_hash]
+	if hasattr(_dlvry, 'delivered'):
+		_dlvry.delivered = True
+	return redirect(request.referrer)
 
 
 @app.route('/quote', methods=['GET', 'POST'])
