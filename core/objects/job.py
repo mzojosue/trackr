@@ -168,7 +168,6 @@ class AwardedJob(Job):
 			self.po_pre = self.name
 		self.foreman = foreman
 		self.contract_amount = contract_amount
-		self.sub_path = sub_path
 
 		self._PO = 0    # stores most recent PO suffix number
 		self.POs = {}   # stores PO strings as keys

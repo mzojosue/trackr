@@ -14,6 +14,7 @@ def init_db(db='trackr_db'):
 		# Worker/Job DBs
 		Worker.db = MongoDict(database=db, collection='workers')
 		AwardedJob.db = MongoDict(database=db, collection='jobs')
+		AwardedJob.completed_db = MongoDict(database=db, collection='completed_jobs')
 
 		# Material Cycle DBs
 		MaterialList.db = MongoDict(database=db, collection='materials')
@@ -32,6 +33,7 @@ def init_db(db='trackr_db'):
 
 		# Estimating DBs
 		EstimatingJob.db = MongoDict(database=db, collection='estimating_jobs')
+		EstimatingJob.completed_db = MongoDict(database=db, collection='completed_bids')
 		EstimatingQuote.db = MongoDict(database=db, collection='estimating_quotes')
 
 	except:
@@ -40,6 +42,7 @@ def init_db(db='trackr_db'):
 		# Worker/Job DBs
 		Worker.db = {}
 		AwardedJob.db = {}
+		AwardedJob.completed_db = {}
 
 		# Material Cycle DBs
 		MaterialList.db = {}
@@ -57,8 +60,9 @@ def init_db(db='trackr_db'):
 		Timesheet.db = {}
 
 		# Estimating DBs
-		EstimatingQuote.db = {}
+		EstimatingJob.completed_db = {}
 		EstimatingJob.db = {}
+		EstimatingQuote.db = {}
 
 	return True
 

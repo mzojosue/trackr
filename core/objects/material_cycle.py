@@ -85,7 +85,7 @@ class MaterialList(object):
 		if type(self._doc) is not str:
 			try:
 				global ENV_ROOT
-				return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
+				return (os.path.join( self.job.sub_path, self._doc[0] ), self._doc[1])
 			except TypeError:
 				pass
 		elif self._doc:
@@ -189,8 +189,7 @@ class Quote(object):
 	@property
 	def doc(self):
 		if self._doc:
-			global ENV_ROOT
-			return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
+			return (os.path.join( "/home/ubuntu/server", self._doc[0] ), self._doc[1])
 		return False
 
 	def __repr__(self):
@@ -201,7 +200,6 @@ class MaterialListQuote(Quote):
 	def __init__(self, mat_list, vend, price=0.0, doc=None):
 		super(MaterialListQuote, self).__init__(vend, price, doc)
 		self.mat_list = mat_list
-		self._doc = doc  # document target path/name
 		self.mat_list.job.add_quote(self)
 
 	def __setattr__(self, key, value):
