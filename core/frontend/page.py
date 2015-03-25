@@ -88,3 +88,8 @@ def user_settings():
 @app.route('/help')
 def help():
 	return NotImplemented
+
+@app.route('/flash/test')
+def flash_test():
+	flash('test message')
+	return redirect(request.referrer)

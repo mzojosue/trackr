@@ -24,6 +24,9 @@
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
       Dashboard
+      <a href="{{ url_for('flash_test')}}">
+        Test flash messaging
+      </a>
     </h1>
     {%- with messages = get_flashed_messages(with_categories=True) -%}
       {%- if messages -%}
