@@ -85,8 +85,8 @@ class MaterialList(object):
 		if type(self._doc) is not str:
 			try:
 				_path = os.path.join('/home/ubuntu/server', self._doc[0])
-				_path =  os.path.join(_path, self._doc[1])
-				return _path.replace('\\', '/')
+				_path = _path.replace('\\', '/')
+				return (_path, self._doc[1])
 			except TypeError:
 				pass
 		elif self._doc:
@@ -191,8 +191,8 @@ class Quote(object):
 	def doc(self):
 		if self._doc:
 			_path = os.path.join('/home/ubuntu/server', self._doc[0])
-			_path =  os.path.join(_path, self._doc[1])
-			return _path.replace('\\', '/')
+			_path = _path.replace('\\', '/')
+			return (_path, self._doc[1])
 		return False
 
 	def __repr__(self):

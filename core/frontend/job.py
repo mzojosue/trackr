@@ -66,8 +66,6 @@ def job_quote_doc(doc_hash, job_num=None):
 		_doc = _job.quotes[int(doc_hash)]
 		if type(_doc.doc) is tuple:
 			return send_from_directory(*_doc.doc)
-		else:
-			return send_from_directory(os.path.join(_job.sub_path, 'quotes'), _doc.doc)
 
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
