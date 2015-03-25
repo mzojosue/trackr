@@ -33,7 +33,7 @@ def job_materials(job_num=None):
 				while _counter <= __item_count:
 					_qty = '-'.join([ 'item', str(_counter), 'qty' ])
 					_desc = '-'.join([ 'item', str(_counter), 'desc' ])
-					_item = [ int(request.form[_qty]), str(request.form[_desc]) ]
+					_item = [ int(request.form[l_qty]), str(request.form[_desc]) ]
 					__items.append(_item)
 					_counter += 1
 				try:
@@ -49,29 +49,14 @@ def job_materials(job_num=None):
 		flash('Error! AwardedJob does not exist.', 'danger')
 		return redirect(request.referrer)
 
-@app.route('/material', methods=['GET', 'POST'])
-def material():
-	"""
-	Displays all active and fulfilled material lists in a table-like format.
-	:return:
-	"""
-	if request.method == 'POST':
-		f = request.files['list']
-		upload_file(f)
-		j = request.form['job']
-		j = AwardedJob.jobs[j]
-		due = request.form['shipping_date']
-		##TODO:turn due into datetime obj
-
-		##TODO:pass intended job
-		MaterialList(j, doc=f.filename, date_due=due)
-		return "successfully uploaded"
-	else:
-		return render_template('job_materials.html', job=AwardedJob.jobs)
-
 
 @app.route('/material/<int:m_hash>/')
 def material_list(m_hash):
+	"""
+	Renders material list page
+	:param m_hash: hash attribute of material list object to display
+	:return: renders material list page
+	"""
 	try:
 		_list = MaterialList.db[int(m_hash)]
 		_job = _list.job
@@ -82,6 +67,11 @@ def material_list(m_hash):
 
 @app.route('/material/<int:m_hash>/update', methods=['POST'])
 def update_material_list(m_hash):
+	"""
+	Updates material list using http post methods
+	:param m_hash: Material list hash to update
+	:return: Redirects to referring page
+	"""
 	_list = MaterialList.db[int(m_hash)]
 	_job = _list.job
 	if 'sentOut' in request.form:
@@ -118,7 +108,6 @@ def schedule_delivery(job_num=None):
 
 @app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
 def accept_delivery(job_num, d_hash):
-	# TODO:function should set delivery.delivered to True
 	_job = AwardedJob.find(job_num)
 	_dlvry = _job.deliveries[d_hash]
 	if hasattr(_dlvry, 'delivered'):
@@ -128,7 +117,7 @@ def accept_delivery(job_num, d_hash):
 
 @app.route('/quote', methods=['GET', 'POST'])
 def quote():
-	""" Used for uploading and associating a quote with a material list
+	""" Used for uploading and associating a quote with a material list via HTTP POST methods
 	:param:
 	:return:
 	"""

@@ -91,5 +91,5 @@ def help():
 
 @app.route('/flash/test')
 def flash_test():
-	flash('test message')
+	flash('test message', category='success')
 	return redirect(request.referrer)
