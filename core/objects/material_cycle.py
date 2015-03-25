@@ -84,8 +84,8 @@ class MaterialList(object):
 	def doc(self):
 		if type(self._doc) is not str:
 			try:
-				global ENV_ROOT
-				return (os.path.join( self.job.sub_path, self._doc[0] ), self._doc[1])
+				_path = os.path.join('/home/ubuntu/server', self._doc[0])
+				return os.path.join(_path, self._doc[1])
 			except TypeError:
 				pass
 		elif self._doc:
@@ -189,7 +189,8 @@ class Quote(object):
 	@property
 	def doc(self):
 		if self._doc:
-			return (os.path.join( "/home/ubuntu/server", self._doc[0] ), self._doc[1])
+			_path = os.path.join('/home/ubuntu/server', self._doc[0])
+			return os.path.join(_path, self._doc[1])
 		return False
 
 	def __repr__(self):
