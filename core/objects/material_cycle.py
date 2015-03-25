@@ -1,4 +1,5 @@
 from objects import *
+from core import settings
 
 global ENV_ROOT
 
@@ -83,12 +84,10 @@ class MaterialList(object):
 	@property
 	def doc(self):
 		if type(self._doc) is not str:
-			try:
-				_path = os.path.join('/home/ubuntu/server', self._doc[0])
-				_path = _path.replace('\\', '/')
-				return (_path, self._doc[1])
-			except TypeError:
-				pass
+			_env_root = settings.get_env_root()
+			_path = os.path.join(_env_root, self._doc[0])
+			_path = _path.replace('\\', '/')
+			return (_path, self._doc[1])
 		elif self._doc:
 			return (os.path.join(self.job.sub_path, 'Materials'), self._doc)
 		else:
@@ -190,7 +189,8 @@ class Quote(object):
 	@property
 	def doc(self):
 		if self._doc:
-			_path = os.path.join('/home/ubuntu/server', self._doc[0])
+			_env_root = settings.get_env_root()
+			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])
 		return False

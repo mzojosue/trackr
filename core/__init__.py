@@ -2,7 +2,7 @@ from objects import *
 from db import *
 from parsing import *
 from core.frontend import *
-import yaml
+from settings import *
 
 global ENV_ROOT
 
