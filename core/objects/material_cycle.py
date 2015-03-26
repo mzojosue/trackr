@@ -205,6 +205,10 @@ class MaterialListQuote(Quote):
 		self.mat_list = mat_list
 		self.mat_list.job.add_quote(self)
 
+	@property
+	def job(self):
+		return self.mat_list.job
+
 	def __setattr__(self, key, value):
 		_return = super(MaterialListQuote, self).__setattr__(key, value)
 		if hasattr(self, 'mat_list'):

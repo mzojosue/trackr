@@ -1,16 +1,18 @@
 from xlrd import open_workbook, xldate_as_tuple
+from xlwt import *
+from xlutils.copy import copy
 from datetime import datetime, date
 from parse import parse
 import objects
 
 def parse_PO_log(poLog, sheet=None, create=False):
-	log = open_workbook(poLog)
+	log = open_workbook(poLog, on_demand=True)
 	_nsheet = log.nsheets
 	for _sheetNum in range(1, _nsheet):  # Omit first template page
 		_sheet = log.sheet_by_index(_sheetNum)
 		if create:
 			try:
-				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.name)])
+				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.name)], sheet_num=_sheetNum)
 				print _job.name
 			except TypeError:
 				pass    # Sheet name does not match regex
@@ -87,3 +89,30 @@ def parse_job_info(jobInfo):
 
 def parse_estimating_log(estimatingLog):
 	return NotImplemented
+
+def new_po_in_log(poLog, obj):
+	_log = open_workbook(poLog, on_demand=True)
+	_nrow = _log.sheet_by_index(obj.sheet_num)
+	log = copy(_log)
+	del _log
+	if hasattr(obj, 'sheet_num'):
+		_sheet = log.get_sheet(obj.sheet_num)
+		# TODO: validate PO # and ensure that it is not already on the sheet
+		# TODO: write correct values to row
+		pass
+	else:
+		_sheet = log.sheet_by_name( '%d - %s' % (obj.number, obj.name) )
+
+def update_po_log(poLog, obj, attr, value):
+	"""
+	:param poLog: poLog file object to write to
+	:param obj: object to reflect changes on
+	:param attr: object attribute that has been changed
+	:param value: object attribute new value
+	:return: True if operation successful
+	"""
+	_values = ('number', 'vend', 'price', 'date_uploaded', 'date_sent', 'mat_list', 'quote')
+	if value in _values:
+		log = open_workbook(poLog)
+		if hasattr(obj, 'sheet_num'):
+			_sheet = log.sheet_by_index(obj.sheet_num)

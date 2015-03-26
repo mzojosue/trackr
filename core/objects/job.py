@@ -131,11 +131,12 @@ class Job(object):
 
 class AwardedJob(Job):
 
-	default_sub_dir = "/home/ubuntu/server/Jobs"
+	env_root = '/home/ubuntu/server/Jobs'
+	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
 	             gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
-	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today()):
+	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(), sheet_num=None):
 		"""
 		:param job_num: desired job number
 		:param name: primary job name
@@ -168,6 +169,7 @@ class AwardedJob(Job):
 			self.po_pre = self.name
 		self.foreman = foreman
 		self.contract_amount = contract_amount
+		self.sheet_num = sheet_num
 
 		self._PO = 0    # stores most recent PO suffix number
 		self.POs = {}   # stores PO strings as keys
@@ -225,10 +227,8 @@ class AwardedJob(Job):
 		""" Initializes project directory hierarchy. """
 		# TODO:initialize documents w/ job information
 		try:
-			if self.sub_path:
-				self.sub_path = self.sub_path
-			elif not os.path.exists(os.path.join(AwardedJob.default_sub_dir, self.name)):
-				os.mkdir(os.path.join(AwardedJob.default_sub_dir, self.name))
+			if not os.path.exists(os.path.join(AwardedJob.env_root, self.name)):
+				os.mkdir(os.path.join(AwardedJob.env_root, self.name))
 				self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 				_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
 				            'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
@@ -242,7 +242,8 @@ class AwardedJob(Job):
 	@property
 	def path(self):
 		""" Return absolute sub path using global project path and AwardedJob.sub_path """
-		return NotImplemented
+		_path = os.path.join(AwardedJob.env_root, self.sub_path)
+		return _path
 
 	@property
 	def labor(self):

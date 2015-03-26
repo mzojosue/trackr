@@ -17,9 +17,9 @@ except IOError:
 	print "Unable to load settings. Using default root directory location"
 """
 
-ENV_ROOT = '/home/ubuntu/server'
+# ENV_ROOT = '/home/ubuntu/server'
 
-JOB_SUB_DIR = os.path.join(ENV_ROOT, 'Jobs')
-AwardedJob.default_sub_dir = JOB_SUB_DIR
+#JOB_SUB_DIR = os.path.join(ENV_ROOT, 'Jobs')
+#AwardedJob.default_sub_dir = JOB_SUB_DIR
 
 init_db()
