@@ -1,5 +1,6 @@
 from objects import *
 from core import settings
+from core.parsing import new_po_in_log
 
 global ENV_ROOT
 
@@ -250,6 +251,8 @@ class PO(object):
 		self.quote.awarded = True
 		self.quote.update()
 
+		new_po_in_log(self)
+
 	@property
 	def name(self):
 		_num = '%03d' % self.num
@@ -257,6 +260,14 @@ class PO(object):
 			return '-'.join([str(self.po_pre), _num])
 		else:
 			return '-'.join([str(self.job.po_pre), _num])
+
+	@property
+	def vend(self):
+		return self.quote.vend
+
+	@property
+	def price(self):
+		return self.quote.price
 
 	def __repr__(self):
 		return self.name

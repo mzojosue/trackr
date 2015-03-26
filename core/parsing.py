@@ -3,6 +3,7 @@ from xlwt import *
 from xlutils.copy import copy
 from datetime import datetime, date
 from parse import parse
+import settings
 import objects
 
 def parse_PO_log(poLog, sheet=None, create=False):
@@ -90,18 +91,37 @@ def parse_job_info(jobInfo):
 def parse_estimating_log(estimatingLog):
 	return NotImplemented
 
-def new_po_in_log(poLog, obj):
-	_log = open_workbook(poLog, on_demand=True)
-	_nrow = _log.sheet_by_index(obj.sheet_num)
-	log = copy(_log)
-	del _log
-	if hasattr(obj, 'sheet_num'):
-		_sheet = log.get_sheet(obj.sheet_num)
-		# TODO: validate PO # and ensure that it is not already on the sheet
+
+def new_po_in_log(obj, poLog=settings.get_po_log()):
+	log = open_workbook(poLog, on_demand=True)
+
+	_sheet, _nrow = None
+	if hasattr(obj, 'job'):
+		_sheet = log.sheet_by_index(obj.job.sheet_num)
+		_nrow = _sheet.nrows
+	log = copy(log)    # creates writable Workbook object
+
+	# iterate through all rows and cache all POs on worksheet to validate obj against
+	_pos = []
+	for i in range(2, _nrow):
+		_row = _sheet.row_slice(i)
+		_po  = _row[0].value
+		_pos.append(_po)
+
+	if hasattr(obj.job, 'sheet_num') and (obj.po_num not in _pos):
+		_sheet = log.get_sheet(obj.sheet_num)   # creates writeable Worksheet object
 		# TODO: write correct values to row
+		_row = (obj, obj.vend, obj.price, obj.date_issued, None, obj.mat_list.doc, obj, None, None)
+		_row = zip(len(_row), _row)
+		for col, val in _row:
+			_sheet.write(_nrow, col, val)
+		log.save(poLog)
+	elif obj.po_num in _pos:
+		# TODO: show an error to the user if po_num was user supplied. else, show an error in the log
 		pass
 	else:
 		_sheet = log.sheet_by_name( '%d - %s' % (obj.number, obj.name) )
+
 
 def update_po_log(poLog, obj, attr, value):
 	"""
