@@ -85,7 +85,7 @@ class MaterialList(object):
 	@property
 	def doc(self):
 		_env_root = environment.env_root
-		if type(self._doc) is not str and _env_root:
+		if type(self._doc) is not str and _env_root and self._doc:
 			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])
@@ -194,7 +194,7 @@ class Quote(object):
 			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])
-		return False
+		return None
 
 	def __repr__(self):
 		return "Quote uploaded %s from %s" % (self.date_uploaded, self.vend)
