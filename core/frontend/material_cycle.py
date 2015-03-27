@@ -33,7 +33,7 @@ def job_materials(job_num=None):
 				while _counter <= __item_count:
 					_qty = '-'.join([ 'item', str(_counter), 'qty' ])
 					_desc = '-'.join([ 'item', str(_counter), 'desc' ])
-					_item = [ int(request.form[l_qty]), str(request.form[_desc]) ]
+					_item = [ int(request.form[_qty]), str(request.form[_desc]) ]
 					__items.append(_item)
 					_counter += 1
 				try:
