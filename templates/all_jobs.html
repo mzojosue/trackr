@@ -18,7 +18,7 @@
 			Create new job
 		</a>
 		<ul class="nav nav-sidebar">
-			{% for i in Job.db.itervalues() %}
+			{% for i in Job.db.itervalues()|dictsort %}
 				<li><a href="{{ url_for('job_overview', job_num=i.number) }}">{{ i.name }}</a></li>
 			{% endfor %}
 		</ul>
