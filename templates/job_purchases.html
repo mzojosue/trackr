@@ -13,21 +13,7 @@
 
 
 {% block nav_links %}
-	<li>
-		<a href="{{ url_for('home') }}">Dashboard</a>
-	</li>
-	<li>
-		<a href="#">Estimating</a>
-	</li>
-	<li class="active">
-		<a href="{{ url_for('all_jobs') }}">Jobs</a>
-	</li>
-	<li>
-		<a href="#">Settings</a>
-	</li>
-	<li>
-		<a href="#">Help</a>
-	</li>
+	{{ objects.navbar_links('all_jobs') }}
 {% endblock %}
 
 
