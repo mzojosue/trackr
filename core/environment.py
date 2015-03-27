@@ -17,4 +17,4 @@ def env_root(settings):
 
 def get_po_log():
 	# TODO: use yaml configuration file to return PO log path
-	return '/home/ubuntu/server/betterPOlog.xlsx'
+	return '/home/ubuntu/server/betterPOlog.xls'

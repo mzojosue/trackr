@@ -226,7 +226,7 @@ class MaterialListQuote(Quote):
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
-	             quote=None, desc=None, deliveries=None, po_num=None, po_pre=None):
+	             quote=None, desc=None, deliveries=None, po_num=None, po_pre=None, update=True):
 		if not po_num:
 			self.num = job.next_po
 		else:
@@ -251,7 +251,8 @@ class PO(object):
 		self.quote.awarded = True
 		self.quote.update()
 
-		new_po_in_log(self)
+		if update:
+			new_po_in_log(self)
 
 	@property
 	def name(self):
