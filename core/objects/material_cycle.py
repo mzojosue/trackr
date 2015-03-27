@@ -1,5 +1,5 @@
 from objects import *
-from core import settings
+from core import environment
 from core.parsing import new_po_in_log
 
 global ENV_ROOT
@@ -84,8 +84,8 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		if type(self._doc) is not str:
-			_env_root = settings.get_env_root()
+		_env_root = environment.env_root
+		if type(self._doc) is not str and _env_root:
 			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])
@@ -175,7 +175,7 @@ class MaterialList(object):
 
 class Quote(object):
 	def __init__(self, vend, price=0.0, doc=None):
-		self.hash = abs(hash(now()))
+		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		self.vend = vend
 		try:
 			self.price = float(price)
@@ -190,7 +190,7 @@ class Quote(object):
 	@property
 	def doc(self):
 		if self._doc:
-			_env_root = settings.get_env_root()
+			_env_root = environment.env_root()
 			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])

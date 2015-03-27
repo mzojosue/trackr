@@ -3,7 +3,7 @@ from xlwt import *
 from xlutils.copy import copy
 from datetime import datetime, date
 from parse import parse
-import settings
+import environment
 import objects
 
 def parse_PO_log(poLog, sheet=None, create=False):
@@ -92,8 +92,12 @@ def parse_estimating_log(estimatingLog):
 	return NotImplemented
 
 
-def new_po_in_log(obj, poLog=settings.get_po_log()):
-	log = open_workbook(poLog, on_demand=True)
+def new_po_in_log(obj, poLog=environment.get_po_log()):
+	try:
+		log = open_workbook(poLog, on_demand=True)
+	except IOError:
+		print "'%s' is not a valid file path. Cannot update PO log." % poLog
+		return False
 
 	_sheet, _nrow = None
 	if hasattr(obj, 'job'):
@@ -134,5 +138,7 @@ def update_po_log(poLog, obj, attr, value):
 	_values = ('number', 'vend', 'price', 'date_uploaded', 'date_sent', 'mat_list', 'quote')
 	if value in _values:
 		log = open_workbook(poLog)
+		_sheet, _nrow = None
+
 		if hasattr(obj, 'sheet_num'):
 			_sheet = log.sheet_by_index(obj.sheet_num)
