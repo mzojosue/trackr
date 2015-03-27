@@ -190,7 +190,7 @@ class Quote(object):
 	@property
 	def doc(self):
 		if self._doc:
-			_env_root = environment.env_root()
+			_env_root = environment.env_root
 			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])

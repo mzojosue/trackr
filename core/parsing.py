@@ -14,7 +14,6 @@ def parse_PO_log(poLog, sheet=None, create=False):
 		if create:
 			try:
 				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.name)], sheet_num=_sheetNum)
-				print _job.name
 			except TypeError:
 				pass    # Sheet name does not match regex
 		for _row in range(2, _sheet.nrows):
@@ -60,7 +59,6 @@ def parse_PO_log(poLog, sheet=None, create=False):
 				_mat_list.sent_out = True
 				if _mat_list.age > 5:
 					_mat_list.delivered = True
-				print _mat_list
 
 				# Create Quote objects
 				if '\\' in __quote_val:
