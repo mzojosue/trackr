@@ -38,6 +38,7 @@ def test_po_log():
 	q = core.Quote(mat)
 	q._doc = ('path/to', 'file')
 	p = core.PO(job, mat, quote=q)
+	core.reset_db()
 
 
 if __name__ == "__main__":
