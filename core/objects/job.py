@@ -237,6 +237,7 @@ class AwardedJob(Job):
 			else:
 				self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 		except OSError:
+			self.sub_path = ''
 			print "ERROR: cannot connect to server. File functions disabled.\n"
 
 	@property

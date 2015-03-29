@@ -75,7 +75,7 @@ def clear_db(db='trackr_db'):
 	return True
 
 
-def reset_db(db='trackr_db', log='//SERVER/Documents/Esposito/betterPOlog.xls'):
+def reset_db(db='trackr_db', log=environment.get_po_log):
 	_cwd = os.getcwd()
 
 	try:
@@ -84,7 +84,7 @@ def reset_db(db='trackr_db', log='//SERVER/Documents/Esposito/betterPOlog.xls'):
 	except:
 		print "Could not connect to database"
 
-	parse_PO_log(log, create=True)
+	import_po_log(True, log)
 
 	os.chdir(_cwd)
 

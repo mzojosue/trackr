@@ -6,7 +6,7 @@ from parse import parse
 import environment
 import objects
 
-def parse_PO_log(poLog, sheet=None, create=False):
+def import_po_log(create=False, poLog=environment.get_po_log):
 	log = open_workbook(poLog, on_demand=True)
 	_nsheet = log.nsheets
 	for _sheetNum in range(1, _nsheet):  # Omit first template page
@@ -72,7 +72,7 @@ def parse_PO_log(poLog, sheet=None, create=False):
 				if str(_pre) is not str(_job.po_pre):
 					po_pre = _pre
 				else: po_pre = None
-				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment, po_num=_num, po_pre=po_pre)
+				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment, po_num=_num, po_pre=po_pre, update=False)
 
 				del _mat_list, _quote, _po
 
@@ -90,16 +90,45 @@ def parse_estimating_log(estimatingLog):
 	return NotImplemented
 
 
-def new_po_in_log(obj, poLog=environment.get_po_log()):
+def find_job_in_log(obj, poLog=environment.get_po_log):
+	"""
+	Finds and returns the given sheet number for the passed job object in the given po log
+	:param obj: job object to find in log
+	:param poLog: path to PO log to parse
+	:return: integer which has the po log for given job
+	"""
+	return NotImplemented
+
+def add_job_in_log(obj, poLog=environment.get_po_log):
+	"""
+	Adds a spreadsheet page to the passed log file to log POs for the given job
+	:param obj: job object to add to log
+	:param poLog: path to PO log to to add spreadsheet page to
+	:return: returns output of find_job_in_log to confirm output
+	"""
+	return NotImplemented
+
+
+def find_po_in_log(obj, poLog=environment.get_po_log):
+	"""
+	Finds and returns spreadsheet page, and row number which corresponds to the given PO object passed
+	:param obj: PO object to find in spreadsheet
+	:param poLog: path to PO log to parse
+	:return: returns tuple containing spreadsheet page integer and row number integer
+	"""
+	return NotImplemented
+
+def add_po_in_log(obj, poLog=environment.get_po_log):
 	try:
 		log = open_workbook(poLog, on_demand=True)
 	except IOError:
 		print "'%s' is not a valid file path. Cannot update PO log." % poLog
 		return False
 
-	_sheet, _nrow = None
+	_sheet, _nrow = None, None
 	if hasattr(obj, 'job'):
 		_sheet = log.sheet_by_index(obj.job.sheet_num)
+		# TODO: implement algorithm to apply styling and organization to PO log
 		_nrow = _sheet.nrows
 	log = copy(log)    # creates writable Workbook object
 
@@ -110,13 +139,17 @@ def new_po_in_log(obj, poLog=environment.get_po_log()):
 		_po  = _row[0].value
 		_pos.append(_po)
 
-	if hasattr(obj.job, 'sheet_num') and (obj.po_num not in _pos):
-		_sheet = log.get_sheet(obj.sheet_num)   # creates writeable Worksheet object
+	if hasattr(obj.job, 'sheet_num') and (obj.num not in _pos):
+		print obj
+		_sheet = log.get_sheet(obj.job.sheet_num)   # creates writeable Worksheet object
 		# TODO: write correct values to row
-		_row = (obj, obj.vend, obj.price, obj.date_issued, None, obj.mat_list.doc, obj, None, None)
-		_row = zip(len(_row), _row)
+		_row = (obj.name, obj.vend, obj.price, obj.date_issued, None, obj.mat_list.doc, obj.quote.doc, None, None)
+		_row = zip(range(len(_row)), _row)
 		for col, val in _row:
-			_sheet.write(_nrow, col, val)
+			try:
+				_sheet.write(_nrow, col, str(val))
+			except Exception as e:
+				raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
 		log.save(poLog)
 	elif obj.po_num in _pos:
 		# TODO: show an error to the user if po_num was user supplied. else, show an error in the log
@@ -124,8 +157,7 @@ def new_po_in_log(obj, poLog=environment.get_po_log()):
 	else:
 		_sheet = log.sheet_by_name( '%d - %s' % (obj.number, obj.name) )
 
-
-def update_po_log(poLog, obj, attr, value):
+def update_po_in_log(poLog, obj, attr, value):
 	"""
 	:param poLog: poLog file object to write to
 	:param obj: object to reflect changes on
@@ -133,8 +165,8 @@ def update_po_log(poLog, obj, attr, value):
 	:param value: object attribute new value
 	:return: True if operation successful
 	"""
-	_values = ('number', 'vend', 'price', 'date_uploaded', 'date_sent', 'mat_list', 'quote')
-	if value in _values:
+	_attr = ('number', 'vend', 'price', 'date_uploaded', 'date_sent', 'mat_list', 'quote')
+	if attr in _attr:
 		log = open_workbook(poLog)
 		_sheet, _nrow = None
 

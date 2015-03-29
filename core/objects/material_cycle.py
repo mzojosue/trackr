@@ -1,8 +1,7 @@
 from objects import *
 from core import environment
-from core.parsing import new_po_in_log
+from core.parsing import add_po_in_log
 
-global ENV_ROOT
 
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
@@ -199,6 +198,9 @@ class Quote(object):
 	def __repr__(self):
 		return "Quote uploaded %s from %s" % (self.date_uploaded, self.vend)
 
+	def update(self):
+		return NotImplemented
+
 
 class MaterialListQuote(Quote):
 	def __init__(self, mat_list, vend, price=0.0, doc=None):
@@ -252,7 +254,7 @@ class PO(object):
 		self.quote.update()
 
 		if update:
-			new_po_in_log(self)
+			add_po_in_log(self)
 
 	@property
 	def name(self):
