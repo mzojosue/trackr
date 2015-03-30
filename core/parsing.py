@@ -143,7 +143,9 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		print obj
 		_sheet = log.get_sheet(obj.job.sheet_num)   # creates writeable Worksheet object
 		_date_issued = obj.date_issued.strftime("%m.%d.%y")
-		_row = (obj.name, obj.vend, obj.price, _date_issued, None, obj.mat_list.doc, obj.quote.doc, None, None)
+		_mdoc = objects.os.path.join(*obj.mat_list.doc)
+		_qdoc = objects.os.path.join(*obj.quote.doc)
+		_row = (obj.name, obj.vend, obj.price, _date_issued, None, _mdoc, _qdoc, None, None)
 		_row = zip(range(len(_row)), _row)
 		for col, val in _row:
 			try:

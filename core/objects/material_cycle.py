@@ -83,15 +83,12 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		_env_root = environment.env_root
-		if type(self._doc) is not str and _env_root and self._doc:
+		if self._doc:
+			_env_root = environment.env_root
 			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])
-		elif self._doc:
-			return (os.path.join(self.job.sub_path, 'Materials'), self._doc)
-		else:
-			return False
+		return False
 
 	def update(self):
 		if hasattr(MaterialList, 'db'):
@@ -193,7 +190,7 @@ class Quote(object):
 			_path = os.path.join(_env_root, self._doc[0])
 			_path = _path.replace('\\', '/')
 			return (_path, self._doc[1])
-		return None
+		return False
 
 	def __repr__(self):
 		return "Quote uploaded %s from %s" % (self.date_uploaded, self.vend)

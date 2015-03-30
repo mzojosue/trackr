@@ -35,7 +35,7 @@ def test_po_log():
 	job = core.AwardedJob.db[5]
 	mat = core.MaterialList(job)
 	mat._doc = ('path/to', 'file')
-	q = core.Quote(mat)
+	q = core.MaterialListQuote(mat, 'test vendor')
 	q._doc = ('path/to', 'file')
 	p = core.PO(job, mat, quote=q)
 	core.reset_db()
