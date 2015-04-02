@@ -237,7 +237,7 @@ class AwardedJob(Job):
 			else:
 				self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 		except OSError:
-			self.sub_path = ''
+			self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 			print "ERROR: cannot connect to server. File functions disabled.\n"
 
 	@property
@@ -389,14 +389,3 @@ class AwardedJob(Job):
 	def find(num):
 		if hasattr(AwardedJob, 'db'):
 			return AwardedJob.db[num]
-
-
-def get_job_num(*args):
-	try:
-		if hasattr(AwardedJob, 'db'):
-			_keys = AwardedJob.db.keys()
-			num = int(_keys[-1]) + 1
-			return num
-	except IndexError:
-		print "Unknown Error:: Probably no jobs"
-		return 1
