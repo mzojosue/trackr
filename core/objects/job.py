@@ -1,4 +1,5 @@
 from objects import *
+from core import environment
 
 
 class Worker(object):
@@ -131,7 +132,6 @@ class Job(object):
 
 class AwardedJob(Job):
 
-	env_root = '/home/ubuntu/server/Jobs'
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
@@ -227,15 +227,20 @@ class AwardedJob(Job):
 		""" Initializes project directory hierarchy. """
 		# TODO:initialize documents w/ job information
 		try:
-			if not os.path.exists(os.path.join(AwardedJob.env_root, self.name)):
-				os.mkdir(os.path.join(AwardedJob.env_root, self.name))
-				self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
-				_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
-				            'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
-				for _folder in _folders:
-					os.mkdir(os.path.join(self.sub_path, _folder))
+			_job_root = os.path.join(environment.env_root, AwardedJob.default_sub_dir)
+			self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
+
+			if not os.path.exists(os.path.join(self.sub_path)):
+				os.mkdir(os.path.join(_job_root, self.name))
 			else:
-				self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
+				# executes if folder exists
+				# TODO: test self.alt_name and self.po_pre as folder names
+				pass
+
+			_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
+			            'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
+			for _folder in _folders:
+				os.mkdir(os.path.join(_job_root, self.name, _folder))
 		except OSError:
 			self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 			print "ERROR: cannot connect to server. File functions disabled.\n"
@@ -243,7 +248,7 @@ class AwardedJob(Job):
 	@property
 	def path(self):
 		""" Return absolute sub path using global project path and AwardedJob.sub_path """
-		_path = os.path.join(AwardedJob.env_root, self.sub_path)
+		_path = os.path.join(environment.env_root, self.sub_path)
 		return _path
 
 	@property

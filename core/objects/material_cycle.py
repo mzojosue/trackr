@@ -251,7 +251,10 @@ class PO(object):
 		self.quote.update()
 
 		if update:
-			add_po_in_log(self)
+			try:
+				add_po_in_log(self)
+			except TypeError:
+				print "There was an error adding PO to log. Possibly no spreadsheet for job??"
 
 	@property
 	def name(self):
