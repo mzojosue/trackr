@@ -1,13 +1,14 @@
 from trackr import *
 from random import sample
 
-amt = 10
+amt = 5
 
-def dummy_env():
-	# create 10 dummy estimate jobs
+def dummy_env(update=False):
+	# create 10 dummy estimate jobs and create one rebid
 	for i in xrange(amt):
 		print 'creating mock bid #%d' % i
-		core.EstimatingJob(i, 'test_bid_job', scope=['M', 'E', 'I'] )
+		core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'] )
+		core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'] )
 
 	# create 10 dummy jobs
 	for i in xrange(amt):
@@ -23,11 +24,12 @@ def dummy_env():
 				print "creating mock quote (%d) for %s" % (y, _list)
 				core.MaterialListQuote(_list, 'vend')
 
+	# issue POs to a random quote for each material list for each job
 	for i in core.AwardedJob.db.itervalues():
 		for z in i.materials.itervalues():
 			quote = sample(z.quotes.values(), 1)[0]
 			mat_list = quote.mat_list
-			core.PO(i, mat_list=mat_list, quote=quote)
+			core.PO(i, mat_list=mat_list, quote=quote, update=update)
 
 def test_po_log():
 	# TODO: implement page creation test
@@ -42,4 +44,5 @@ def test_po_log():
 
 
 if __name__ == "__main__":
+	dummy_env()
 	core.app.run(host='0.0.0.0', port=8080, debug=True)

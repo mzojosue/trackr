@@ -1,4 +1,3 @@
-from objects import *
 from estimating import *
 from inventory import *
 from job import *
@@ -14,5 +13,5 @@ def get_job_num(*args):
 			num = int(_keys[-1]) + 1
 			return num
 	except IndexError:
-		print "Unknown Error:: Probably no jobs"
+		# no bids in database. assume a job number of 1
 		return 1
