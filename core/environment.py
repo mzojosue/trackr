@@ -27,3 +27,10 @@ def get_po_log(settings):
 		return str(settings['po_log'])
 	except KeyError:
 		raise KeyError('path', 'PO log', False)
+
+@load_config
+def get_info_log(settings):
+	try:
+		return str(settings['info_log'])
+	except KeyError:
+		raise KeyError('path', 'Job Contact Sheet', False)
