@@ -5,6 +5,7 @@ from datetime import datetime, date
 from parse import parse
 import environment
 import objects
+import os
 
 def import_po_log(create=False, poLog=environment.get_po_log):
 	log = open_workbook(poLog, on_demand=True)
@@ -120,7 +121,9 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 
 def add_po_in_log(obj, poLog=environment.get_po_log):
 	try:
-		log = open_workbook(poLog, on_demand=True)
+		_poLog = '_%s' % poLog
+		os.rename(poLog, _poLog)
+		log = open_workbook(_poLog, on_demand=True)
 	except IOError:
 		print "'%s' is not a valid file path. Cannot update PO log." % poLog
 		return False
@@ -140,11 +143,16 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		_pos.append(_po)
 
 	if hasattr(obj.job, 'sheet_num') and (obj.num not in _pos):
-		print obj
 		_sheet = log.get_sheet(obj.job.sheet_num)   # creates writeable Worksheet object
 		_date_issued = obj.date_issued.strftime("%m.%d.%y")
-		_mdoc = objects.os.path.join(*obj.mat_list.doc)
-		_qdoc = objects.os.path.join(*obj.quote.doc)
+		try:
+			_mdoc = objects.os.path.join(*obj.mat_list.doc)
+		except TypeError:
+			_mdoc = ''
+		try:
+			_qdoc = objects.os.path.join(*obj.quote.doc)
+		except TypeError:
+			_qdoc = ''
 		_row = (obj.name, obj.vend, obj.price, _date_issued, None, _mdoc, _qdoc, None, None)
 		_row = zip(range(len(_row)), _row)
 		for col, val in _row:
@@ -158,6 +166,7 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		pass
 	else:
 		_sheet = log.sheet_by_name( '%d - %s' % (obj.number, obj.name) )
+	print "Successfully added %s to PO log" % obj
 
 def update_po_in_log(poLog, obj, attr, value):
 	"""

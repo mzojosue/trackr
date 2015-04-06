@@ -109,6 +109,8 @@ class EstimatingJob(Job):
 	def init_struct(self):
 		# TODO:implement function to create filesystem hierarchy to store documents, drawings, etc
 		self.sub_path = os.path.join(self.default_sub_dir, self.name)
+
+		# create initial bid directory
 		try:
 			print "Creating directory for bid path..."
 			os.mkdir(os.path.join(env.env_root, self.sub_path))
@@ -116,6 +118,7 @@ class EstimatingJob(Job):
 		except OSError:
 			print "...Bid directory already exists"
 
+		# create bid sub folders
 		try:
 			print "Creating bid sub folders..."
 			_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes')
@@ -125,6 +128,7 @@ class EstimatingJob(Job):
 		except OSError:
 			print "...Bid sub directories already exist"
 
+		# create folders for holding quotes
 		try:
 			print "Creating sub folders for quotes"
 			for _scope in self.scope:
