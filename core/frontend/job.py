@@ -31,6 +31,7 @@ def job_analytics(job_num=None):
 	"""
 	return NotImplemented
 
+
 @app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')
 def job_material_doc(doc_hash, job_num=None):
@@ -40,11 +41,9 @@ def job_material_doc(doc_hash, job_num=None):
 	else:
 		_job = AwardedJob.find(job_num)
 		_doc = _job.materials[int(doc_hash)]
+
 		if type(_doc.doc) is tuple:
 			return send_from_directory(*_doc.doc)
-		else:
-			print "not using _doc.doc"
-			return send_from_directory(os.path.join(_job.sub_path, 'Materials'), _doc.doc)
 
 
 @app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
@@ -64,6 +63,7 @@ def job_quote_doc(doc_hash, job_num=None):
 	else:
 		_job = AwardedJob.find(job_num)
 		_doc = _job.quotes[int(doc_hash)]
+		print _doc._doc
 		if type(_doc.doc) is tuple:
 			return send_from_directory(*_doc.doc)
 
@@ -81,7 +81,6 @@ def job_quote_award_po(doc_hash, job_num=None):
 	_doc = _job.quotes[doc_hash]
 	_doc.mat_list.issue_po(_doc)
 	return redirect(request.referrer)
-
 
 
 @app.route('/j/<int:job_num>/deliveries')
@@ -155,6 +154,14 @@ def create_job():
 		return redirect(url_for('job_overview', job_num=_job.number))
 	else:
 		return render_template('job_create.html')
+
+
+@app.route('/j/<int:job_num>/update', methods=['POST'])
+def update_job_info(job_num):
+	_job = AwardedJob.db[job_num]
+	_job.address = request.form['jobAddress']
+	_job.desc = request.form['jobDesc']
+	return redirect(request.referrer)
 
 
 ## END JOB FUNCTIONS ##

@@ -58,7 +58,6 @@ function addMaterialItem() {
 
 }
 
-
 function removeMaterialItem(divNum) {
 
   var d = document.getElementById('itemizedMaterialArea');
@@ -67,6 +66,7 @@ function removeMaterialItem(divNum) {
   d.removeChild(olddiv);
 
 }
+
 
 // window.addEventListener('paste', ... or
 document.onpaste = function(event) {
@@ -79,6 +79,7 @@ document.onpaste = function(event) {
     }; // data url!
     reader.readAsDataURL(blob);
 };
+
 
 function update_mat_list(selfID, matListID) {
 
@@ -134,4 +135,23 @@ function newTimecardRow() {
   // Append new row to table
   tableArea.appendChild(newRow);
 
+}
+
+
+function unlock_job_for_editing(jobNum) {
+    document.getElementById('jobAddress').readOnly = false;
+    document.getElementById('jobDesc').readOnly = false;
+    document.getElementById('foremanName').readOnly = false;
+    document.getElementById('foremanPhone').readOnly = false;
+    document.getElementById('foremanEmail').readOnly = false;
+
+    //document.getElementById('unlockBtn').onclick = "document.forms['jobInfo'].submit();";
+    //document.getElementById('unlockBtn').href = '/j/' + jobNum + '/update';
+
+    var updateInfo = document.createElement('button');
+    updateInfo.setAttribute('class', 'btn btn-sm btn-success');
+    updateInfo.setAttribute('type', 'submit');
+    updateInfo.setAttribute('form', 'jobInfo');
+    updateInfo.innerHTML = 'Update';
+    document.getElementById('jobHeader').appendChild(updateInfo);
 }
