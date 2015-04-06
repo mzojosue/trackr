@@ -83,11 +83,12 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		if self._doc:
-			_env_root = environment.env_root
-			_path = os.path.join(_env_root, self._doc[0])
-			_path = _path.replace('\\', '/')
+		if type(self._doc) is tuple:
+			_path = os.path.join(self.job.path, self._doc[0])
 			return (_path, self._doc[1])
+		elif type(self._doc) is str:
+			_path = os.path.join(self.job.path, 'Materials')
+			return (_path, self._doc)
 		return False
 
 	def update(self):
@@ -185,11 +186,12 @@ class Quote(object):
 
 	@property
 	def doc(self):
-		if self._doc:
-			_env_root = environment.env_root
-			_path = os.path.join(_env_root, self._doc[0])
-			_path = _path.replace('\\', '/')
+		if type(self._doc) is tuple:
+			_path = os.path.join(self.job.path, self._doc[0])
 			return (_path, self._doc[1])
+		elif type(self._doc) is str:
+			_path = os.path.join(self.job.path, 'Quotes')
+			return (_path, self._doc)
 		return False
 
 	def __repr__(self):

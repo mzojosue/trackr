@@ -16,7 +16,7 @@ def job_materials(job_num=None):
 				_file = request.files['file']
 				if _file and allowed_file(_file.filename):
 					filename = secure_filename(_file.filename)
-					_path = os.path.join(_job.sub_path, 'materials', filename)
+					_path = os.path.join(_job.path, 'Materials', filename)
 					_file.save(_path)
 					_date_sent = datetime.strptime(request.form['dateSubmitted'], '%Y-%m-%d')
 					try:
@@ -134,7 +134,7 @@ def quote():
 		_quote = request.files['quote']
 		if _quote and allowed_file(_quote.filename):
 			filename = secure_filename(_quote.filename)
-			_path = os.path.join(_list.job.sub_path, 'quotes', filename)
+			_path = os.path.join(_list.job.path, 'Quotes', filename)
 			_quote.save(_path)
 
 			_obj = MaterialListQuote(mat_list=_list, doc=filename, price=__price, vend=__vend)

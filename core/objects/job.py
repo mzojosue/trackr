@@ -1,5 +1,5 @@
 from objects import *
-from core import environment
+import core.environment as env
 
 
 class Worker(object):
@@ -226,29 +226,28 @@ class AwardedJob(Job):
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
 		# TODO:initialize documents w/ job information
+		self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 		try:
-			_job_root = os.path.join(environment.env_root, AwardedJob.default_sub_dir)
-			self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
+			print "Creating project directory for %s..." % self.name
+			os.mkdir(os.path.join(env.env_root, self.sub_path))
+			print "...operation successful."
+		except OSError:
+			print "...project folder already exists"
 
-			if not os.path.exists(os.path.join(self.sub_path)):
-				os.mkdir(os.path.join(_job_root, self.name))
-			else:
-				# executes if folder exists
-				# TODO: test self.alt_name and self.po_pre as folder names
-				pass
-
+		try:
+			print "Creating project sub directories for %s..." % self.name
 			_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
 			            'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
 			for _folder in _folders:
-				os.mkdir(os.path.join(_job_root, self.name, _folder))
+				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
+			print "...operation successful."
 		except OSError:
-			self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
-			print "ERROR: cannot connect to server. File functions disabled.\n"
+			print "...project sub folders already exists"
 
 	@property
 	def path(self):
 		""" Return absolute sub path using global project path and AwardedJob.sub_path """
-		_path = os.path.join(environment.env_root, self.sub_path)
+		_path = os.path.join(env.env_root, self.sub_path)
 		return _path
 
 	@property
