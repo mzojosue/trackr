@@ -9,11 +9,12 @@ import os
 
 def import_po_log(create=False, poLog=environment.get_po_log):
 	log = open_workbook(poLog, on_demand=True)
-	_nsheet = log.nsheets
+	_nsheet = log.nsheets - 2            # Omit last 2 pages ( Stock, Small Projects )
 	for _sheetNum in range(1, _nsheet):  # Omit first template page
 		_sheet = log.sheet_by_index(_sheetNum)
 		if create:
 			try:
+				# TODO: dynamically check sheet name. do not continue import operation if sheet is not a job
 				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.name)], sheet_num=_sheetNum)
 			except TypeError:
 				pass    # Sheet name does not match regex
