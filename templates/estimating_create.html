@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	Campano Estimating
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+ {{ objects.navbar_links('estimating_home') }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.sidebar('') }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+       Creating new bid
+    </h1>
+    {%- with messages = get_flashed_messages(with_categories=True) -%}
+      {%- if messages -%}
+        {%- for category, message in message -%}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endwith -%}
+
+		<div class="row">
+			<form enctype="multipart/form-data" method="POST">
+
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label for="newBidName">Project Name:</label>
+						<input name="newBidName" type="text" class="form-control"
+									 id="newBidName" placeholder="Enter Bid Name" value="">
+					</div>
+					<div class="form-group">
+						<label for="jobAddress">
+							Job Address:
+						</label>
+						<textarea name="jobAddress" id="jobAddress" class="form-control" rows="4"></textarea>
+					</div>
+				</div>
+
+				<div class="col-xs-2">
+					<div class="form-group">
+						<label for="contractDate">
+							Contract Date:
+						</label>
+						<input name="contractDate" type="date" id="contractDate" class="form-control" default="">
+					</div>
+					<div class="form-group">
+						<label for="completionDate">
+							Completion Date:
+						</label>
+						<input name="completionDate" type="date" id="completionDate" class="form-control" value="">
+					</div><!-- ./form-group -->
+				</div>
+
+				<div class="col-xs-2">
+					<div class="form-group">
+						<label for="genContracter">
+							GC:
+						</label>
+						<select name="gc" class="form-control" id="genContracter">
+							<option>Falasca Mechanical</option>
+							<option>McCloskey Mechanical</option>
+							<option>Gary F. Gardner</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="gcContact">
+							Contact Name
+						</label>
+						<input name="gcContact" type="text" class="form-control" id="gcContact" placeholder="">
+					</div><!-- /.form-control -->
+				</div>
+
+				<div class="col-xs-3 form-group scope-of-work">
+					<label>Scope of Work:</label>
+					<div class="radio">
+						<label>
+							<input type="radio" name="scopeOfWork" value="fabrication">
+							Ductwork Fabrication Only
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="scopeOfWork" value="rgds">
+							Installation of Ductwork and/or RGDs
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="scopeOfWork" value="full-airside" checked>
+							Full-Airside Installation
+							<p class="small">(Ductwork / RGDs / Equipment )</p>
+						</label>
+					</div>
+				</div>
+
+				<!-- TODO: create radio input to specify areas of scope. eg: M, E, I, B, P, etc  -->
+				<div class="clearfix visible-lg-block"></div>
+
+				<button class="btn btn-success btn-lg pull-right" type="submit">Create job</button>
+			</form>
+		</div>
+	</div><!-- /.row -->
+
+{% endblock %}
+
+
+{% block post_script %}
+
+
+
+{% endblock %}

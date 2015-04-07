@@ -4,6 +4,10 @@ from config import *
 def estimating_home():
 	return render_template('estimating.html')
 
+@app.route('/estimating/create', methods=['GET', 'POST'])
+def estimating_create_bid():
+	return render_template('estimating_create.html')
+
 @app.route('/estimating/analytics')
 def estimating_analytics():
 	return NotImplemented
