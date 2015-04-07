@@ -121,7 +121,8 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 
 def add_po_in_log(obj, poLog=environment.get_po_log):
 	try:
-		_poLog = '_%s' % poLog
+		_poLog = os.path.split(poLog)
+		_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
 		os.rename(poLog, _poLog)
 		log = open_workbook(_poLog, on_demand=True)
 	except IOError:
