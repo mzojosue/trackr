@@ -37,7 +37,7 @@
 		<div class="row">
 			<form enctype="multipart/form-data" method="POST">
 
-				<div class="col-sm-4">
+				<div id="bidInfo" class="col-sm-4">
 					<div class="form-group">
 						<label for="newBidName">Project Name:</label>
 						<input name="newBidName" type="text" class="form-control"
@@ -47,26 +47,11 @@
 						<label for="jobAddress">
 							Job Address:
 						</label>
-						<textarea name="jobAddress" id="jobAddress" class="form-control" rows="4"></textarea>
+						<textarea name="jobAddress" id="jobAddress" class="form-control" rows="1"></textarea>
 					</div>
 				</div>
 
-				<div class="col-xs-2">
-					<div class="form-group">
-						<label for="contractDate">
-							Contract Date:
-						</label>
-						<input name="contractDate" type="date" id="contractDate" class="form-control" default="">
-					</div>
-					<div class="form-group">
-						<label for="completionDate">
-							Completion Date:
-						</label>
-						<input name="completionDate" type="date" id="completionDate" class="form-control" value="">
-					</div><!-- ./form-group -->
-				</div>
-
-				<div class="col-xs-2">
+				<div id="bidGC" class="col-xs-2">
 					<div class="form-group">
 						<label for="genContracter">
 							GC:
@@ -85,26 +70,27 @@
 					</div><!-- /.form-control -->
 				</div>
 
-				<div class="col-xs-3 form-group scope-of-work">
-					<label>Scope of Work:</label>
-					<div class="radio">
-						<label>
-							<input type="radio" name="scopeOfWork" value="fabrication">
-							Ductwork Fabrication Only
+				<div class="col-xs-3 form-group">
+					<label for="scopeArea">Vendor Scope:</label>
+					<div id="scopeArea" class="form-group">
+            <label class="checkbox-inline">
+              <input name=materialsScope value=True type="checkbox">M
+            </label>
+            <label class="checkbox-inline">
+              <input name=equipmentScope value=True type="checkbox">E
+            </label>
+            <label class="checkbox-inline">
+              <input name=insulationScope value=True type="checkbox">I
+            </label>
+            <label class="checkbox-inline">
+              <input name=balancingScope value=True type="checkbox">B
+            </label>
+          </div>
+          <div class="form-group">
+						<label for="bidDate">
+							Bid Date:
 						</label>
-					</div>
-					<div class="radio">
-						<label>
-							<input type="radio" name="scopeOfWork" value="rgds">
-							Installation of Ductwork and/or RGDs
-						</label>
-					</div>
-					<div class="radio">
-						<label>
-							<input type="radio" name="scopeOfWork" value="full-airside" checked>
-							Full-Airside Installation
-							<p class="small">(Ductwork / RGDs / Equipment )</p>
-						</label>
+						<input name="bidtDate" type="date" id="bidDate" class="form-control" default="">
 					</div>
 				</div>
 

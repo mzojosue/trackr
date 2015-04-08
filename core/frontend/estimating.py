@@ -1,4 +1,5 @@
 from config import *
+from datetime import datetime
 
 @app.route('/estimating')
 def estimating_home():
@@ -6,7 +7,31 @@ def estimating_home():
 
 @app.route('/estimating/create', methods=['GET', 'POST'])
 def estimating_create_bid():
-	return render_template('estimating_create.html')
+	if request.method == 'POST':
+		_name = str(request.form['newBidName'])
+		_addr = str(request.form['jobAddress'])
+		_gc   = str(request.form['gc'])
+		_gcContact = str(request.form['gcContact'])
+		try:
+			_bidDate = datetime(*request.form['bidDate'])
+		except:
+			_bidDate = None
+
+		_scope = []
+		__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']
+		for i in __scope:
+			try:
+				if bool(request.form[i]):
+					__s = str(i[0])
+					__s = __s.upper()
+					_scope.append(__s)
+			except:
+				continue
+
+		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope, date_end=_bidDate)
+		return redirect(url_for('bid_overview', bid_num=bid.number))
+	else:
+		return render_template('estimating_create.html')
 
 @app.route('/estimating/analytics')
 def estimating_analytics():

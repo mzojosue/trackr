@@ -45,6 +45,7 @@ class EstimatingJob(Job):
 		self.docs = {}
 		self.quotes = {}
 
+
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
 			self.quotes[i] = {}
