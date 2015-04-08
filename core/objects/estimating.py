@@ -1,6 +1,9 @@
-from objects import *
 import core.environment as env
+from objects import *
 from operator import itemgetter
+from datetime import datetime
+
+today = datetime.today
 
 # Import parent classes for estimating objects
 from job import Job
@@ -80,7 +83,27 @@ class EstimatingJob(Job):
 		return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
 
 	@property
+	def countdown(self):
+		"""
+		:return: formatted string of countdown in days until bid is due
+		"""
+		_bid_date = self.bid_date
+		if type(_bid_date) is not str:
+			_days = (_bid_date - today())
+			if _days > 0:
+				return 'Due in %s days' % _days
+			elif _days < 0:
+				return 'Was due %s days ago' % _days
+			else:
+				return 'Bid is due today'
+		else:
+			return 'ASAP'
+
+	@property
 	def bidding_to(self):
+		"""
+		:return: tuple of GC names that object is being bid to
+		"""
 		_gc = []
 		for i in self.bids.itervalues():
 			_gc.append(i['gc'])
@@ -94,6 +117,9 @@ class EstimatingJob(Job):
 
 	@property
 	def bid_count(self):
+		"""
+		:return: current number of bids
+		"""
 		return len(self.bids)
 
 	@property
@@ -104,12 +130,18 @@ class EstimatingJob(Job):
 		return count
 
 	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
+		"""
+		:param date_received: date that bid request was received/uploaded
+		:param gc: string or object of GC
+		:param gc_contact: string or object of GC contact
+		:param bid_date: datetime object of when bid is due
+		:param scope: scope of bid request
+		"""
 		if not bid_date: bid_date = 'ASAP'
 		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		_bid_hash = abs(hash(''.join([str(date_received), str(gc)])))
 		self.bids[_bid_hash] = _bid
 		self.update()
-		return _bid
 
 	def add_quote(self, quote_obj, category):
 		if category in self.scope:
