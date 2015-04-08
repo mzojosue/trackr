@@ -1,5 +1,8 @@
 from trackr import *
 from random import sample
+from datetime import datetime
+
+now = datetime.now
 
 amt = 5
 
@@ -7,8 +10,10 @@ def dummy_env(update=False):
 	# create 10 dummy estimate jobs and create one rebid
 	for i in xrange(amt):
 		print 'creating mock bid #%d' % i
-		core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'] )
-		core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'] )
+		bid = core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'] )
+		for z in bid.scope:
+			core.EstimatingQuote(bid, 'test vendor', z, i, 'test.file')
+		bid.add_bid(now(), 'test gc', 'ASAP', scope=['M', 'E'])
 
 	# create 10 dummy jobs
 	for i in xrange(amt):

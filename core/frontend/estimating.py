@@ -33,6 +33,56 @@ def estimating_create_bid():
 	else:
 		return render_template('estimating_create.html')
 
+@app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
+def estimating_create_sub_bid(bid_num):
+	_bid = EstimatingJob.find(bid_num)
+	_gc = request.form['gcName']
+	_gc_contact = request.form['gcContact']
+	try:
+		_bidDate = datetime(*request.form['bidDate'])
+	except:
+		_bidDate = None
+
+	_scope = []
+	__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']
+	for i in __scope:
+		try:
+			if bool(request.form[i]):
+				__s = str(i[0])
+				__s = __s.upper()
+				_scope.append(__s)
+		except:
+			continue
+
+	_bid.add_bid(datetime.now(), _gc, _bidDate, _gc_contact, _scope)
+	return redirect(url_for('bid_overview', bid_num=_bid.number))
+
+
+@app.route('/estimating/<int:bid_num>/quote/<scope>/<int:q_hash>')
+def bid_quote(bid_num, scope, q_hash):
+	_bid = EstimatingJob.find(bid_num)
+	_quote = _bid.quotes[scope][q_hash]
+	return send_from_directory(*_quote.doc)
+
+@app.route('/estimating/<int:bid_num>/quote/upload', methods=['POST'])
+def upload_bid_quote(bid_num):
+	_bid = EstimatingJob.find(bid_num)
+	_scope = request.form['scope']
+	_vend  = request.form['vendor']
+	_price = request.form['quotePrice']
+
+	_quote = request.files['quote']
+
+	quote = EstimatingQuote(_bid, _vend, _scope, _price, _quote)
+
+	if _quote and allowed_file(_quote.filename):
+		filename = secure_filename(_quote.filename)
+		quote._doc = filename
+		quote.update()
+		_path = os.path.join(*quote.doc)
+		_quote.save(_path)
+	return redirect(url_for('bid_overview', bid_num=_bid.number))
+
 @app.route('/estimating/analytics')
 def estimating_analytics():
 	return NotImplemented

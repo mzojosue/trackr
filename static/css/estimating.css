@@ -12,3 +12,8 @@
 .bid-status > .label > a > span {
   color: #FFF;
 }
+
+.bid-status {
+  margin-top: 0px;
+  margin-bottom: 30px;
+}

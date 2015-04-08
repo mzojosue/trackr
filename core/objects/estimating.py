@@ -86,15 +86,34 @@ class EstimatingJob(Job):
 			_gc.append(i['gc'])
 		return _gc
 
-	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None):
-		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received}
+	@property
+	def path(self):
+		""" Return absolute sub path using global project path and AwardedJob.sub_path """
+		_path = os.path.join(env.env_root, self.sub_path)
+		return _path
+
+	@property
+	def bid_count(self):
+		return len(self.bids)
+
+	@property
+	def quote_count(self):
+		count = 0
+		for i in self.quotes.values():
+			count += len(i)
+		return count
+
+	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
+		if not bid_date: bid_date = 'ASAP'
+		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		_bid_hash = abs(hash(''.join([str(date_received), str(gc)])))
 		self.bids[_bid_hash] = _bid
+		self.update()
 		return _bid
 
 	def add_quote(self, quote_obj, category):
 		if category in self.scope:
-			self.bids[category][quote_obj.hash] = quote_obj
+			self.quotes[category][quote_obj.hash] = quote_obj
 			self.update()
 
 	def find_rebid(self):
@@ -108,7 +127,6 @@ class EstimatingJob(Job):
 			return False
 
 	def init_struct(self):
-		# TODO:implement function to create filesystem hierarchy to store documents, drawings, etc
 		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 
 		# create initial bid directory
@@ -159,7 +177,32 @@ class EstimatingJob(Job):
 
 
 class EstimatingQuote(Quote):
-	def __init__(self, job, vend, category, price=0.0, doc=None):
+	def __init__(self, bid, vend, category, price=0.0, doc=None):
 		super(EstimatingQuote, self).__init__(vend, price, doc)
-		self.job = job
+		self.bid = bid
+		self.category = category
+
+		self.update()
+
+	def update(self):
+		self.bid.add_quote(self, self.category)
+		return None
+
+	@property
+	def sub_path(self):
+		"""
+		:return: relative directory location for quote object
+		"""
+		_path = os.path.join(self.bid.sub_path, 'Quotes')
+		_path = os.path.join(_path, self.category)
+		return _path
+
+	@property
+	def path(self):
+		"""
+		:return: absolute directory location for quote object
+		"""
+		_path = os.path.join(self.bid.path, 'Quotes')
+		_path = os.path.join(_path, self.category)
+		return _path
 

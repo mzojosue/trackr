@@ -186,16 +186,18 @@ class Quote(object):
 
 	@property
 	def doc(self):
-		if type(self._doc) is tuple:
+		if type(self._doc) is tuple and hasattr(self, 'job'):
 			_path = os.path.join(self.job.path, self._doc[0])
 			return (_path, self._doc[1])
-		elif type(self._doc) is str:
-			_path = os.path.join(self.job.path, 'Quotes')
-			return (_path, self._doc)
+		elif type(self._doc) is str and hasattr(self, 'path'):
+			return (self.path, self._doc)
 		return False
 
 	def __repr__(self):
-		return "Quote uploaded %s from %s" % (self.date_uploaded, self.vend)
+		try:
+			return "Quote: %s from %s" % (self.date_uploaded.date(), self.vend)
+		except AttributeError:
+			return "Quote: %s from %s" % (self.date_uploaded, self.vend)
 
 	def update(self):
 		return NotImplemented
