@@ -10,6 +10,9 @@ def uploaded_file(filename):
 def root():
 	return redirect(url_for('home'))
 
+@app.route('/login')
+def login():
+	return render_template('login.html')
 
 ################
 ## Home pages ##
