@@ -45,8 +45,13 @@ class EstimatingJob(Job):
 		super(EstimatingJob, self).__init__(name, date_received=date_received, date_end=date_end, alt_name=alt_name,
 											address=address, scope=scope, desc=desc, rate=rate,
 											tax_exempt=tax_exempt, certified_pay=certified_pay)
-		self.docs = {}
 		self.quotes = {}
+
+		# TODO: implement document/drawing storage
+		self.docs = {}
+		# TODO: implement `sent_out` status and appropriate labels on EstimatingJob page
+		# should be reset with every rebid and a change in scope
+		self.sent_out = False
 
 
 		for i in self.scope:

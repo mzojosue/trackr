@@ -67,6 +67,16 @@ def job_quote_doc(doc_hash, job_num=None):
 		if type(_doc.doc) is tuple:
 			return send_from_directory(*_doc.doc)
 
+@app.route('/j/<int:job_num>/quotes/<int:doc_hash>/update', methods=['POST'])
+def update_job_quote(job_num, doc_hash):
+	""" Updates specified document object based on given POST variables. Meant for changing price of object or adding a document file once quote object has been created.
+	:param job_num:
+	:param doc_hash:
+	:return:
+	"""
+	return NotImplemented
+
+
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
 def delete_job_quote(job_num, doc_hash):

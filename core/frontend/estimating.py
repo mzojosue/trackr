@@ -84,6 +84,24 @@ def upload_bid_quote(bid_num):
 		_quote.save(_path)
 	return redirect(url_for('bid_overview', bid_num=_bid.number))
 
+@app.route('/estimating/<int:bid_num>/quote/<int:q_hash>/update')
+def update_bid_quote(bid_num, q_hash):
+	""" Updates specified EstimatingQuote object. Meant to change price or add quote after quote has been added to EstimatingJob object.
+	:param bid_num: bid number to search for quote in
+	:param q_hash: quote to update
+	:return: u
+	"""
+	return NotImplemented
+
+@app.route('/estimating/<int:bid_num>/quote/<int:q_hash>/del')
+def delete_bid_quote(bid_num, q_hash):
+	""" Deletes specified EstimatingQuote object from specified EstimatingJob object.
+	:param bid_num:
+	:param q_hash:
+	:return:
+	"""
+	return NotImplemented
+
 @app.route('/estimating/analytics')
 def estimating_analytics():
 	return NotImplemented
