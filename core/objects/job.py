@@ -349,13 +349,13 @@ class AwardedJob(Job):
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
-		for i in self.quotes.itervalues():
-			if i.mat_list.hash == mlist_hash:
-				del self.quotes[i.hash]
-
-		for i in self.POs.itervalues():
+		for i in self.POs.values():
 			if i.mat_list.hash == mlist_hash:
 				del self.POs[i.num]
+
+		for i in self.quotes.values():
+			if i.mat_list.hash == mlist_hash:
+				del self.quotes[i.hash]
 
 		del self.materials[mlist_hash]
 
@@ -372,6 +372,9 @@ class AwardedJob(Job):
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
+		for i in self.materials.values():
+			if quote_hash in i.quotes.keys():
+				del i.quotes[quote_hash]
 		del self.quotes[quote_hash]
 		if delete:
 			# TODO:delete document in filesystem
