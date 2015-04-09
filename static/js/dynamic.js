@@ -144,6 +144,7 @@ function unlock_job_for_editing(jobNum) {
     document.getElementById('foremanName').readOnly = false;
     document.getElementById('foremanPhone').readOnly = false;
     document.getElementById('foremanEmail').readOnly = false;
+    document.getElementById('poPre').readOnly = false;
 
     //document.getElementById('unlockBtn').onclick = "document.forms['jobInfo'].submit();";
     //document.getElementById('unlockBtn').href = '/j/' + jobNum + '/update';

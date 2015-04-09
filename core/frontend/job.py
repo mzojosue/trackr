@@ -171,6 +171,7 @@ def update_job_info(job_num):
 	_job = AwardedJob.db[job_num]
 	_job.address = request.form['jobAddress']
 	_job.desc = request.form['jobDesc']
+	_job.po_pre = request.form['poPre']
 	return redirect(request.referrer)
 
 
