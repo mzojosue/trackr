@@ -129,6 +129,23 @@ class EstimatingJob(Job):
 			count += len(i)
 		return count
 
+	@property
+	def quote_status(self):
+		_scope_len = len(self.scope)
+		_scope_fulfilled = 0
+		_quotes_needed = 0
+		for i in self.scope:
+			if self.quotes[i]:
+				_scope_fulfilled += 1
+			else:
+				_quotes_needed += 1
+		_status = (float(_scope_fulfilled) / float(_scope_len))
+		if _quotes_needed:
+			_need = 'Need quotes from %d vendors' % _quotes_needed
+		else:
+			_need = 'No quotes needed'
+		return (_status, _need)
+
 	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
 		"""
 		:param date_received: date that bid request was received/uploaded

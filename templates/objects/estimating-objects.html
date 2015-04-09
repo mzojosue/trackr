@@ -69,7 +69,7 @@
 {% endmacro %}
 
 
-{% macro quote_modal(bid=False, scope=None, obj=None) %}
+{% macro quote_modal(bid=False) %}
 
 	<!-- Button trigger modal -->
 	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
@@ -90,8 +90,17 @@
 
 	      <div class="modal-body">
 					<form id="uploadForm" action="{{ url_for('upload_bid_quote', bid_num=bid.number) }}" enctype="multipart/form-data" method="post">
-						<input type="hidden" name="scope" value="{{ scope }}">
-						<input type="file" name="quote" id="fileUpload">
+            <input type="file" name="quote" id="fileUpload">
+            <div class="form-group">
+              <label for="scopeSelect">
+                Quote Scope:
+              </label>
+              <select name="scope" id="scopeSelect" class="form-control">
+                {% for i in bid.scope %}
+                  <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+              </select>
+            </div>
 						<div class="form-group">
 							<label for="vendName">Vendor:</label>
 							<input type="text" name="vendor" id="vendName" class="form-control" placeholder="Vendor Name">

@@ -194,10 +194,7 @@ class Quote(object):
 		return False
 
 	def __repr__(self):
-		try:
-			return "Quote: %s from %s" % (self.date_uploaded.date(), self.vend)
-		except AttributeError:
-			return "Quote: %s from %s" % (self.date_uploaded, self.vend)
+		return "Quote from %s" % self.vend
 
 	def update(self):
 		return NotImplemented

@@ -41,7 +41,18 @@
         </a>
         No duct takeoff
       </span>&nbsp;
-	    <span class="label label-info">
+      {% if bid.quotes %}
+        {% if bid.quote_status[0] == 0 %}
+          <span class="label label-danger">
+        {% elif bid.quote_status[0] == 1 %}
+          <span class="label label-success">
+        {% else %}
+          <span class="label label-warning">
+        {% endif %}
+            {{ bid.quote_status[1] }}
+          </span>&nbsp;
+      {% endif %}
+	    <span class="label label-default">
 				Bidding to {{ bid.bid_count }} GC's
 	    </span>
     </h3>
@@ -51,12 +62,8 @@
 	      {% for scope in bid.quotes %}
 	        <div class="panel panel-default">
 	          <div class="panel-heading">
-	            Scope: {{ scope }}
+	            Scope: <strong>{{ scope }}</strong>
 	          </div>
-		        <div class="panel-body">
-			        <!-- TODO: upload document here -->
-			        {{ estimating.quote_modal(bid, scope) }}
-		        </div>
 		        <ul class="list-group">
 	            {% for i in bid.quotes[scope].values() %}
 								<li class="list-group-item">
@@ -73,6 +80,8 @@
 	          </ul>
 	        </div>
 	      {% endfor %}
+
+        {{ estimating.quote_modal(bid) }}
       </div>
 
 			<div class="col-xs-4 pull-right">
@@ -81,6 +90,9 @@
 						<div class="panel-heading">
 							Bid to
 							<strong>{{ b.gc }}</strong>
+              <span class="badge badge-default pull-right">
+                <span class="glyphicon glyphicon-ok"></span>
+              </span>
 						</div>
 						<div class="panel-body">
 							<p>GC Contact: {{ b.gc_contact }}</p>
