@@ -141,3 +141,16 @@ def quote():
 			_obj = MaterialListQuote(mat_list=_list, price=__price, vend=__vend)
 		flash('Quote successfully uploaded.', 'success')
 		return redirect(request.referrer)
+
+@app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/doc')
+def add_quote_doc(m_hash, q_hash):
+	_mlist = MaterialList.db[m_hash]
+	_quote = _mlist.quotes[q_hash]
+	_doc = request.files['fileUpload']
+	if _doc and allowed_file(_doc.filename):
+		filename = secure_filename(_quote.filename)
+		_path = os.path.join(_mlist.job.path, 'Quotes', filename)
+		_doc.save(filename)
+		_quote._doc = filename
+	return os.path.isfile(_quote.doc)
+

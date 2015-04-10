@@ -58,7 +58,8 @@ function addMaterialItem() {
 
 }
 
-function removeMaterialItem(divNum) {
+
+function removeMaterialItem(divNum) {s
 
   var d = document.getElementById('itemizedMaterialArea');
   var getID = 'itemID-' + divNum;
@@ -66,19 +67,6 @@ function removeMaterialItem(divNum) {
   d.removeChild(olddiv);
 
 }
-
-
-// window.addEventListener('paste', ... or
-document.onpaste = function(event) {
-    var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-    console.log(JSON.stringify(items)); // will give you the mime types
-    var blob = items[0].getAsFile();
-    var reader = new FileReader();
-    reader.onload = function (event) {
-        console.log(event.target.result);
-    }; // data url!
-    reader.readAsDataURL(blob);
-};
 
 
 function update_mat_list(selfID, matListID) {
@@ -156,3 +144,13 @@ function unlock_job_for_editing(jobNum) {
     updateInfo.innerHTML = 'Update';
     document.getElementById('jobHeader').appendChild(updateInfo);
 }
+
+function update_quote_doc(m_hash, q_hash) {
+    // set form action
+    var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/doc'
+    var fileForm = document.getElementById('fileUpload');
+    fileForm.setAttribute('action', url)
+    // submit form
+    // refresh page
+}
+

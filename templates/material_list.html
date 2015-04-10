@@ -101,6 +101,7 @@
 				{% endif -%}
 			</h3>
 
+      <form method="post" id="quoteUpdate"></form>
 			<label for="quoteTable">Associated Quotes:</label>
 			<table class="table table-striped" id="quoteTable">
 				<tr id="tableHeader">
@@ -141,6 +142,11 @@
 								<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.hash) }}">
 									<span class="glyphicon glyphicon-paperclip"></span>
 								</a>
+              {% else %}
+                <a href="javascript:" class="fileSelect">
+                  <span class="glyphicon glyphicon-open"></span>
+                  <input type="file" form="quoteUpdate" name="fileUpload" onchange="test_func();" multiple>
+                </a>
 							{% endif %}
 						</td>
 						<td>{{ i.vend }}</td>
