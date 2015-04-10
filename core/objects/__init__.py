@@ -10,7 +10,7 @@ def get_job_num(*args):
 	try:
 		if hasattr(AwardedJob, 'db'):
 			_keys = AwardedJob.db.keys()
-			_keys = _keys.sort()  # sort tuple of keys so that highest number is on right
+			_keys.sort()  # sort tuple of keys so that highest number is on right
 			num = int(_keys[-1]) + 1
 			return num
 	except IndexError:
