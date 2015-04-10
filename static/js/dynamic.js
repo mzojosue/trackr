@@ -148,9 +148,11 @@ function unlock_job_for_editing(jobNum) {
 function update_quote_doc(m_hash, q_hash) {
     // set form action
     var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/doc'
-    var fileForm = document.getElementById('fileUpload');
-    fileForm.setAttribute('action', url)
+    var fileForm = document.getElementById('quoteUpdate');
+    fileForm.setAttribute('action', url);
     // submit form
+    fileForm.submit();
     // refresh page
+    //location.reload();
 }
 

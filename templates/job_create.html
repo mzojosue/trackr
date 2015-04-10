@@ -24,8 +24,8 @@
 			Jobs:
 		</h4>
 		<ul class="nav nav-sidebar">
-			{% for i in Job.db.itervalues() %}
-				<li><a href="{{ url_for('job_overview', job_num=i.number) }}">{{ i.name }}</a></li>
+			{% for num, obj in Job.db|dictsort %}
+				<li><a href="{{ url_for('job_overview', job_num=num) }}">{{ obj }}</a></li>
 			{% endfor %}
 		</ul>
 		<a href="{{ url_for('create_job') }}" class="btn btn-success btn-sm">

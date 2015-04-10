@@ -186,10 +186,10 @@ class Quote(object):
 
 	@property
 	def doc(self):
-		if type(self._doc) is tuple and hasattr(self, 'job'):
+		if type(self._doc) is tuple:
 			_path = os.path.join(self.job.path, self._doc[0])
 			return (_path, self._doc[1])
-		elif type(self._doc) is str and hasattr(self, 'path'):
+		elif type(self._doc) is str:
 			return (self.path, self._doc)
 		return False
 
@@ -198,6 +198,11 @@ class Quote(object):
 
 	def update(self):
 		return NotImplemented
+
+	@property
+	def path(self):
+		_path = os.path.join(self.job.path, 'Quotes')
+		return _path
 
 
 class MaterialListQuote(Quote):

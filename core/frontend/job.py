@@ -42,8 +42,8 @@ def job_material_doc(doc_hash, job_num=None):
 		_job = AwardedJob.find(job_num)
 		_doc = _job.materials[int(doc_hash)]
 
-		if type(_doc.doc) is tuple:
-			return send_from_directory(*_doc.doc)
+	if type(_doc.doc) is tuple:
+		return send_from_directory(*_doc.doc)
 
 
 @app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
