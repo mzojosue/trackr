@@ -152,6 +152,6 @@ def add_quote_doc(m_hash, q_hash):
 		_path = os.path.join(_mlist.job.path, 'Quotes', filename)
 		_doc.save(_path)
 		_quote._doc = filename
-		print "Saved document %s for %s" %
+		print "Saved document %s for %s" % (_quote.doc, _quote.job)
 	return redirect(url_for('material_list', m_hash=_mlist.hash))
 
