@@ -25,7 +25,7 @@
 		<h1 class="page-header">
 			{{ job.name }}&nbsp;
 			<!-- TODO:implement link to unlock and edit job -->
-			<a href="" class="btn btn-default btn-sm">
+			<a href="javascript:" class="btn btn-default btn-sm" onclick="unlock_table_for_editing();">
 				Unlock for Editing
 			</a>
 		</h1>
@@ -36,6 +36,7 @@
 
 		<div class="row">
 
+			<form method="post" id="quoteUpdate" enctype="multipart/form-data"></form>
 			<table class="table table-striped">
 				<tr id="tableHeadings">
 					<th>PO:</th>
@@ -50,8 +51,13 @@
 					<tr>
 						<td>{{ i }}</td>
 						<td>{{ i.quote.vend }}</td>
-						<td>{{ i.date_issued }}</td>
-						<td>${{ i.quote.price }}</td>
+						<td>{{ i.date_issued.date() }}</td>
+						<td>
+							<input type="hidden" class="form-control price-input" name="quotePrice" id="priceUpdate-{{ i.quote.hash }}" placeholder="{{ i.price }}" onchange="update_quote_price({{ i.mat_list.hash }}, {{ i.quote.hash }})">
+							<span class="hide-value">
+								${{ i.quote.price }}
+							</span>
+						</td>
 						<td>
 							<!-- TODO:create link to material list -->
 							<a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">

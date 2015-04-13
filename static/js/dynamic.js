@@ -147,12 +147,34 @@ function unlock_job_for_editing(jobNum) {
 
 function update_quote_doc(m_hash, q_hash) {
     // set form action
-    var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/doc'
+    var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/doc';
+    var inputElement = document.getElementById('fileUpload-' + q_hash);
+    inputElement.setAttribute('form', 'quoteUpdate');
     var fileForm = document.getElementById('quoteUpdate');
     fileForm.setAttribute('action', url);
     // submit form
     fileForm.submit();
     // refresh page
     //location.reload();
+}
+
+function unlock_table_for_editing() {
+  var priceCells = document.getElementsByClassName('price-input');
+  for (var i=0; i < priceCells.length; i++) {
+    priceCells[i].setAttribute('type', 'text');
+  }
+  var priceInputs = document.getElementsByClassName('hide-value');
+  for (var i=0; i < priceCells.length; i++) {
+    priceInputs[i].style.display = 'none';
+  }
+}
+
+function update_quote_price(m_hash, q_hash) {
+  var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/price';
+  var inputElement = document.getElementById('priceUpdate-' + q_hash);
+  inputElement.setAttribute('form', 'quoteUpdate');
+  var updateForm = document.getElementById('quoteUpdate');
+  updateForm.setAttribute('action', url);
+  updateForm.submit();
 }
 

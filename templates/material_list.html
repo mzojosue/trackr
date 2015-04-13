@@ -25,7 +25,7 @@
 		<h1 class="page-header">
 			{{ job.name }}&nbsp;
 			<!-- TODO:implement link to unlock and edit job -->
-			<a href="" class="btn btn-default btn-sm">
+			<a href="javascript:" class="btn btn-default btn-sm" onclick="unlock_table_for_editing();">
 				Unlock for Editing
 			</a>
 		</h1>
@@ -75,7 +75,7 @@
             <button type="submit" class="btn btn-default">Update</button>
           </form>
         </div>
-      {% elif mlist.po and not mlist.delivery %}
+      {% elif mlist.po and not mlist.delivered %}
         {{ objects.delivery_widget(job=job, obj=mlist) }}
       {% else %}
         <div class="clearfix visible-lg-block"></div>
@@ -145,14 +145,16 @@
               {% else %}
                 <a href="javascript:" class="fileSelect">
                   <span class="glyphicon glyphicon-open"></span>
-                  <input type="file" form="quoteUpdate" name="fileUpload" onchange="update_quote_doc({{ mlist.hash }}, {{ i.hash }});" multiple>
+                  <input type="file" id="fileUpload-{{ i.hash }}" name="fileUpload" onchange="update_quote_doc({{ mlist.hash }}, {{ i.hash }});" multiple>
                 </a>
-								<span>{{ i._doc }}</span>
 							{% endif %}
 						</td>
 						<td>{{ i.vend }}</td>
 						<td>{{ i.date_uploaded.date() }}</td>
-						<td>{{ i.price }}</td>
+						<td>
+							<input type="hidden" class="form-control price-input" name="quotePrice" id="priceUpdate-{{ i.hash }}" placeholder="{{ i.price }}" onchange="update_quote_price({{ mlist.hash }}, {{ i.hash }})">
+							<span class="hide-value">{{ i.price }}</span>
+						</td>
 						<!-- TODO:show appropriate styling for completed lists -->
 						<!-- TODO:add button for deleting material list -->
 						<td>
