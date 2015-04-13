@@ -144,7 +144,6 @@ def quote():
 
 @app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
 def add_quote_doc(m_hash, q_hash):
-	print "updating quote"
 	_mlist = MaterialList.db[m_hash]
 	_quote = _mlist.quotes[q_hash]
 	_doc = request.files['fileUpload']
@@ -153,5 +152,6 @@ def add_quote_doc(m_hash, q_hash):
 		_path = os.path.join(_mlist.job.path, 'Quotes', filename)
 		_doc.save(_path)
 		_quote._doc = filename
+		print "Saved document %s for %s" %
 	return redirect(url_for('material_list', m_hash=_mlist.hash))
 
