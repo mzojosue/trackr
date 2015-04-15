@@ -52,7 +52,7 @@
 						<td>{{ i }}</td>
 						<td>{{ i.quote.vend }}</td>
 						<td>
-							{% if hasattr(i, 'date_issued') %}
+							{% if hasattr(i.date_issued, 'date') %}
 								{{ i.date_issued.date() }}
 							{% else %}
 								{{ i.date_issued }}
