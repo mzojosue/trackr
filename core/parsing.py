@@ -192,7 +192,7 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 	print "Successfully added %s to PO log" % obj
 
 
-def update_po_in_log(poLog, obj, attr, value):
+def update_po_in_log(obj, attr, value, poLog=environment.get_po_log):
 	"""
 	:param poLog: poLog file object to write to
 	:param obj: object to reflect changes on
@@ -200,10 +200,22 @@ def update_po_in_log(poLog, obj, attr, value):
 	:param value: object attribute new value
 	:return: True if operation successful
 	"""
-	_attr = ('number', 'vend', 'price', 'date_uploaded', 'date_sent', 'mat_list', 'quote')
+	_attr = ('number', 'vend', 'price', 'date_sent', 'date_expected', 'mat_list', 'quote', 'ordered_by', 'quote_id')
 	if attr in _attr:
 		log = open_workbook(poLog)
-		_sheet, _nrow = None
 
-		if hasattr(obj, 'sheet_num'):
-			_sheet = log.sheet_by_index(obj.sheet_num)
+		# pass opened PO Log object to function
+		_sheet, _row = find_po_in_log(obj, log)
+
+		# column to edit
+		_col = _attr.index(attr)
+
+		# create writable Workbook/Worksheet objects
+		log = copy(log)
+		_sheet = log.get_sheet(_sheet.number)
+
+		# update information
+		_sheet.cell(_row, _col)
+
+		return True
+
