@@ -37,7 +37,6 @@ label .fileUpload input[type='file'] {
 .fileSelect input[type='file'] {
   position: absolute;
   top: 0;
-  right: 0;
   min-width: 100%;
   min-height: 100%;
   font-size: 10px;
