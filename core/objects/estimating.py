@@ -1,4 +1,4 @@
-import core.environment as env
+import core as env
 from objects import *
 from operator import itemgetter
 from datetime import datetime

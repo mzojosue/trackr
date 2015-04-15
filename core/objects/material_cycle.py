@@ -1,5 +1,5 @@
 from objects import *
-from core import environment
+from core.environment import *
 from core.parsing import add_po_in_log
 
 

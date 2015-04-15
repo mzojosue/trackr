@@ -101,6 +101,7 @@ def find_job_in_log(obj, poLog=environment.get_po_log):
 	"""
 	return NotImplemented
 
+
 def add_job_in_log(obj, poLog=environment.get_po_log):
 	"""
 	Adds a spreadsheet page to the passed log file to log POs for the given job
@@ -118,7 +119,27 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 	:param poLog: path to PO log to parse
 	:return: returns tuple containing spreadsheet page integer and row number integer
 	"""
-	return NotImplemented
+	# values to be returned
+	_po_row = None
+
+	if hasattr(poLog, 'sheet_by_name'):
+		# checks to see if Book object was passed
+		log = poLog
+	else:
+		log = open_workbook(poLog, on_demand=True)
+
+
+	if hasattr(obj, 'job'):
+		_sheet_name = '%d - %s' % (obj.job.number, obj.job._name)
+		_sheet = log.sheet_by_name(_sheet_name)
+		_nrows = _sheet.nrows
+
+		for i in range(2, _nrows):
+			_row = _sheet.row_slice(i)
+			if _row[0].value == obj.name:
+				_po_row = i
+		return (_sheet.name, _po_row)
+
 
 def add_po_in_log(obj, poLog=environment.get_po_log):
 	try:
@@ -169,6 +190,7 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 	else:
 		_sheet = log.sheet_by_name( '%d - %s' % (obj.number, obj.name) )
 	print "Successfully added %s to PO log" % obj
+
 
 def update_po_in_log(poLog, obj, attr, value):
 	"""
