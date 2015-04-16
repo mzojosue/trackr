@@ -330,6 +330,8 @@ class AwardedJob(Job):
 		:return: None
 		"""
 		self.POs[po_obj.num] = po_obj
+		_mat_list = po_obj.mat_list
+		self.materials[_mat_list].fulfilled = True
 		self.update()
 		return None
 
