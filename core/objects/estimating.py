@@ -163,7 +163,14 @@ class EstimatingJob(Job):
 		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		_bid_hash = abs(hash(''.join([str(date_received), str(gc)])))
 		self.bids[_bid_hash] = _bid
+		for i in scope:
+			if i not in self.scope:
+				self.scope.append(i)
+				self.quotes[i] = {}
 		self.update()
+
+		# rebuild directory structure to implement new scope and for good measure
+		self.init_struct()
 
 	def add_quote(self, quote_obj, category):
 		if category in self.scope:
@@ -202,13 +209,13 @@ class EstimatingJob(Job):
 			print "...Bid sub directories already exist"
 
 		# create folders for holding quotes
-		try:
-			print "Creating sub folders for quotes"
-			for _scope in self.scope:
+		print "Creating sub folders for quotes"
+		for _scope in self.scope:
+			try:
 				os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
-			print "...operation successful"
-		except OSError:
-			print "...Bid quote sub directories already exist"
+			except OSError:
+				print "...Directory for [%s] quotes already exist" % _scope
+		print "...operation successful"
 
 		print "Folder directory for %s created\n" % self.name
 		return True
