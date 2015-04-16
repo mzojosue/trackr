@@ -223,7 +223,7 @@ def update_po_in_log(obj, attr, value, poLog=environment.get_po_log):
 		_sheet = log.get_sheet(_sheet.number)
 
 		# update information
-		_sheet.write(_row, _col)
+		_sheet.write(_row, _col, value)
 
 		log.save(poLog)
 
