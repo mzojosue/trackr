@@ -140,7 +140,7 @@ def quote():
 		elif __price and __vend:
 			_obj = MaterialListQuote(mat_list=_list, price=__price, vend=__vend)
 		flash('Quote successfully uploaded.', 'success')
-		return redirect(request.referrer)
+		return redirect(url_for('material_list', m_hash=_list.hash))
 
 @app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
 def add_quote_doc(m_hash, q_hash):
