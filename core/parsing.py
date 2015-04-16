@@ -130,7 +130,7 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 		log = open_workbook(poLog, on_demand=True)
 
 
-	if hasattr(obj, 'jobs'):
+	if hasattr(obj, 'job'):
 		_sheet_name = '%d - %s' % (obj.job.number, obj.job._name)
 		_sheet = log.sheet_by_name(_sheet_name)
 		_nrows = _sheet.nrows
