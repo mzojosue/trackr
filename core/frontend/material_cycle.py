@@ -3,8 +3,8 @@ from config import *
 @app.route('/j/<int:job_num>/materials', methods=['POST', 'GET'])
 def job_materials(job_num=None):
 	"""
-	Displays history of all active and fulfilled material listed in a table-like format for the specified job.
-	:param job_num: specifies job number
+	Displays history of all active and fulfilled material listed in a table-like format for the specified jobs.
+	:param job_num: specifies jobs number
 	"""
 	try:
 		_job = AwardedJob.find(int(job_num))
@@ -43,7 +43,7 @@ def job_materials(job_num=None):
 				_label = request.form['listLabel']
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label)
 			return redirect(url_for('material_list', m_hash=__obj.hash))
-		return render_template('job_materials.html', job=_job)
+		return render_template('jobs/job_materials.html', job=_job)
 	except KeyError:
 		flash('Error! AwardedJob does not exist.', 'danger')
 		return redirect(request.referrer)
@@ -93,10 +93,10 @@ def deliveries():
 @app.route('/j/<int:job_num>/deliveries/new', methods=['POST'])
 def schedule_delivery(job_num=None):
 	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`.
-	:param job_num: specifies job number
+	:param job_num: specifies jobs number
 	"""
 	if not job_num:
-		job_num = int(request.form['job-number'])
+		job_num = int(request.form['jobs-number'])
 	_job = AwardedJob.find(job_num)
 	_mlist =  MaterialList.find(request.form['materialListHash'])
 	_dest = str(request.form['destination'])

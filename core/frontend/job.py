@@ -6,19 +6,19 @@ def all_jobs():
 	Displays links to all current and past jobs
 	:return:
 	"""
-	return render_template('all_jobs.html')
+	return render_template('jobs/all_jobs.html')
 
 
 @app.route('/j/<int:job_num>')
 def job_overview(job_num=None):
 	"""
-	Renders overview template which displays active objects and general information such as job address
-	:param job_num: specifies job number
+	Renders overview template which displays active objects and general information such as jobs address
+	:param job_num: specifies jobs number
 	"""
 	try:
 		_job = AwardedJob.find(job_num)
 		_todos = _job.tasks.itervalues()
-		return render_template('job_overview.html', job=_job, todos=_todos)
+		return render_template('jobs/job_overview.html', job=_job, todos=_todos)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
@@ -26,8 +26,8 @@ def job_overview(job_num=None):
 @app.route('/j/<int:job_num>/analytics')
 def job_analytics(job_num=None):
 	"""
-	Displays statistics such as estimated job cost and labor averages.
-	:param job_num: specifies job number
+	Displays statistics such as estimated jobs cost and labor averages.
+	:param job_num: specifies jobs number
 	"""
 	return NotImplemented
 
@@ -96,7 +96,7 @@ def job_quote_award_po(doc_hash, job_num=None):
 @app.route('/j/<int:job_num>/deliveries')
 def job_deliveries(job_num=None):
 	"""
-	Displays history of all future and past deliveries listed in a table-like format for the specified job.
+	Displays history of all future and past deliveries listed in a table-like format for the specified jobs.
 	:param job_num: specifies job_num
 	:return:
 	"""
@@ -107,7 +107,7 @@ def job_deliveries(job_num=None):
 def job_pos(job_num=None):
 	try:
 		_job = AwardedJob.find(int(job_num))
-		return render_template('job_purchases.html', job=_job)
+		return render_template('jobs/job_purchases.html', job=_job)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
@@ -120,7 +120,7 @@ def job_rentals(job_num=None):
 @app.route('/j/create', methods=['GET', 'POST'])
 def create_job():
 	"""
-	First renders job creation page, then processes POST request and creates AwardedJob object.
+	First renders jobs creation page, then processes POST request and creates AwardedJob object.
 	:return:
 	"""
 	if request.method == 'POST':
@@ -163,7 +163,7 @@ def create_job():
 
 		return redirect(url_for('job_overview', job_num=_job.number))
 	else:
-		return render_template('job_create.html')
+		return render_template('jobs/job_create.html')
 
 
 @app.route('/j/<int:job_num>/update', methods=['POST'])

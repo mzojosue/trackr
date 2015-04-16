@@ -14,5 +14,5 @@ def get_job_num(*args):
 			num = int(_keys[-1]) + 1
 			return num
 	except IndexError:
-		# no bids in database. assume a job number of 1
+		# no bids in database. assume a jobs number of 1
 		return 1

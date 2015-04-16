@@ -94,7 +94,7 @@ class MaterialList(object):
 	def update(self):
 		if hasattr(MaterialList, 'db'):
 			MaterialList.db[self.hash] = self
-			if hasattr(self, 'job'):
+			if hasattr(self, 'jobs'):
 				self.job.add_mat_list(self)
 		return None
 
@@ -248,7 +248,7 @@ class PO(object):
 
 		self.backorders = None  # stores any backorder delivery dates
 
-		# update job object
+		# update jobs object
 		self.job.add_po(self)
 		# update material list object
 		self.mat_list.add_po(self)
@@ -260,7 +260,7 @@ class PO(object):
 			try:
 				add_po_in_log(self)
 			except TypeError:
-				print "There was an error adding PO to log. Possibly no spreadsheet for job??"
+				print "There was an error adding PO to log. Possibly no spreadsheet for jobs??"
 
 	@property
 	def name(self):
@@ -294,7 +294,7 @@ class Delivery(object):
 	"""
 	def __init__(self, mat_list, expected=None, destination='shop'):
 
-		# TODO:add object to job.deliveries
+		# TODO:add object to jobs.deliveries
 
 		self.hash = abs(hash(str(mat_list)))
 		self.mat_list = mat_list
@@ -315,7 +315,7 @@ class Delivery(object):
 		_return = super(Delivery, self).__setattr__(key, value)
 		if hasattr(Delivery, 'db'):
 			Delivery.db[self.hash] = self
-		if hasattr(self, 'job'):
+		if hasattr(self, 'jobs'):
 			self.po.job.deliveries[self.hash] = self
 			self.job.update()
 		return _return

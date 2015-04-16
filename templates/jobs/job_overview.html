@@ -13,13 +13,13 @@
 
 
 {% block nav_links %}
-	{{ objects.navbar_links('all_jobs') }}
+	{{ layout.navbar_links('all_jobs') }}
 {% endblock %}
 
 
 {% block body %}
 
-{{ objects.job_sidebar('job_overview', job_num=job.number) }}
+{{ layout.job_sidebar('job_overview', job_num=job.number) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header" id="jobHeader">
@@ -112,7 +112,7 @@
 
 			{{ objects.task_widget(todos=todos, job=job) }}
 
-			<!-- TODO:list contract amount and updated job cost. -->
+			<!-- TODO:list contract amount and updated jobs cost. -->
 			<!-- TODO:list start and end date -->
 
 

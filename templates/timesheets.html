@@ -13,25 +13,25 @@
 
 
 {% block nav_links %}
-	{{ objects.navbar_links('home') }}
+	{{ layout.navbar_links('home') }}
 {% endblock %}
 
 
 {% block body %}
 
-	{{ objects.sidebar_links('timesheets') }}
+	{{ layout.sidebar_links('timesheets') }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
 			Shop Inventory&nbsp;
-			<!-- TODO:implement link to unlock and edit job -->
+			<!-- TODO:implement link to unlock and edit jobs -->
 			<a href="" class="btn btn-default btn-sm">
 				Unlock for Editing
 			</a>
 		</h1>
 
     <div class="widgetWell">
-      {{ objects.timesheet_input_modal() }}
+      {{ modal.timesheet_input_modal() }}
     </div>
 
 		<div class="row">

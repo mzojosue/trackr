@@ -12,7 +12,7 @@ class Worker(object):
 		"""
 		Initializes employee representation object.
 		:param name: employee's name. hash/key is created from this variable.
-		:param job: current job that employee is at. if changed, the previous job will be added to self.prev_jobs
+		:param job: current jobs that employee is at. if changed, the previous jobs will be added to self.prev_jobs
 		:param phone: listed phone number for employee
 		:param email: listed email address
 		:param role: worker's role on the jobsite. ie: foreman, installer/mechanic, pipe fitter, etc
@@ -34,10 +34,10 @@ class Worker(object):
 
 
 	def __setattr__(self, name, value):
-		""" Alters attribute setting to listen to when self.job is changed,
-			the previous job is stored in self.prev_jobs
+		""" Alters attribute setting to listen to when self.jobs is changed,
+			the previous jobs is stored in self.prev_jobs
 		"""
-		if name is 'job':
+		if name is 'jobs':
 			value.add_worker(self)
 			try:
 				self.prev_jobs.append(self.job)
@@ -52,10 +52,10 @@ class Worker(object):
 
 	def __repr__(self):
 		"""
-		:return: describes object by self.name, self.role, and self.job.name
+		:return: describes object by self.name, self.role, and self.jobs.name
 		"""
 		# TODO:update output format
-		# TODO:return date since working at job
+		# TODO:return date since working at jobs
 		return "\"%s\". %s at %s" % (self.name, self.role, self.job.name)
 
 	@staticmethod
@@ -70,12 +70,12 @@ class Worker(object):
 
 	def update(self):
 		"""
-		Function re-initializes self.hash as the dictionary key pointed to self. Also adds itself to self.job.workers.
+		Function re-initializes self.hash as the dictionary key pointed to self. Also adds itself to self.jobs.workers.
 		:return: None
 		"""
 		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
 			Worker.db[self.hash] = self
-			if hasattr(self, 'job'):
+			if hasattr(self, 'jobs'):
 				self.job.add_worker(self)
 		return None
 
@@ -138,23 +138,23 @@ class AwardedJob(Job):
 	             gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
 	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(), sheet_num=None):
 		"""
-		:param job_num: desired job number
-		:param name: primary job name
-		:param start_date: planned job start date
-		:param end_date: planned job completion date
-		:param alt_name: secondary name/nickname for job
-		:param po_pre: desired po prefix. defaults to job name
+		:param job_num: desired jobs number
+		:param name: primary jobs name
+		:param start_date: planned jobs start date
+		:param end_date: planned jobs completion date
+		:param alt_name: secondary name/nickname for jobs
+		:param po_pre: desired po prefix. defaults to jobs name
 		:param address: listed address for jobsite
 		:param gc: listed general contractor
 		:param gc_contact: listed general contractor contact
 		:param scope: scope of work. ie: full-airside, fabrication only, etc
-		:param foreman: listed sheet metal foreman on job
+		:param foreman: listed sheet metal foreman on jobs
 		:param desc: short description of scope of work
 		:param rate: default rate for workers on jobsite
-		:param contract_amount: listed contract amount for job completion. job completion percentage is based off of this.
-		:param tax_exempt: Boolean. True if job is tax exempt
-		:param certified_pay: Boolean. True is job is a certified payroll job
-		:param sub_path: The directory sub path for the job
+		:param contract_amount: listed contract amount for jobs completion. jobs completion percentage is based off of this.
+		:param tax_exempt: Boolean. True if jobs is tax exempt
+		:param certified_pay: Boolean. True is jobs is a certified payroll jobs
+		:param sub_path: The directory sub path for the jobs
 		"""
 		# TODO:implement better document storage
 		self.number = int(job_num)
@@ -225,7 +225,7 @@ class AwardedJob(Job):
 
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
-		# TODO:initialize documents w/ job information
+		# TODO:initialize documents w/ jobs information
 		self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 		try:
 			print "Creating project directory for %s..." % self.name
@@ -260,7 +260,7 @@ class AwardedJob(Job):
 
 	@property
 	def cost(self):
-		""" Calculates job cost total/progress taking into account materials purchased and labor paid.
+		""" Calculates jobs cost total/progress taking into account materials purchased and labor paid.
 		:returns: float for projected cost.
 		"""
 		amt = 0.0
@@ -273,7 +273,7 @@ class AwardedJob(Job):
 	@property
 	def has_open_lists(self):
 		"""
-		Returns 0 if job has no open material lists
+		Returns 0 if jobs has no open material lists
 		:return: Integer of material lists that have not been purchased.
 		"""
 		open_lists = 0

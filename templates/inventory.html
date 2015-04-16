@@ -13,26 +13,26 @@
 
 
 {% block nav_links %}
-	{{ objects.navbar_links(None) }}
+	{{ layout.navbar_links(None) }}
 {% endblock %}
 
 
 {% block body %}
 
-	{{ objects.sidebar_links('inventory') }}
+	{{ layout.sidebar_links('inventory') }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
 			Shop Inventory&nbsp;
-			<!-- TODO:implement link to unlock and edit job -->
+			<!-- TODO:implement link to unlock and edit jobs -->
 			<a href="" class="btn btn-default btn-sm">
 				Unlock for Editing
 			</a>
 		</h1>
 
     <div class="widgetWell">
-      {{ objects.inventory_item_modal() }}
-      {{ objects.inventory_order_modal() }}
+      {{ modal.inventory_item_modal() }}
+      {{ modal.inventory_order_modal() }}
     </div>
 
 		<div class="row">

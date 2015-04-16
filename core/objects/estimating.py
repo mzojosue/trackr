@@ -19,16 +19,16 @@ class EstimatingJob(Job):
 	             tax_exempt=False, certified_pay=False, sub_path=None, group=False):
 		"""
 		:param name: The desired name for the bid
-		:param job_num: desired job number. if specified and a bid already exists, passed number is ignored.
+		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
 		:param alt_name: the desired alternative name
 		:param date_received: date that bid was received
 		:param date_end: bid due date
-		:param address: supplied address for job
-		:param gc: general contractor that job is bid to
+		:param address: supplied address for jobs
+		:param gc: general contractor that jobs is bid to
 		:param gc_contact: gc contact email or Contact object
-		:param scope: iterable containing scope of job
-		:param desc: given description for job
-		:param rate: given pay-rate for job
+		:param scope: iterable containing scope of jobs
+		:param desc: given description for jobs
+		:param rate: given pay-rate for jobs
 		:param tax_exempt: boolean that represents tax exemption status
 		:param certified_pay: boolean that represents certified payroll status
 		:param sub_path: if specified, and exists, is stored as the directory path for object
@@ -61,7 +61,7 @@ class EstimatingJob(Job):
 		self.add_bid(date_received, gc, date_end, gc_contact)
 
 
-		# False if job is not rebid. Rebid is defined by a bid that is due to the same gc but differs in due date
+		# False if jobs is not rebid. Rebid is defined by a bid that is due to the same gc but differs in due date
 		# Variable is pointed to object that is being rebid
 		_rebid = self.find_rebid()
 		if not rebid and _rebid and hasattr(_rebid, 'hash') and (_rebid.hash != self.hash):
@@ -69,7 +69,7 @@ class EstimatingJob(Job):
 		else:
 			self.rebid = rebid
 
-		# False if job is not related to any other bid, current or past
+		# False if jobs is not related to any other bid, current or past
 		# Variable is either pointed to a sister object, a tuple of objects, a group str label, or a tuple of labels
 		# TODO: implement grouping system
 		self.group = group
@@ -172,7 +172,7 @@ class EstimatingJob(Job):
 
 	def find_rebid(self):
 		"""
-		:return: bid job object if there is a bid that has the same name. Else function returns false.
+		:return: bid jobs object if there is a bid that has the same name. Else function returns false.
 		"""
 		if hasattr(self, 'db'):
 			for i in self.db.values():

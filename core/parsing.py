@@ -14,7 +14,7 @@ def import_po_log(create=False, poLog=environment.get_po_log):
 		_sheet = log.sheet_by_index(_sheetNum)
 		if create:
 			try:
-				# TODO: dynamically check sheet name. do not continue import operation if sheet is not a job
+				# TODO: dynamically check sheet name. do not continue import operation if sheet is not a jobs
 				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.name)], sheet_num=_sheetNum)
 			except TypeError:
 				pass    # Sheet name does not match regex
@@ -95,18 +95,18 @@ def parse_estimating_log(estimatingLog):
 
 def find_job_in_log(obj, poLog=environment.get_po_log):
 	"""
-	Finds and returns the given sheet number for the passed job object in the given po log
-	:param obj: job object to find in log
+	Finds and returns the given sheet number for the passed jobs object in the given po log
+	:param obj: jobs object to find in log
 	:param poLog: path to PO log to parse
-	:return: integer which has the po log for given job
+	:return: integer which has the po log for given jobs
 	"""
 	return NotImplemented
 
 
 def add_job_in_log(obj, poLog=environment.get_po_log):
 	"""
-	Adds a spreadsheet page to the passed log file to log POs for the given job
-	:param obj: job object to add to log
+	Adds a spreadsheet page to the passed log file to log POs for the given jobs
+	:param obj: jobs object to add to log
 	:param poLog: path to PO log to to add spreadsheet page to
 	:return: returns output of find_job_in_log to confirm output
 	"""
@@ -130,7 +130,7 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 		log = open_workbook(poLog, on_demand=True)
 
 
-	if hasattr(obj, 'job'):
+	if hasattr(obj, 'jobs'):
 		_sheet_name = '%d - %s' % (obj.job.number, obj.job._name)
 		_sheet = log.sheet_by_name(_sheet_name)
 		_nrows = _sheet.nrows
@@ -153,7 +153,7 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		return False
 
 	_sheet, _nrow = None, None
-	if hasattr(obj, 'job'):
+	if hasattr(obj, 'jobs'):
 		_sheet = log.sheet_by_index(obj.job.sheet_num)
 		# TODO: implement algorithm to apply styling and organization to PO log
 		_nrow = _sheet.nrows

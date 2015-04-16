@@ -1,0 +1,354 @@
+{# templates/objects.html #}
+
+
+{% macro todo(todo_obj, job=None) %}
+{# TODO:implement delete link in panel-heading of todo_obj #}
+
+	<div class="panel panel-warning">
+		<div class="panel-heading" role="tab" id="{{ todo_obj.hash }}-heading">
+
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#{{ todo_obj.hash }}" href="#{{ todo_obj.hash }}-collapse"
+					 aria-expanded="false" aria-controls="{{ todo_obj.hash }}-collapse">
+					{{ todo_obj.name }}
+					<a href="{{ url_for('todo_complete', t_hash=todo_obj.hash) }}">
+						<span class="glyphicon glyphicon-unchecked pull-right"></span>
+					</a>
+				</a>
+			</h4>
+
+		</div>
+		<div id="{{ todo_obj.hash }}-collapse" class="panel-collapse collapse" role="tabpanel"
+				 aria-labelledby="{{ todo_obj.hash }}-heading">
+			<div class="panel-body">
+				{{ todo_obj.task }}
+				<a href="{{ url_for('del_todo', t_hash=todo_obj.hash) }}">
+						<span class="glyphicon glyphicon-trash pull-right"></span>
+				</a>
+			</div>
+
+		</div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro new_job_todo(j_hash=None) %}
+	{# TODO:templates.objects.new_job_todo should be identical to templates.objects.new_todo, except should give the option to be associated with the job in context #}
+
+	<div class="panel panel-info">
+		<div class="panel-heading" role="tab" id="newJobTodo">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="" href="#newJobTodo-collapse" aria-expanded="false"
+					 aria-controls="newJobTodo-collapse">
+					Add new task for job
+				</a>
+			</h4>
+		</div>
+		<div id="newJobTodo-collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="newJobTodo">
+			<div class="panel-body">
+				<form class="form-horizontal" method="post" action="{{ url_for('new_todo') }}">
+					<div class="input-group">
+
+						{# TODO:implement hidden input for storing job hash #}
+
+						<input name="title" type="text" class="form-control" placeholder="New Task Title for job">
+			<span class="input-group-btn">
+		      <button class="btn btn-primary" type="submit">
+						<span class="glyphicon glyphicon-plus"></span>
+					</button>
+			</span>
+					</div>
+					<input name="task" type="text" class="form-control" placeholder="Task Description">
+				</form>
+			</div>
+		</div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro new_todo(job=False) %}
+
+	<div class="panel panel-info">
+		<div class="panel-heading" role="tab" id="newTodo">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="" href="#newTodo-collapse" aria-expanded="false"
+					 aria-controls="newTodo-collapse">
+					{% if job %}
+						Add new task for {{ job.name }}
+					{% else %}
+						Add new task
+					{% endif %}
+				</a>
+			</h4>
+		</div>
+		<div id="newTodo-collapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="newTodo">
+			<div class="panel-body">
+				<form class="form-horizontal" method="post" action="{{ url_for('new_todo') }}">
+					{% if job %}
+						<input name="job" type="hidden" value="{{ job.number }}">
+					{% endif %}
+					<div class="input-group">
+						<input name="title" type="text" class="form-control" placeholder="New Task Title">
+						<span class="input-group-btn">
+							<button class="btn btn-primary" type="submit">
+								<span class="glyphicon glyphicon-plus"></span>
+							</button>
+						</span>
+					</div>
+					<input name="task" type="text" class="form-control" placeholder="Task Description">
+				</form>
+			</div>
+		</div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro task_widget(todos=None, completed=None, job=False) %}
+
+	<div class="col-sm-4 well well-lg todo-well pull-right">
+		<div class="panel-group" id="accordian" role="tablist" aria-multiselectable="true">
+			{% if job %}
+				{{ new_todo(job=job) }}
+				{% for i in job.tasks.itervalues() %}
+					{{ todo(i) }}
+				{% endfor %}
+			{% else %}
+				{{ new_todo() }}
+				{% for i in todos %}
+					{{ todo(i) }}
+				{% endfor %}
+			{% endif %}
+		</div>
+		{% if not job %}
+			<div class="panel panel-success">
+				<div class="panel-heading">
+					Completed Tasks
+				</div>
+				<ul class="list-group">
+					{% if not job %}
+						{% for i in completed %}
+							<li class="list-group-item">
+								{{ i.name }}
+							</li>
+						{% endfor %}
+					{% endif %}
+				</ul>
+			</div>
+		{% endif %}
+	</div><!-- /.col -->
+
+{% endmacro %}
+
+
+{% macro delivery_widget(job=False, obj=False) %}
+	{# Responsible for tracking and updating delivery of materials to and from the jobsite #}
+
+	{# TODO:set delivery iterable #}
+	<div class="col-sm-4">
+    {% if not obj %}  {# widget is being displayed on material list page #}
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          {% if job %}
+            Upcoming Deliveries for {{ job.name }}
+            <a href="{{ url_for('job_deliveries', job_num=job.number) }}">
+              <span class="glyphicon glyphicon-link"></span>
+            </a>
+          {% else %}
+            Upcoming Deliveries
+            <a href="{{ url_for('deliveries') }}">
+              <span class="glyphicon glyphicon-link"></span>
+            </a>
+          {% endif %}
+        </div>
+        <!-- /.panel-heading -->
+        <ul class="list-group">
+          {% if job %}
+            {% for i in job.deliveries.itervalues() if not i.delivered %}
+              {% if i.countdown < 2 %}
+                <li class="list-group-item list-group-item-danger">
+              {% elif i.countdown < 5 %}
+                <li class="list-group-item list-group-item-warning">
+              {% else %}
+                <li class="list-group-item">
+              {% endif %}
+                <!-- TODO:set link to deliveries page -->
+                <a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">
+                  From {{ i.vend }} expected <span class="label label-info">{{ i.expected.date() }}</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="list-group-item">
+                No upcoming deliveries
+              </li>
+            {% endfor %}
+          {% else %}
+            {% for i in Delivery.db.itervalues() if not i.delivered %}
+              {% if i.countdown < 2 %}
+                <li class="list-group-item list-group-item-danger">
+              {% elif i.countdown < 5 %}
+                <li class="list-group-item list-group-item-warning">
+              {% else %}
+                <li class="list-group-item">
+              {% endif %}
+                <!-- TODO:set link to deliveries page -->
+                <a href="#">Delivery from {{ i.vend }}, expected <span class="label label-info">{{ i.expected.date() }}</span> for {{ i.job }}</a>
+              </li>
+            {% else %}
+              <li class="list-group-item">
+                No upcoming deliveries
+              </li>
+            {% endfor %}
+          {% endif %}<!-- /.list-group-item -->
+        </ul><!-- /.list-group -->
+      </div><!-- /.panel -->
+    {% endif %}
+		<div class="panel panel-primary" {% if not job %}style="height:372px;"{% endif %}>
+			<div class="panel-heading">
+				Schedule Delivery/Backorder
+			</div>
+			<!-- /.panel-heading -->
+			<div class="panel-body">
+				<!-- TODO:change input elements and form action if `jobs` exists -->
+				{% if job %}
+					<form class="form-horizontal" action="{{ url_for('schedule_delivery', job_num=job.number) }}" method="post">
+
+				{% else %}
+					<form class="form-horizontal" action="{{ url_for('schedule_delivery') }}" method="post">
+						<div class="form-group col-xs-12">
+							<label for="jobSelect">Select a Job:</label>
+							<select name="job-number" id="jobSelect" class="form-control" onchange="update_mat_list('jobSelect', '#materialList')">
+								<option selected>Please select a job</option>
+								{% for i in Job.db.itervalues() %}
+									<option value="{{ i.number }}">{{ i.name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+
+				{% endif %}<!-- /.form-group -->
+          {% if not obj %}
+            <div class="form-group col-xs-12">
+              <label for="materialList">
+                Material List to Deliver:
+              </label>
+              <select name="materialListHash" id="materialList" class="form-control">
+                {% if job %}
+                  {% for i in job.materials.itervalues() if (i.fulfilled and not i.delivered) %}
+                    <option value="{{ i.hash }}">{{ i }}</option>
+	                {% else %}
+	                  <option>No material lists ready for delivery</option>
+                  {% endfor %}
+                {% else %}
+									<option selected>Please select a job first</option>
+                {% endif %}
+              </select>
+            </div><!-- /.form-group -->
+          {% else %}
+            <input type="hidden" name="materialListHash" value={{ obj.hash }}>
+          {% endif %}
+
+					<div class="form-group col-xs-12">
+						<label for="destination">
+							Delivery Destination:
+						</label>
+						<select name="destination" id="destination" class="form-control">
+							<option value="jobsite">Ship to Jobsite</option>
+							<option value="shop">Ship to Shop</option>
+							{# TODO:implement a third option to enable an arbitrary destination value #}
+						</select>
+					</div>
+
+					<div class="form-group col-xs-12">
+						<label for="deliveryDate">
+							Delivery Date:
+						</label>
+						<div class="input-group">
+							<input type="date" name="deliveryDate" id="deliveryDate" class="form-control">
+							<span class="input-group-btn">
+								<input class="btn btn-primary" type="submit">
+							</span>
+						</div>
+					</div>
+        {% if job %}
+					</form>
+				{% else %}
+					</form>
+				{% endif %}
+
+			</div>
+		</div><!-- /.panel -->
+	</div><!-- /.col -->
+
+{% endmacro %}
+
+
+{% macro materials_widget(job=None) %}
+	{# Widget for managing the tracking and purchasing of materials ordered from the jobsite #}
+
+	<div class="col-sm-4">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				Open Material Lists
+				{% if job %}
+					<a href="{{ url_for('job_materials', job_num=job.number) }}">
+						<span class="glyphicon glyphicon-link"></span>
+					</a>
+				{% else %}
+				{% endif %}
+			</div><!-- /.panel-heading -->
+			{# TODO:check if material list iterable is >0 #}
+			<div class="panel-body" id="quoteUpload">
+				<form class="form-horizontal" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
+					{% if not job %}
+						<div class="form-group col-xs-12">
+							<label for="openJobSelect">
+								Select Job:
+							</label>
+							<select name="jobSelect" id="openJobSelect" class="form-control" onchange="update_mat_list('openJobSelect', '#matListforQuote')">
+								{# Select element populates itself via javascript #}
+							</select>
+						</div>
+					{% endif %}
+					<div class="form-group col-xs-12">
+						<label for="matListforQuote">
+							Add quote to:
+						</label>
+						<select class="form-control" name="materialList" id="matListforQuote">
+							<option selected>Select Material List</option>
+							{% if job %}
+								{% for i in job.materials.itervalues() if not i.fulfilled %}
+									<option value="{{ i.hash }}">{{ i }}</option>
+								{% else %}
+									<option>No open material lists</option>
+								{% endfor %}
+							{% endif %}
+						</select>
+					</div>
+					<div class="form-group col-xs-12">
+						<label for="quoteVendName">
+							Vendor Name:
+						</label>
+						<input name="vendor" id="quoteVendName" placeholder="Enter Vendor Name" type="text" class="form-control">
+					</div>
+					<div class="form-group col-xs-12">
+						<label for="quotePrice">
+							Quote Amount:
+						</label>
+						<div class="input-group">
+							<span class="input-group-addon">$</span>
+							<input id="vendPrice" name="quotePrice" type="text" class="form-control" placeholder="0.00">
+						</div>
+					</div>
+          <!-- /.form-group -->
+					<div class="form-group col-xs-12">
+						<input type="file" name="quote">
+					</div>
+          <button class="btn btn-primary btn-sm pull-right" type="submit">Upload</button>
+        </form>
+			</div><!-- /.panel-body -->
+		</div><!-- /.panel -->
+	</div><!-- /.col -->
+
+{% endmacro %}

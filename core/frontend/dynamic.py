@@ -4,7 +4,7 @@ from config import *
 @app.route('/dynamic/j/<int:job_num>/materials/<query>')
 def get_mat_lists(job_num, query=None):
 	""" Populates <select> object contents for displaying the material lists for `job_num`
-	:param job_num: specifies job number to iterate over
+	:param job_num: specifies jobs number to iterate over
 	:return:
 	"""
 	_job = AwardedJob.find(job_num)
@@ -34,7 +34,7 @@ def get_mat_lists(job_num, query=None):
 def job_with_open_list():
 	_return = []
 	if hasattr(AwardedJob, 'db'):
-		_return.append('<option>Please select a job</option>')
+		_return.append('<option>Please select a jobs</option>')
 		for job in AwardedJob.db.itervalues():
 			_open = job.has_open_lists
 			if _open:

@@ -46,7 +46,7 @@ class Timesheet(object):
 	def update(self):
 		if hasattr(Timesheet, 'db'):
 			Timesheet.db[self.hash] = self
-		if hasattr(self, 'job'):
+		if hasattr(self, 'jobs'):
 			self.job.timesheets[self.hash] = self
 			self.job.update()
 

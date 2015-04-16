@@ -20,7 +20,7 @@ def dummy_env(update=False):
 		print "creating mock AwardedJob %d" % i
 		_job = core.AwardedJob(i, 'test_job')
 
-	# create 10 dummy material lists for each job
+	# create 10 dummy material lists for each jobs
 		for z in xrange(amt):
 			print "creating mock material list (%d) for %s" % (z, _job)
 			_list = core.MaterialList(_job, items={'1', 'test item'})
@@ -29,7 +29,7 @@ def dummy_env(update=False):
 				print "creating mock quote (%d) for %s" % (y, _list)
 				core.MaterialListQuote(_list, 'vend')
 
-	# issue POs to a random quote for each material list for each job
+	# issue POs to a random quote for each material list for each jobs
 	for i in core.AwardedJob.db.itervalues():
 		for z in i.materials.itervalues():
 			quote = sample(z.quotes.values(), 1)[0]
@@ -49,6 +49,5 @@ def test_po_log():
 
 
 if __name__ == "__main__":
-	core.reset_db()
-	po = core.AwardedJob.db[18].POs[1]
-	core.update_po_in_log(po, 'price', 888)
+	dummy_env()
+	core.app.run(host='0.0.0.0', port=8080, debug=True)

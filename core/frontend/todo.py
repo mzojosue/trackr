@@ -4,8 +4,8 @@ from page import *
 def new_todo():
 	_title = request.form['title']
 	_task = request.form['task']
-	if 'job' in request.form:
-		_job = request.form['job']
+	if 'jobs' in request.form:
+		_job = request.form['jobs']
 		_job = AwardedJob.find(int(_job))
 
 		_title = ' '.join([_title, 'for', _job.name])
@@ -16,7 +16,7 @@ def new_todo():
 
 @app.route('/task/<int:t_hash>/complete')
 def todo_complete(t_hash):
-	# TODO:implement job_completion for job-linked tasks
+	# TODO:implement job_completion for jobs-linked tasks
 
 	_todo = Todo.find(t_hash)
 	if _todo.complete():
