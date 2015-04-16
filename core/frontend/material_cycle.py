@@ -157,12 +157,12 @@ def add_quote_doc(m_hash, q_hash):
 		print "%s not saved" % _doc
 	return redirect(url_for('material_list', m_hash=_mlist.hash))
 
-@app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/price', methods=['POST'])
-def update_quote_price(m_hash, q_hash):
+@app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/<attr>', methods=['POST'])
+def update_material_quote(m_hash, q_hash, attr):
 	_mlist = MaterialList.db[m_hash]
 	_quote = _mlist.quotes[q_hash]
-	_price = request.form['quotePrice']
-	_quote.price = float(_price)
-	print "Updated price for %s to %s" % (_quote, _price)
+	_value = request.form['updateValue']
+	_quote.__setattr__(attr, _value)
+	print "Updated price for %s to %s" % (_quote, _value)
 	return redirect(request.referrer)
 

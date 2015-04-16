@@ -278,6 +278,11 @@ class PO(object):
 	def price(self):
 		return self.quote.price
 
+	@price.setter
+	def price(self, value):
+		self.quote.price = value
+
+
 	def __repr__(self):
 		return self.name
 

@@ -159,22 +159,35 @@ function update_quote_doc(m_hash, q_hash) {
 }
 
 function unlock_table_for_editing() {
+  // TODO:iterate over array to change object types
+  var dataTypes = [['price-input', 'text'],
+                   ['date-input', 'date']];
+  //for (var i=0; i < dataTypes.length; i++) {
+  //  var showCells = document.getElementsByClassName(dataTypes[i[0]]);
+  //  for (var s=0; s < showCells.length; s++) {
+  //    showCells[s].setAttribute('type', dataTypes[i[1]]);
+  //  }
+  //}
+
   var priceCells = document.getElementsByClassName('price-input');
   for (var i=0; i < priceCells.length; i++) {
     priceCells[i].setAttribute('type', 'text');
   }
+  var dateCells = document.getElementsByClassName('date-input');
+  for (var i=0; i < dateCells.length; i++) {
+    dateCells[i].setAttribute('type', 'date');
+  }
   var priceInputs = document.getElementsByClassName('hide-value');
-  for (var i=0; i < priceCells.length; i++) {
+  for (var i=0; i < priceInputs.length; i++) {
     priceInputs[i].style.display = 'none';
   }
 }
 
-function update_quote_price(m_hash, q_hash) {
-  var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/price';
-  var inputElement = document.getElementById('priceUpdate-' + q_hash);
+function update_po_attr(m_hash, q_hash, attr) {
+  var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/' + attr;
+  var inputElement = document.getElementById(attr+'Update-' + q_hash);
   inputElement.setAttribute('form', 'quoteUpdate');
   var updateForm = document.getElementById('quoteUpdate');
   updateForm.setAttribute('action', url);
   updateForm.submit();
 }
-

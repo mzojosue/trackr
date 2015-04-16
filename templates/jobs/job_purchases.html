@@ -50,16 +50,19 @@
 				{% for i in job.POs.itervalues() %}
 					<tr>
 						<td>{{ i }}</td>
-						<td>{{ i.quote.vend }}</td>
-						<td>
-							{% if hasattr(i.date_issued, 'date') %}
-								{{ i.date_issued.date() }}
-							{% else %}
-								{{ i.date_issued }}
-							{% endif %}
-						</td>
-						<td>
-							<input type="hidden" class="form-control price-input" name="quotePrice" id="priceUpdate-{{ i.quote.hash }}" placeholder="{{ i.price }}" onchange="update_quote_price({{ i.mat_list.hash }}, {{ i.quote.hash }})">
+            <td>{{ i.quote.vend }}</td>
+            <td>
+              <input type="hidden" class="form-control date-input" name="updateValue" id="dateIssuedUpdate-{{ i.quote.hash }}" value="{{ i.date_issued.date() }}" onchange="update_po_attr({{ i.mat_list.hash }}, {{ i.quote.hash }}, 'date_issued')">
+              <span class="hide-value">
+                {% if hasattr(i.date_issued, 'date') %}
+                  {{ i.date_issued.date() }}
+                {% else %}
+                  {{ i.date_issued }}
+                {% endif %}
+              </span>
+            </td>
+            <td>
+              <input type="hidden" class="form-control price-input" name="updateValue" id="priceUpdate-{{ i.quote.hash }}" placeholder="{{ i.price }}" onchange="update_po_attr({{ i.mat_list.hash }}, {{ i.quote.hash }}, 'price')">
 							<span class="hide-value">
 								${{ i.quote.price }}
 							</span>
