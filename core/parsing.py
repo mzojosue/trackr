@@ -82,6 +82,7 @@ def import_po_log(create=False, poLog=environment.get_po_log):
 				print str(__mat_list_val).replace('\\', '/')
 			# Delete all variables between each iteration
 			del __po, __vend, __price, __date_issued, __mat_list_val, __quote_val, __comment
+	del log
 
 
 def parse_job_info(jobInfo):
@@ -138,7 +139,7 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 			_row = _sheet.row_slice(i)
 			if _row[0].value == obj.name:
 				_po_row = i
-		return (_sheet.name, _po_row)
+		return (_sheet, _po_row)
 
 
 def add_po_in_log(obj, poLog=environment.get_po_log):
@@ -202,7 +203,14 @@ def update_po_in_log(obj, attr, value, poLog=environment.get_po_log):
 	"""
 	_attr = ('number', 'vend', 'price', 'date_sent', 'date_expected', 'mat_list', 'quote', 'ordered_by', 'quote_id')
 	if attr in _attr:
-		log = open_workbook(poLog)
+		try:
+			_poLog = os.path.split(poLog)
+			_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
+			os.rename(poLog, _poLog)
+			log = open_workbook(_poLog, on_demand=True)
+		except IOError:
+			print "'%s' is not a valid file path. Cannot update PO log." % poLog
+			return False
 
 		# pass opened PO Log object to function
 		_sheet, _row = find_po_in_log(obj, log)
@@ -215,7 +223,9 @@ def update_po_in_log(obj, attr, value, poLog=environment.get_po_log):
 		_sheet = log.get_sheet(_sheet.number)
 
 		# update information
-		_sheet.cell(_row, _col)
+		_sheet.write(_row, _col)
+
+		log.save(poLog)
 
 		return True
 

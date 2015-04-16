@@ -49,5 +49,6 @@ def test_po_log():
 
 
 if __name__ == "__main__":
-	dummy_env()
-	core.app.run(host='0.0.0.0', port=8080, debug=True)
+	core.reset_db()
+	po = core.AwardedJob.db[18].POs[1]
+	core.update_po_in_log(po, 'price', 888)
