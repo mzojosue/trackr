@@ -52,7 +52,7 @@
 						<td>{{ i }}</td>
             <td>{{ i.quote.vend }}</td>
             <td>
-              <input type="hidden" class="form-control date-input" name="updateValue" id="dateIssuedUpdate-{{ i.quote.hash }}" value="{{ i.date_issued.date() }}" onchange="update_po_attr({{ i.mat_list.hash }}, {{ i.quote.hash }}, 'date_issued')">
+              <input type="hidden" class="form-control date-input" name="updateValue" id="dateIssuedUpdate-{{ i.quote.hash }}" value="{{ i.date_issued.date() }}" onselect="update_po_attr({{ i.mat_list.hash }}, {{ i.quote.hash }}, 'date_issued')">
               <span class="hide-value">
                 {% if hasattr(i.date_issued, 'date') %}
                   {{ i.date_issued.date() }}

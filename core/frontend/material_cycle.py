@@ -162,6 +162,9 @@ def update_material_quote(m_hash, q_hash, attr):
 	_mlist = MaterialList.db[m_hash]
 	_quote = _mlist.quotes[q_hash]
 	_value = request.form['updateValue']
+
+	# TODO: parse/type value!!
+
 	_quote.__setattr__(attr, _value)
 	print "Updated price for %s to %s" % (_quote, _value)
 	return redirect(request.referrer)
