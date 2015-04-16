@@ -1,5 +1,6 @@
 from objects import *
 import core.environment as env
+import core.log as log
 
 
 class Worker(object):
@@ -112,6 +113,7 @@ class Job(object):
 		self.documents = {}
 		self.drawings = {}
 
+
 	@property
 	def name(self):
 		if hasattr(self, 'number'):
@@ -184,6 +186,8 @@ class AwardedJob(Job):
 
 		self.init_struct()
 
+		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
+
 	@property
 	def next_po(self):
 		"""
@@ -228,21 +232,20 @@ class AwardedJob(Job):
 		# TODO:initialize documents w/ jobs information
 		self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 		try:
-			print "Creating project directory for %s..." % self.name
 			os.mkdir(os.path.join(env.env_root, self.sub_path))
-			print "...operation successful."
+			log.logger.debug('Created project directory for "%s"' % self.name)
 		except OSError:
 			print "...project folder already exists"
 
-		try:
-			print "Creating project sub directories for %s..." % self.name
-			_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
-			            'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
-			for _folder in _folders:
+		print "Creating project sub directories for %s..." % self.name
+		_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
+					'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
+		for _folder in _folders:
+			try:
 				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
-			print "...operation successful."
-		except OSError:
-			print "...project sub folders already exists"
+				log.logger.debug('Created sub directory, \'%s\', for \'%s\'' % (_folder, self.name))
+			except OSError:
+				log.logger.warning('Sub directory, "%s", for %s already exists!' % (_folder, self.name))
 
 	@property
 	def path(self):
@@ -290,7 +293,8 @@ class AwardedJob(Job):
 		"""
 		self.tasks[task_obj.hash] = task_obj
 		self.update()
-		return None
+
+		log.logger.info('Added task object "%s" to %s' % (task_obj.name, self.name))
 
 	def add_mat_list(self, mlist_obj):
 		"""
@@ -300,7 +304,8 @@ class AwardedJob(Job):
 		"""
 		self.materials[mlist_obj.hash] = mlist_obj
 		self.update()
-		return None
+
+		log.logger.info('Added material list %s (%s) to %s' % (mlist_obj.hash, mlist_obj.items, self.name))
 
 	def add_quote(self, quote_obj):
 		"""
@@ -308,10 +313,12 @@ class AwardedJob(Job):
 		:param quote_obj: quote object to add to self
 		:return: None
 		"""
+		_mat_list = quote_obj.mat_list.hash
 		self.quotes[quote_obj.hash] = quote_obj
-		self.materials[quote_obj.mat_list.hash].add_quote(quote_obj)
+		self.materials[_mat_list].add_quote(quote_obj)
 		self.update()
-		return None
+
+		log.logger.info('Added quote object from "%s" to "%s" material list for %s' % (quote_obj.vend, _mat_list, self.name))
 
 	def add_delivery(self, deliv_obj):
 		"""
@@ -321,7 +328,8 @@ class AwardedJob(Job):
 		"""
 		self.deliveries[deliv_obj.hash] = deliv_obj
 		self.update()
-		return None
+
+		log.logger.info('Scheduled delivery on %s for %s' % (deliv_obj.expected, self.name))
 
 	def add_po(self, po_obj):
 		"""
@@ -334,7 +342,8 @@ class AwardedJob(Job):
 		self.materials[_mat_list].po = po_obj
 		self.materials[_mat_list].fulfilled = True
 		self.update()
-		return None
+
+		log.logger.info('Awarded %s to %s for %s' % (po_obj.name, po_obj.vend, self.name))
 
 	def add_worker(self, wrkr_obj):
 		"""
@@ -345,6 +354,8 @@ class AwardedJob(Job):
 		self.workers[wrkr_obj.hash] = wrkr_obj
 		self.update()
 
+		log.logger.info('"%s" has been added to %s project' % (wrkr_obj.name, self.name))
+
 	def del_material_list(self, mlist_hash, delete=False):
 		"""
 		Deletes material list object from self.materials
@@ -352,21 +363,21 @@ class AwardedJob(Job):
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
-		for i in self.POs.values():
+		for i in self.POs.itervalues():
 			if i.mat_list.hash == mlist_hash:
 				del self.POs[i.num]
-
-		for i in self.quotes.values():
+		for i in self.quotes.itervalues():
 			if i.mat_list.hash == mlist_hash:
 				del self.quotes[i.hash]
-
 		del self.materials[mlist_hash]
 
 		if delete:
 			# TODO:delete document in filesystem
 			pass
 		self.update()
-		return None
+
+		if not delete:
+			log.logger.info('Deleted %s material list from %s' % (mlist_hash, self.name))
 
 	def del_quote(self, quote_hash, delete=False):
 		"""
@@ -375,15 +386,21 @@ class AwardedJob(Job):
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
-		for i in self.materials.values():
+		for i in self.materials.itervalues():
 			if quote_hash in i.quotes.keys():
 				del i.quotes[quote_hash]
+		for i in self.POs.itervalues():
+			if i.quote.hash == quote_hash:
+				del self.POs[i.num]
 		del self.quotes[quote_hash]
+
 		if delete:
 			# TODO:delete document in filesystem
 			pass
 		self.update()
-		return None
+
+		if not delete:
+			log.logger.info('Deleted %s material list from %s' % (quote_hash, self.name))
 
 	def del_task(self, task_hash):
 		"""
@@ -393,7 +410,8 @@ class AwardedJob(Job):
 		"""
 		del self.tasks[task_hash]
 		self.update()
-		return None
+
+		log.logger.info('Deleted %s task from %s' % (task_hash, self.name))
 
 	@staticmethod
 	def find(num):
