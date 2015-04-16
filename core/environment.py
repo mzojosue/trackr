@@ -15,6 +15,13 @@ def load_config(f):
 		return e.args[2]
 
 @load_config
+def get_log_file(settings):
+	try:
+		return str( settings['log_file'] )
+	except KeyError:
+		raise KeyError('path', 'log file', False)
+
+@load_config
 def env_root(settings):
 	try:
 		return str( settings['data_root'] )
