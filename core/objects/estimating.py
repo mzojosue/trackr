@@ -74,6 +74,7 @@ class EstimatingJob(Job):
 		# TODO: implement grouping system
 		self.group = group
 
+		# TODO:prevent directory structure from being created twice
 		self.init_struct()
 
 
@@ -169,6 +170,7 @@ class EstimatingJob(Job):
 				self.quotes[i] = {}
 		self.update()
 
+		# TODO:prevent directory structure from being created twice
 		# rebuild directory structure to implement new scope and for good measure
 		self.init_struct()
 

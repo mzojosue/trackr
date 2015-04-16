@@ -241,12 +241,10 @@ class PO(object):
 		self.date_issued = date_issued
 		self.quote = quote
 		self.deliveries = deliveries  # stores initial delivery date
+		self.backorders = []          # stores any backorder delivery dates
 		self.desc = str(desc)
-		self.deliveries = []
 		if po_pre:
 			self.po_pre = str(po_pre)
-
-		self.backorders = None  # stores any backorder delivery dates
 
 		# update jobs object
 		self.job.add_po(self)
