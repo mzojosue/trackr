@@ -64,9 +64,9 @@ def import_po_log(create=False, poLog=environment.get_po_log):
 
 				# Create Quote objects
 				if '\\' in __quote_val:
-					_quote = objects.MaterialListQuote(mat_list=_mat_list, price=__price, vend=__vend, doc=objects.os.path.split(__quote_val))
+					_quote = objects.MaterialListQuote(mat_list=_mat_list, price=__price, vend=__vend, date_uploaded=__date_issued, doc=objects.os.path.split(__quote_val))
 				else:
-					_quote = objects.MaterialListQuote(mat_list=_mat_list, price=__price, vend=__vend)
+					_quote = objects.MaterialListQuote(mat_list=_mat_list, price=__price, vend=__vend, date_uploaded=__date_issued)
 
 				# Create PO objects
 				_pre = parse("{pre}-{:d}", __po)['pre']

@@ -171,7 +171,7 @@ class MaterialList(object):
 
 
 class Quote(object):
-	def __init__(self, vend, price=0.0, doc=None):
+	def __init__(self, vend, price=0.0, date_uploaded=None, doc=None):
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		self.vend = vend
 		try:
@@ -181,7 +181,10 @@ class Quote(object):
 			self.price = 0.0
 		self._doc = doc
 
-		self.date_uploaded = now()
+		if not date_uploaded:
+			self.date_uploaded = now()
+		else:
+			self.date_uploaded = date_uploaded
 		self.awarded = False
 
 	@property
@@ -206,8 +209,8 @@ class Quote(object):
 
 
 class MaterialListQuote(Quote):
-	def __init__(self, mat_list, vend, price=0.0, doc=None):
-		super(MaterialListQuote, self).__init__(vend, price, doc)
+	def __init__(self, mat_list, vend, price=0.0, date_uploaded=None, doc=None):
+		super(MaterialListQuote, self).__init__(vend, price, date_uploaded, doc)
 		self.mat_list = mat_list
 		self.mat_list.job.add_quote(self)
 
@@ -219,6 +222,7 @@ class MaterialListQuote(Quote):
 		_return = super(MaterialListQuote, self).__setattr__(key, value)
 		if hasattr(self, 'mat_list'):
 			self.mat_list.add_quote(self)
+
 		return _return
 
 	def update(self):
