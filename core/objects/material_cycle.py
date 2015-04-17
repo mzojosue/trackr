@@ -1,6 +1,6 @@
 from objects import *
 from core.environment import *
-from core.parsing import add_po_in_log
+from core.parsing import add_po_in_log, update_po_in_log
 
 
 class MaterialList(object):
@@ -54,6 +54,7 @@ class MaterialList(object):
 		if key in MaterialList.listeners:
 			self._listen(key, value)
 		self.update()
+		update_po_in_log(self, key, value)
 		return _return
 
 	def __repr__(self):
@@ -222,7 +223,7 @@ class MaterialListQuote(Quote):
 		_return = super(MaterialListQuote, self).__setattr__(key, value)
 		if hasattr(self, 'mat_list'):
 			self.mat_list.add_quote(self)
-
+		update_po_in_log(self, key, value)
 		return _return
 
 	def update(self):
