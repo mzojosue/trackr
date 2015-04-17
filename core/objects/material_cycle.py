@@ -22,6 +22,7 @@ class MaterialList(object):
 		:param task: Boolean. If True, SHOULD create a Todo object linked to self
 		:return: None
 		"""
+		self._update = False
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 
 		self.job = job
@@ -48,13 +49,16 @@ class MaterialList(object):
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
+		self._update = True
+
 
 	def __setattr__(self, key, value):
+		if hasattr(self, '_update') and self._update:
+			update_po_in_log(self, key, value)
 		_return = super(MaterialList, self).__setattr__(key, value)
 		if key in MaterialList.listeners:
 			self._listen(key, value)
 		self.update()
-		update_po_in_log(self, key, value)
 		return _return
 
 	def __repr__(self):
@@ -93,7 +97,7 @@ class MaterialList(object):
 		return False
 
 	def update(self):
-		if hasattr(MaterialList, 'db'):
+		if hasattr(MaterialList, 'db') and hasattr(self, 'hash'):
 			MaterialList.db[self.hash] = self
 			if hasattr(self, 'jobs'):
 				self.job.add_mat_list(self)
@@ -173,6 +177,7 @@ class MaterialList(object):
 
 class Quote(object):
 	def __init__(self, vend, price=0.0, date_uploaded=None, doc=None):
+		self._update = False
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		self.vend = vend
 		try:
@@ -214,16 +219,18 @@ class MaterialListQuote(Quote):
 		super(MaterialListQuote, self).__init__(vend, price, date_uploaded, doc)
 		self.mat_list = mat_list
 		self.mat_list.job.add_quote(self)
+		self._update = True
 
 	@property
 	def job(self):
 		return self.mat_list.job
 
 	def __setattr__(self, key, value):
+		if hasattr(self, '_update') and self._update:
+			update_po_in_log(self, key, value)
 		_return = super(MaterialListQuote, self).__setattr__(key, value)
 		if hasattr(self, 'mat_list'):
 			self.mat_list.add_quote(self)
-		update_po_in_log(self, key, value)
 		return _return
 
 	def update(self):
