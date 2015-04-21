@@ -1,11 +1,32 @@
 from xlrd import open_workbook, xldate_as_tuple
 from xlwt import *
 from xlutils.copy import copy
-from datetime import datetime, date
 from parse import parse
+
+from datetime import datetime, date, timedelta
 import environment
-import objects
 import os
+
+import objects
+import log
+from core.scheduler import scheduler
+
+
+def ensure_write(f, *args, **kwargs):
+	def schedule_job():
+		five_min = 60 * 5
+		td = timedelta(0, five_min)
+		sched = datetime.now() + td
+		scheduler.add_job(f, 'date', run_date=sched, args=args, kwargs=kwargs)
+		print "Scheduling '%s' for %s" % (f.__name__, sched)
+		log.logger.warning('Operation (\'%s\') failed. Scheduling for %s' % (f.__name__, sched))
+		return False
+	def try_write(*args, **kwargs):
+		try:
+			return f(*args, **kwargs)
+		except OSError:
+			return schedule_job()
+	return try_write
 
 def import_po_log(create=False, poLog=environment.get_po_log):
 	log = open_workbook(poLog, on_demand=True)
@@ -193,7 +214,8 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 	print "Successfully added %s to PO log" % obj
 
 
-def update_po_in_log(obj, attr, value, poLog=environment.get_po_log):
+@ensure_write
+def update_po_in_log(obj=None, attr=None, value=None, poLog=environment.get_po_log):
 	"""
 	:param poLog: poLog file object to write to
 	:param obj: object to reflect changes on
@@ -208,9 +230,9 @@ def update_po_in_log(obj, attr, value, poLog=environment.get_po_log):
 			_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
 			os.rename(poLog, _poLog)
 			log = open_workbook(_poLog, on_demand=True)
-		except IOError:
+		except OSError:
 			print "'%s' is not a valid file path. Cannot update PO log." % poLog
-			return False
+			raise OSError
 
 		# pass opened PO Log object to function
 		_sheet, _row = find_po_in_log(obj, log)
