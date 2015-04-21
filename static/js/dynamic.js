@@ -184,7 +184,7 @@ function unlock_table_for_editing() {
 }
 
 function update_po_attr(m_hash, q_hash, attr) {
-  q_hash = q_hash + '';  // Prevents integer from being changed.
+  q_hash = q_hash.toString();  // Prevents integer from being changed.
   var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/' + attr;
   var elementId = attr + 'Update-' + q_hash;
   var inputElement = document.getElementById(elementId);

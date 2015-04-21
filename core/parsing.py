@@ -163,6 +163,7 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 		return (_sheet, _po_row)
 
 
+@ensure_write
 def add_po_in_log(obj, poLog=environment.get_po_log):
 	try:
 		_poLog = os.path.split(poLog)
