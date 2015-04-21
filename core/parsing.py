@@ -158,8 +158,13 @@ def find_po_in_log(obj, poLog=environment.get_po_log):
 
 		for i in range(2, _nrows):
 			_row = _sheet.row_slice(i)
-			if _row[0].value == obj.name:
-				_po_row = i
+			try:
+				if _row[0].value == obj.name:
+					_po_row = i
+			except AttributeError:
+				# this is run if a quote object is passed
+				if _row[0].value == obj.mat_list.po:
+					_po_row = i
 		return (_sheet, _po_row)
 
 
