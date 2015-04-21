@@ -185,7 +185,8 @@ function unlock_table_for_editing() {
 
 function update_po_attr(m_hash, q_hash, attr) {
   var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/' + attr;
-  var inputElement = document.getElementById(attr+'Update-' + q_hash);
+  var elementId = attr + 'Update-' + q_hash;
+  var inputElement = document.getElementById(elementId);
   inputElement.setAttribute('form', 'quoteUpdate');
   var updateForm = document.getElementById('quoteUpdate');
   updateForm.setAttribute('action', url);
