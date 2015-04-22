@@ -237,9 +237,9 @@ class AwardedJob(Job):
 			os.mkdir(os.path.join(env.env_root, self.sub_path))
 			log.logger.debug('Created project directory for "%s"' % self.name)
 		except OSError:
-			print "...project folder already exists"
+			log.logger.warning("...project folder already exists")
 
-		print "Creating project sub directories for %s..." % self.name
+		log.logger.debug("Creating project sub directories for %s..." % self.name)
 		_folders = ('Addendums', 'Billing', 'Change Orders', 'Close Out', 'Contract Scope', 'Documents',
 					'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
 		for _folder in _folders:
