@@ -138,7 +138,8 @@ class AwardedJob(Job):
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
 	             gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
-	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(), sheet_num=None):
+	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(),
+	             sheet_num=None, init_struct=True):
 		"""
 		:param job_num: desired jobs number
 		:param name: primary jobs name
@@ -184,7 +185,8 @@ class AwardedJob(Job):
 		# AwardedJob.timesheets.value is [ 'pathname/to/timesheet', { worker.hash: (worker, hours) } ]
 		self.timesheets = {}
 
-		self.init_struct()
+		if init_struct:
+			self.init_struct()
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
 
@@ -363,10 +365,10 @@ class AwardedJob(Job):
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
-		for i in self.POs.itervalues():
+		for i in self.POs.values():
 			if i.mat_list.hash == mlist_hash:
 				del self.POs[i.num]
-		for i in self.quotes.itervalues():
+		for i in self.quotes.values():
 			if i.mat_list.hash == mlist_hash:
 				del self.quotes[i.hash]
 		del self.materials[mlist_hash]
@@ -386,10 +388,10 @@ class AwardedJob(Job):
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
-		for i in self.materials.itervalues():
+		for i in self.materials.values():
 			if quote_hash in i.quotes.keys():
 				del i.quotes[quote_hash]
-		for i in self.POs.itervalues():
+		for i in self.POs.values():
 			if i.quote.hash == quote_hash:
 				del self.POs[i.num]
 		del self.quotes[quote_hash]

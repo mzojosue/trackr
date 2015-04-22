@@ -174,7 +174,7 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		_poLog = os.path.split(poLog)
 		_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
 		os.rename(poLog, _poLog)
-		log = open_workbook(_poLog, on_demand=True)
+		log = open_workbook(_poLog, on_demand=True, formatting_info=True)
 	except IOError:
 		print "'%s' is not a valid file path. Cannot update PO log." % poLog
 		return False
@@ -235,7 +235,7 @@ def update_po_in_log(obj=None, attr=None, value=None, poLog=environment.get_po_l
 			_poLog = os.path.split(poLog)
 			_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
 			os.rename(poLog, _poLog)
-			log = open_workbook(_poLog, on_demand=True)
+			log = open_workbook(_poLog, on_demand=True, formatting_info=True)
 		except OSError:
 			print "'%s' is not a valid file path. Cannot update PO log." % poLog
 			raise OSError
