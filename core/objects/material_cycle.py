@@ -1,6 +1,7 @@
 from objects import *
 from core.environment import *
 from core.parsing import add_po_in_log, update_po_in_log
+from core.log import logger
 
 
 class MaterialList(object):
@@ -45,7 +46,7 @@ class MaterialList(object):
 		self.delivered = False  # True once order has been delivered
 		self.delivery = None    # Stores Delivery object
 
-		# TODO:set listener to delete todo object associated with sending self out to vendors
+		# TODO: set listener to delete todo object associated with sending self out to vendors
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
@@ -111,6 +112,7 @@ class MaterialList(object):
 
 	def add_po(self, po_obj):
 		self.po = po_obj
+		self.job.add_po(po_obj)
 		self.fulfilled = True
 		self.update()
 		return None
@@ -183,7 +185,7 @@ class Quote(object):
 		try:
 			self._price = price
 		except ValueError:
-			log.logger.warning("Error parsing price for Quote %s. Defaulted to $0.0" % self.hash)
+			logger.warning("Error parsing price for Quote %s. Defaulted to $0.0" % self.hash)
 			self._price = 0.0
 		self._doc = doc
 
@@ -221,6 +223,7 @@ class Quote(object):
 	@price.setter
 	def price(self, value):
 		self._price = float(value)
+		self.update()
 
 
 class MaterialListQuote(Quote):
@@ -302,6 +305,7 @@ class PO(object):
 	@price.setter
 	def price(self, value):
 		self.quote.price = value
+		self.quote.update()
 
 
 	def __repr__(self):
