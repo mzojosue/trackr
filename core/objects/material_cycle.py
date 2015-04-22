@@ -181,10 +181,10 @@ class Quote(object):
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		self.vend = vend
 		try:
-			self.price = float(price)
+			self._price = price
 		except ValueError:
-			print "Error parsing price, %s. Defaulted to 0.0" % price
-			self.price = 0.0
+			log.logger.warning("Error parsing price for Quote %s. Defaulted to $0.0" % self.hash)
+			self._price = 0.0
 		self._doc = doc
 
 		if not date_uploaded:
@@ -210,8 +210,17 @@ class Quote(object):
 
 	@property
 	def path(self):
-		_path = os.path.join(self.job.path, 'Quotes')
-		return _path
+		if hasattr(self, 'job') and hasattr(self.job, 'path'):
+			_path = os.path.join(self.job.path, 'Quotes')
+			return _path
+
+	@property
+	def price(self):
+		return self._price
+
+	@price.setter
+	def price(self, value):
+		self._price = float(value)
 
 
 class MaterialListQuote(Quote):
@@ -219,6 +228,8 @@ class MaterialListQuote(Quote):
 		super(MaterialListQuote, self).__init__(vend, price, date_uploaded, doc)
 		self.mat_list = mat_list
 		self.mat_list.job.add_quote(self)
+
+		# Once object is initialized, any changes made to object will be reflected in PO log
 		self._update = True
 
 	@property

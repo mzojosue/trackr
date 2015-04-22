@@ -14,7 +14,8 @@ from core.scheduler import scheduler
 
 def ensure_write(f, *args, **kwargs):
 	def schedule_job():
-		five_min = 60 * 5
+		# five_min = 60 * 5
+		five_min = 30
 		td = timedelta(0, five_min)
 		sched = datetime.now() + td
 		scheduler.add_job(f, 'date', run_date=sched, args=args, kwargs=kwargs)

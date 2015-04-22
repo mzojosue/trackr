@@ -166,6 +166,6 @@ def update_material_quote(m_hash, q_hash, attr):
 	# TODO: parse/type value!!
 
 	_quote.__setattr__(attr, _value)
-	print "Updated price for %s to %s" % (_quote, _value)
+	log.logger.info("Updated price for %s to %s" % (_quote, _value))
 	return redirect(request.referrer)
 
