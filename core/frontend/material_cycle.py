@@ -159,8 +159,9 @@ def add_quote_doc(m_hash, q_hash):
 
 @app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/<attr>', methods=['POST'])
 def update_material_quote(m_hash, q_hash, attr):
-	_mlist = MaterialList.db[m_hash]
-	_quote = _mlist.quotes[q_hash]
+	_job = MaterialList.db[m_hash].job.number
+	_job = AwardedJob.db[_job]
+	_quote = _job.quotes[q_hash]
 	_value = request.form['updateValue']
 
 	# TODO: parse/type value!!

@@ -47,7 +47,7 @@
 					<th>Vendor Quote:</th>
 					<!--th>Ordered By:</th-->
 				</tr>
-				{% for i in job.POs.itervalues() %}
+				{% for i in job.POs.values() %}
 					<tr>
 						<td>{{ i }}</td>
             <td>{{ i.quote.vend }}</td>
