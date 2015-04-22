@@ -3,6 +3,7 @@ from mongodict import *
 
 from objects import *
 from parsing import *
+from log import logger
 
 """
 Database initialization functions should go here
@@ -10,6 +11,7 @@ Database initialization functions should go here
 
 def init_db(db='trackr_db'):
 
+	logger.debug("Initializing Object DBs...")
 	try:
 		# Worker/Job DBs
 		Worker.db = MongoDict(database=db, collection='workers')
@@ -69,14 +71,18 @@ def init_db(db='trackr_db'):
 
 def clear_db(db='trackr_db'):
 
+	print "Clearing Database..."
 	client = pymongo.MongoClient("localhost", 27017)
 	client.drop_database(str(db))
+	logger.debug('Database was cleared')
 
 	return True
 
 
 def reset_db(db='trackr_db', log=environment.get_po_log):
 	_cwd = os.getcwd()
+
+	print "Beginning to reset database..."
 
 	try:
 		clear_db()
@@ -87,5 +93,8 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 	import_po_log(True, log)
 
 	os.chdir(_cwd)
+
+	print "Database was successfully reset"
+	logger.info("Database was successfully reset")
 
 	return True
