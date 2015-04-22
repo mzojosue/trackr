@@ -150,7 +150,14 @@
 							{% endif %}
 						</td>
 						<td>{{ i.vend }}</td>
-						<td>{{ i.date_uploaded.date() }}</td>
+						<td>
+							{% if hasattr(i.date_issued, 'date') %}
+	              {% set _date_issued = i.date_issued.date() %}
+	            {% else %}
+	              {% set _date_issued = i.date_issued %}
+	            {% endif %}
+							{{ _date_issued }}
+						</td>
 						<td>
 							<input type="hidden" class="form-control price-input" name="quotePrice" id="priceUpdate-{{ i.hash }}" placeholder="{{ i.price }}" onchange="update_quote_price({{ mlist.hash }}, {{ i.hash }})">
 							<span class="hide-value">{{ i.price }}</span>
