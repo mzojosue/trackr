@@ -1,3 +1,5 @@
+import yaml
+
 from objects import *
 import core.environment as env
 import core.log as log
@@ -85,6 +87,9 @@ class Job(object):
 
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication')
 
+	_yaml_file = '.job_info.yaml'
+	_yaml_attr = ('date_end', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay')
+
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
 		self._name = str(name)
@@ -130,6 +135,37 @@ class Job(object):
 	def update(self):
 		if hasattr(self, 'db') and hasattr(self, 'number'):
 			self.db[self.number] = self
+		# self.dump_info()
+
+	def load_info(self):
+		_data = yaml.load(self._yaml_file)
+		try:
+			for i in self._yaml_attr:
+				_val = _data[i]
+				# load values from .yaml file to self
+				self.__setattr__(i, _val)
+		except IOError:
+			# file DNE
+			self.dump_info()
+		except KeyError:
+			# attribute is not in .yaml file
+			# TODO: create file??
+			pass
+
+		return None
+
+	def dump_info(self):
+		# dump values from self to .yaml file
+		_data = {}
+		for i in self._yaml_attr:
+			_val = self.__getattribute__(i)
+			_data[i] = _val
+
+		if hasattr(self, 'path'):
+			_filename = os.path.join(self.path, self._yaml_file)
+			_data_file = open(_filename, 'w')
+			yaml.dump(_data, _data_file)
+			_data_file.close()
 
 
 class AwardedJob(Job):
