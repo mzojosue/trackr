@@ -99,9 +99,6 @@ def import_po_log(create=False, poLog=environment.get_po_log):
 				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment, po_num=_num, po_pre=po_pre, update=False)
 
 				del _mat_list, _quote, _po
-
-			else:
-				print str(__mat_list_val).replace('\\', '/')
 			# Delete all variables between each iteration
 			del __po, __vend, __price, __date_issued, __mat_list_val, __quote_val, __comment
 	del log
@@ -194,7 +191,7 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		_po  = _row[0].value
 		_pos.append(_po)
 
-	if hasattr(obj.job, 'sheet_num') and (obj.num not in _pos):
+	if hasattr(obj.job, 'sheet_num') and (obj.number not in _pos):
 		_sheet = log.get_sheet(obj.job.sheet_num)   # creates writeable Worksheet object
 		_date_issued = obj.date_issued.strftime("%m.%d.%y")
 		try:

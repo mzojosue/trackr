@@ -183,10 +183,10 @@ function unlock_table_for_editing() {
   }
 }
 
-function update_po_attr(m_hash, q_hash, attr) {
-  q_hash = q_hash.toString();  // Prevents integer from being changed.
-  var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/' + attr;
-  var elementId = attr + 'Update-' + q_hash;
+function update_po_attr(job_number, po_num, attr) {
+  po_num = po_num.toString();  // Prevents integer from being changed.
+  var url = '/j/' + job_number + '/po/' + po_num + '/update/' + attr;
+  var elementId = attr + 'Update-' + po_num;
   var inputElement = document.getElementById(elementId);
   inputElement.setAttribute('form', 'quoteUpdate');
   var updateForm = document.getElementById('quoteUpdate');

@@ -375,7 +375,7 @@ class AwardedJob(Job):
 		:param po_obj: PO object to add to self.
 		:return: None
 		"""
-		self.POs[po_obj.num] = po_obj
+		self.POs[po_obj.number] = po_obj
 		_mat_list = po_obj.mat_list.hash
 		self.materials[_mat_list].po = po_obj
 		self.materials[_mat_list].fulfilled = True
@@ -403,7 +403,7 @@ class AwardedJob(Job):
 		"""
 		for i in self.POs.values():
 			if i.mat_list.hash == mlist_hash:
-				del self.POs[i.num]
+				del self.POs[i.number]
 		for i in self.quotes.values():
 			if i.mat_list.hash == mlist_hash:
 				del self.quotes[i.hash]
@@ -429,7 +429,7 @@ class AwardedJob(Job):
 				del i.quotes[quote_hash]
 		for i in self.POs.values():
 			if i.quote.hash == quote_hash:
-				del self.POs[i.num]
+				del self.POs[i.number]
 		del self.quotes[quote_hash]
 
 		if delete:

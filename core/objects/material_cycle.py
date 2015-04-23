@@ -38,10 +38,11 @@ class MaterialList(object):
 		self.label = label
 		self.comments = comments
 
+		self.job.add_mat_list(self)
+
 		self.quotes = {}
 		self.tasks = {}
 		self.rentals = {}
-		self.job.add_mat_list(self)
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
 		self.delivery = None    # Stores Delivery object
@@ -259,9 +260,9 @@ class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
 	             quote=None, desc=None, deliveries=None, po_num=None, po_pre=None, update=True):
 		if not po_num:
-			self.num = job.next_po
+			self.number = job.next_po
 		else:
-			self.num = int(po_num)
+			self.number = int(po_num)
 		self.job = job
 		self.mat_list = mat_list
 		self.date_issued = date_issued
@@ -284,11 +285,12 @@ class PO(object):
 			try:
 				add_po_in_log(self)
 			except TypeError:
+				logger.warning('There was an error adding PO to the log.')
 				print "There was an error adding PO to log. Possibly no spreadsheet for jobs??"
 
 	@property
 	def name(self):
-		_num = '%03d' % self.num
+		_num = '%03d' % self.number
 		if hasattr(self, 'po_pre'):
 			return '-'.join([str(self.po_pre), _num])
 		else:

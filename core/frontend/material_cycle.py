@@ -157,16 +157,16 @@ def add_quote_doc(m_hash, q_hash):
 		print "%s not saved" % _doc
 	return redirect(url_for('material_list', m_hash=_mlist.hash))
 
-@app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/<attr>', methods=['POST'])
-def update_material_quote(m_hash, q_hash, attr):
-	_job = MaterialList.db[m_hash].job.number
-	_job = AwardedJob.db[_job]
-	_quote = _job.quotes[q_hash]
+@app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
+def update_po_attr(job_num, po_num, attr):
+	_job = AwardedJob.db[job_num]
+	_po = _job.POs[po_num]
 	_value = request.form['updateValue']
 
 	# TODO: parse/type value!!
 
-	_quote.__setattr__(attr, _value)
-	log.logger.info("Updated price for %s to %s" % (_quote, _value))
+	_po.__setattr__(attr, _value)
+	_job.add_po(_po)
+	log.logger.info("Updated %s for %s to %s" % (attr, _po, _value))
 	return redirect(request.referrer)
 
