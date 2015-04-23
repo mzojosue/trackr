@@ -5,11 +5,12 @@ from parse import parse
 import openpyxl
 
 from datetime import datetime, date, timedelta
-import environment
+import unicodedata
 import os
 
 import objects
-import log
+import environment
+from log import logger
 from core.scheduler import scheduler
 
 
@@ -21,7 +22,7 @@ def ensure_write(f, *args, **kwargs):
 		sched = datetime.now() + td
 		scheduler.add_job(f, 'date', run_date=sched, args=args, kwargs=kwargs)
 		print "Scheduling '%s' for %s" % (f.__name__, sched)
-		log.logger.warning('Operation (\'%s\') failed. Scheduling for %s' % (f.__name__, sched))
+		logger.warning('Operation (\'%s\') failed. Scheduling for %s' % (f.__name__, sched))
 		return False
 	def try_write(*args, **kwargs):
 		try:
@@ -30,12 +31,14 @@ def ensure_write(f, *args, **kwargs):
 			return schedule_job()
 	return try_write
 
+
 def import_po_log(create=False, poLog=environment.get_po_log):
 	# TODO: add logger debugging hooks
 	log = openpyxl.load_workbook(poLog, read_only=True, guess_types=True)
 	_nsheet = len(log.get_sheet_names()) - 2
 	for _sheetNum in range(1, _nsheet):
 		_sheet = log.get_sheet_by_name(log.get_sheet_names()[_sheetNum])
+		logger.debug('Working on worksheet "%s"' % _sheet.title)
 		if create:
 			try:
 				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.title)])
@@ -43,28 +46,44 @@ def import_po_log(create=False, poLog=environment.get_po_log):
 				pass                # sheet does not match regex
 		for _row in _sheet.rows:
 			__po = _row[0].value
-			__po = [i for i in parse("{:d}-{}-{:d}", __po)]
+			logger.debug('Processing row "%s"' % __po)
+			try:
+				__po = [i for i in parse("{:d}-{}-{:d}", __po)]
+			except TypeError:
+				logger.debug('...skipped row')
+				continue
 			if len(__po) is not 3:
+				logger.debug('...skipped row')
 				# skips empty row by assuming that a row
 				continue
 			# TODO: parse vendor cell and create vendor object
 			__vend = _row[1].value
 			__price = _row[2].value
 			if _row[3].value:
-				try:
-					__date_issued = datetime.strptime(_row[3].value, '%m.%d.%Y').date()
-				except ValueError:
-					__date_issued = datetime.strptime(_row[3].value, '%m.%d.%y').date()
-				except TypeError:
-					__d = [int(i) for i in parse("{}.{}.{}", _row[3].value)]
-					__date_issued = date(__d[2], __d[0], __d[1])
-					del __d
-			else:
+				if type(_row[3].value) is unicode:
+					_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
+					for _format in _date_formats:
+						try:
+							__date_issued = datetime.strptime(_row[3].value, _format)
+							break
+						except ValueError:
+							continue
+				else:
+					__date_issued = _row[3].value
+			try:
+				__date_issued
+			except NameError:
 				__date_issued = None
 
 			# SKIP _row[4] -> "date expected"
-			__mat_list_val = _row[5].value
-			__quote_val = _row[6].value
+			try:
+				__mat_list_val  = unicodedata.normalize('NFKD', _row[5].value).encode('ascii','ignore')
+			except TypeError:
+				__mat_list_val = ''
+			try:
+				__quote_val     = unicodedata.normalize('NFKD', _row[6].value).encode('ascii','ignore')
+			except TypeError:
+				__quote_val = ''
 
 			try:
 				__comment = _row[7].value
@@ -90,13 +109,14 @@ def import_po_log(create=False, poLog=environment.get_po_log):
 					_quote = objects.MaterialListQuote(mat_list=_mat_list, price=__price, vend=__vend, date_uploaded=__date_issued)
 
 				# Create PO objects
-				_po_pre  = '-'.join(__po[:1])
+				_po_pre  = '-'.join([str(i) for i in __po[:2]])
 				_po_num  = __po[2]
 				if str(_po_pre) is not str(_job.po_pre):
 					_pre = _po_pre
 				else:
 					_pre = None
 				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment, po_num=_po_num, po_pre=_pre, update=False)
+			del __po, __vend, __price, __date_issued, __mat_list_val, __quote_val, __comment
 
 
 def parse_job_info(jobInfo):
