@@ -184,8 +184,8 @@ class Quote(object):
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		self.vend = vend
 		try:
-			self._price = price
-		except ValueError:
+			self._price = float(price)
+		except (TypeError, ValueError):
 			logger.warning("Error parsing price for Quote %s. Defaulted to $0.0" % self.hash)
 			self._price = 0.0
 		self._doc = doc
