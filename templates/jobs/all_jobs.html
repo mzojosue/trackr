@@ -1,49 +1,52 @@
 {% extends "layout.html" %}
 
 {% block title %}
-	Current Campano Jobs
+Current Campano Jobs
 {% endblock %}
 
 {% block nav_links %}
-	{{ layout.navbar_links('all_jobs') }}
+{{ layout.navbar_links('all_jobs') }}
 {% endblock %}
 
 {% block body %}
 
-	<div class="col-sm-3 col-md-2 sidebar">
-		<h4 class="sub-header">
-			Jobs:
-		</h4>
-		<a href="{{ url_for('create_job') }}" class="btn btn-success btn-sm">
-			Create new job
-		</a>
-		<ul class="nav nav-sidebar">
-			{% for num, obj in Job.db|dictsort %}
-				<li><a href="{{ url_for('job_overview', job_num=num) }}">{{ obj }}</a></li>
-			{% endfor %}
-		</ul>
-	</div><!-- /.sidebar -->
-	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-		<h1 class="page-header">
-			<span class="glyphicon glyphicon-menu-left"></span>
-			Please select a job
-		</h1>
+<div class="col-sm-3 col-md-2 sidebar">
+    <h4 class="sub-header">
+        Jobs:
+    </h4>
+    <a href="{{ url_for('create_job') }}" class="btn btn-success btn-sm">
+        Create new job
+    </a>
+    <ul class="nav nav-sidebar">
+        {% for num, obj in Job.db|dictsort %}
+        <li><a href="{{ url_for('job_overview', job_num=num) }}">{{ obj }}</a></li>
+        {% endfor %}
+    </ul>
+</div><!-- /.sidebar -->
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <h1 class="page-header">
+        <span class="glyphicon glyphicon-menu-left"></span>
+        Please select a job
+    </h1>
 
-		{% if Job.completed_db|length %}
-			<div class="row">
-				<div class="col-sm-4 pull-right">
-					<div class="panel panel-success">
-						<div class="panel-heading">
-							Or select a completed job
-						</div>
-						<ul class="list-group">
-							<li class="list-group-item">Old job 1</li>
-							<li class="list-group-item">Old job 2</li>
-						</ul>
-					</div><!-- /.panel -->
-				</div><!-- /.col -->
-			</div><!-- /.row -->
-		{% endif %}
-	</div><!-- /.main -->
+    {% if Job.completed_db|length %}
+    <div class="row">
+        <div class="col-sm-4 pull-right">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    Or select a completed job
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item">Old job 1</li>
+                    <li class="list-group-item">Old job 2</li>
+                </ul>
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+    {% endif %}
+</div><!-- /.main -->
 
 {% endblock %}
