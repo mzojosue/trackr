@@ -187,27 +187,23 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		_poLog = os.path.split(poLog)
 		_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
 		os.rename(poLog, _poLog)
-		log = open_workbook(_poLog, on_demand=True, formatting_info=True)
+		log = openpyxl.load_workbook(_poLog, guess_types=True)
 	except IOError:
 		print "'%s' is not a valid file path. Cannot update PO log." % poLog
 		return False
 
-	_sheet, _nrow = None, None
-	if hasattr(obj, 'jobs'):
-		_sheet = log.sheet_by_index(obj.job.sheet_num)
-		# TODO: implement algorithm to apply styling and organization to PO log
-		_nrow = _sheet.nrows
-	log = copy(log)    # creates writable Workbook object
+	_sheet_name = '%d - %s' % (obj.job.number, obj.job._name)
+	_sheet = log.get_sheet_by_name(_sheet_name)
+	# TODO: implement algorithm to apply styling and organization to PO log
+	_nrow = len(_sheet.rows) + 1
 
 	# iterate through all rows and cache all POs on worksheet to validate obj against
 	_pos = []
-	for i in range(2, _nrow):
-		_row = _sheet.row_slice(i)
-		_po  = _row[0].value
+	for _row in _sheet.rows:
+		_po = _row[0].value
 		_pos.append(_po)
 
-	if hasattr(obj.job, 'sheet_num') and (obj.number not in _pos):
-		_sheet = log.get_sheet(obj.job.sheet_num)   # creates writeable Worksheet object
+	if obj.__repr__() not in _pos:
 		_date_issued = obj.date_issued.strftime("%m.%d.%y")
 		try:
 			_mdoc = objects.os.path.join(*obj.mat_list.doc)
@@ -218,18 +214,16 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 		except TypeError:
 			_qdoc = ''
 		_row = (obj.name, obj.vend, obj.price, _date_issued, None, _mdoc, _qdoc, None, None)
-		_row = zip(range(len(_row)), _row)
+		_row = zip(range(1, len(_row) + 1), _row)
 		for col, val in _row:
 			try:
-				_sheet.write(_nrow, col, str(val))
+				_sheet.cell(row=_nrow, column=col, value=str(val))
 			except Exception as e:
 				raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
 		log.save(poLog)
 	elif obj.po_num in _pos:
 		# TODO: show an error to the user if po_num was user supplied. else, show an error in the log
 		pass
-	else:
-		_sheet = log.sheet_by_name( '%d - %s' % (obj.number, obj.name) )
 	print "Successfully added %s to PO log" % obj
 
 
