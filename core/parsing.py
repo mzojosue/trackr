@@ -1,6 +1,3 @@
-from xlrd import open_workbook, xldate_as_tuple
-from xlwt import *
-from xlutils.copy import copy
 from parse import parse
 import openpyxl
 
@@ -144,18 +141,34 @@ def find_job_in_log(obj, po_log=environment.get_po_log):
 		obj = objects.AwardedJob.find(obj)
 
 	_sheet_name = '%d - %s' % (obj.number, obj._name)
-	_sheet = log.get_sheet_by_name(_sheet_name)
-	return _sheet, log
+	try:
+		_sheet = log.get_sheet_by_name(_sheet_name)
+		return _sheet, log
+	except KeyError:
+		return False
 
 
+@ensure_write
 def add_job_in_log(obj, po_log=environment.get_po_log):
 	"""
 	Adds a spreadsheet page to the passed log file to log POs for the given jobs
-	:param obj: jobs object to add to log
+	:param obj: job object or int to add to log. Function assumes that the AwardedJob is new to the company
 	:param po_log: path to PO log to to add spreadsheet page to
 	:return: returns output of find_job_in_log to confirm output
 	"""
-	return NotImplemented
+	log = openpyxl.load_workbook(po_log)
+	if type(obj) is int:
+		obj = objects.AwardedJob.find(obj)
+	_sheet_name = '%d - %s' % (obj.number, obj._name)
+
+	try:
+		# returns False if sheet already exists
+		log.get_sheet_by_name(_sheet_name)
+		return False
+	except KeyError:
+		log.create_sheet(-2, _sheet_name)
+		log.save(po_log)
+		return find_job_in_log(obj, log)
 
 
 def dump_pos_from_log(job, po_log=environment.get_po_log):
@@ -180,10 +193,6 @@ def dump_pos_from_log(job, po_log=environment.get_po_log):
 	for _num, _row in zip(range(1, _row_count + 1), _rows):
 		_num += 2    # offset for header rows
 		yield (_num), _row
-
-
-
-
 
 
 def find_po_in_log(obj, po_log=environment.get_po_log):
