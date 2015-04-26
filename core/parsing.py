@@ -32,9 +32,9 @@ def ensure_write(f, *args, **kwargs):
 	return try_write
 
 
-def import_po_log(create=False, poLog=environment.get_po_log):
+def import_po_log(create=False, po_log=environment.get_po_log):
 	# TODO: add logger debugging hooks
-	log = openpyxl.load_workbook(poLog, read_only=True, guess_types=True)
+	log = openpyxl.load_workbook(po_log, read_only=True)
 	_nsheet = len(log.get_sheet_names()) - 2
 	for _sheetNum in range(1, _nsheet):
 		_sheet = log.get_sheet_by_name(log.get_sheet_names()[_sheetNum])
@@ -127,69 +127,92 @@ def parse_estimating_log(estimatingLog):
 	return NotImplemented
 
 
-def find_job_in_log(obj, poLog=environment.get_po_log):
+def find_job_in_log(obj, po_log=environment.get_po_log):
 	"""
-	Finds and returns the given sheet number for the passed jobs object in the given po log
+	Finds and returns the sheet title for the passed job object in the given po log
 	:param obj: jobs object to find in log
-	:param poLog: path to PO log to parse
+	:param po_log: path to PO log to parse
 	:return: integer which has the po log for given jobs
 	"""
-	return NotImplemented
+	if hasattr(po_log, 'get_sheet_by_name'):
+		# checks to see if Book object was passed
+		log = po_log
+	else:
+		log = openpyxl.load_workbook(po_log, read_only=True)
+
+	if type(obj) is int:
+		obj = objects.AwardedJob.find(obj)
+
+	_sheet_name = '%d - %s' % (obj.number, obj._name)
+	_sheet = log.get_sheet_by_name(_sheet_name)
+	return _sheet, log
 
 
-def add_job_in_log(obj, poLog=environment.get_po_log):
+def add_job_in_log(obj, po_log=environment.get_po_log):
 	"""
 	Adds a spreadsheet page to the passed log file to log POs for the given jobs
 	:param obj: jobs object to add to log
-	:param poLog: path to PO log to to add spreadsheet page to
+	:param po_log: path to PO log to to add spreadsheet page to
 	:return: returns output of find_job_in_log to confirm output
 	"""
 	return NotImplemented
 
 
-def find_po_in_log(obj, poLog=environment.get_po_log):
+def dump_pos_from_log(job, po_log=environment.get_po_log):
+	if type(job) is int:
+		# TODO: implement dumping POs from CompletedJob object instead of just AwardedJob
+		# convert string object to job object
+		job = objects.AwardedJob.find(job)
+
+	_sheet, log = find_job_in_log(job)
+
+	# calculate dimensions to iterate over
+	_min_col = 'A'
+	_min_row = 3     # do not iterate over header rows
+	_max_col = 'I'
+	_max_row = _sheet.max_row + 1
+	_iter_dim = '%s%s:%s%s' % (_min_col, _min_row, _max_col, _max_row)
+
+	_rows = []
+	for _row in _sheet.iter_rows(_iter_dim):
+		_rows.append(_row)
+	_row_count = len(_rows)
+	for _num, _row in zip(range(1, _row_count + 1), _rows):
+		_num += 2    # offset for header rows
+		yield (_num), _row
+
+
+
+
+
+
+def find_po_in_log(obj, po_log=environment.get_po_log):
 	"""
 	Finds and returns spreadsheet page, and row number which corresponds to the given PO object passed
 	:param obj: PO object to find in spreadsheet
-	:param poLog: path to PO log to parse
+	:param po_log: path to PO log to parse
 	:return: returns tuple containing spreadsheet page integer and row number integer
 	"""
-	# values to be returned
-	_po_row = None
-
-	if hasattr(poLog, 'sheet_by_name'):
-		# checks to see if Book object was passed
-		log = poLog
-	else:
-		log = open_workbook(poLog, on_demand=True)
-
-
 	if hasattr(obj, 'job'):
-		_sheet_name = '%d - %s' % (obj.job.number, obj.job._name)
-		_sheet = log.sheet_by_name(_sheet_name)
-		_nrows = _sheet.nrows
+		_job = obj.job
 
-		for i in range(2, _nrows):
-			_row = _sheet.row_slice(i)
-			try:
-				if str(_row[0].value) == str(obj.name):
-					_po_row = i
-			except AttributeError:
-				# this is run if a quote object is passed
-				if str(_row[0].value) == str(obj.mat_list.po):
-					_po_row = i
-		return (_sheet, _po_row)
+		_sheet, po_log = find_job_in_log(_job, po_log)
+		_po_dump = dump_pos_from_log(_job, po_log)
+		for _num, _row in _po_dump:
+			if str(_row[0].value) == str(obj.name):
+				_po_row = _num
+				return _sheet.title, _po_row
 
 
 @ensure_write
-def add_po_in_log(obj, poLog=environment.get_po_log):
+def add_po_in_log(obj, po_log=environment.get_po_log):
 	try:
-		_poLog = os.path.split(poLog)
-		_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
-		os.rename(poLog, _poLog)
-		log = openpyxl.load_workbook(_poLog, guess_types=True)
+		_po_log = os.path.split(po_log)
+		_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
+		os.rename(po_log, _po_log)
+		log = openpyxl.load_workbook(_po_log, guess_types=True)
 	except IOError:
-		print "'%s' is not a valid file path. Cannot update PO log." % poLog
+		print "'%s' is not a valid file path. Cannot update PO log." % po_log
 		return False
 
 	_sheet_name = '%d - %s' % (obj.job.number, obj.job._name)
@@ -220,7 +243,7 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 				_sheet.cell(row=_nrow, column=col, value=str(val))
 			except Exception as e:
 				raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
-		log.save(poLog)
+		log.save(po_log)
 	elif obj.po_num in _pos:
 		# TODO: show an error to the user if po_num was user supplied. else, show an error in the log
 		pass
@@ -228,9 +251,9 @@ def add_po_in_log(obj, poLog=environment.get_po_log):
 
 
 @ensure_write
-def update_po_in_log(obj=None, attr=None, value=None, poLog=environment.get_po_log):
+def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_log):
 	"""
-	:param poLog: poLog file object to write to
+	:param po_log: po_log file object to write to
 	:param obj: object to reflect changes on
 	:param attr: object attribute that has been changed
 	:param value: object attribute new value
@@ -238,29 +261,29 @@ def update_po_in_log(obj=None, attr=None, value=None, poLog=environment.get_po_l
 	"""
 	_attr = ('number', 'vend', 'price', 'date_sent', 'date_expected', 'mat_list', 'quote', 'ordered_by', 'quote_id')
 	if attr in _attr:
-		try:
-			_poLog = os.path.split(poLog)
-			_poLog = os.path.join(_poLog[0], '_%s' % _poLog[1])
-			os.rename(poLog, _poLog)
-			log = open_workbook(_poLog, on_demand=True, formatting_info=True)
+		"""try:
+			_po_log = os.path.split(po_log)
+			_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
+			os.rename(po_log, _po_log)
+			log = openpyxl.load_workbook(_po_log, guess_types=True)
 		except OSError:
-			print "'%s' is not a valid file path. Cannot update PO log." % poLog
-			raise OSError
+			print "'%s' is not a valid file path. Cannot update PO log." % po_log
+			raise OSError"""
+		log = openpyxl.load_workbook(po_log, guess_types=True)
 
 		# pass opened PO Log object to function
-		_sheet, _row = find_po_in_log(obj, log)
+		_sheet_name, _row = find_po_in_log(obj, log)
+		_sheet = log.get_sheet_by_name(_sheet_name)
 
 		# column to edit
-		_col = _attr.index(attr)
-
-		# create writable Workbook/Worksheet objects
-		log = copy(log)
-		_sheet = log.get_sheet(_sheet.number)
+		_col = _attr.index(attr) + 1
 
 		# update information
-		_sheet.write(_row, _col, value)
+		_sheet.cell(row=_row, column=_col).value = value
 
-		log.save(poLog)
+		# TODO: confirm update
+
+		log.save(po_log)
 
 		return True
 
