@@ -12,12 +12,11 @@ class TestPOLogParsing(unittest.TestCase):
 		self.log.create_sheet()
 		self.log.create_sheet()
 
-		return None
-
-	def testAddJob(self):
 		self.job = core.AwardedJob(core.get_job_num(), 'test_job')
 
-		core.add_job_in_log(self.job, save=False)
+	def testAddJob(self):
+
+		core.add_job_in_log(self.job, po_log=self.log, save=False)
 
 		# TODO: test that job was created
 
@@ -25,7 +24,7 @@ class TestPOLogParsing(unittest.TestCase):
 
 	def testFindJob(self):
 
-		_sheet = core.find_job_in_log(self.job, self.log)[0]
+		_sheet = core.find_job_in_log(self.job, po_log=self.log)[0]
 		_sheet_name = _sheet.title.replace(' ', '')
 		self.assertEqual(_sheet_name, self.job.name, '')
 		return None

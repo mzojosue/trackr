@@ -156,7 +156,11 @@ def add_job_in_log(obj, po_log=environment.get_po_log, save=True):
 	:param po_log: path to PO log to to add spreadsheet page to
 	:return: returns output of find_job_in_log to confirm output
 	"""
-	log = openpyxl.load_workbook(po_log)
+	if hasattr(po_log, 'get_sheet_by_name'):
+		# checks to see if Book object was passed
+		log = po_log
+	else:
+		log = openpyxl.load_workbook(po_log)
 	if type(obj) is int:
 		obj = objects.AwardedJob.find(obj)
 	_sheet_name = '%d - %s' % (obj.number, obj._name)
