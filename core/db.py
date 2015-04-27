@@ -9,6 +9,35 @@ from log import logger
 Database initialization functions should go here
 """
 
+
+def disconnect_db():
+	""" Sets all class databases to blank dictionaries """
+	# Worker/Job DBs
+	Worker.db = {}
+	AwardedJob.db = {}
+	AwardedJob.completed_db = {}
+
+	# Material Cycle DBs
+	MaterialList.db = {}
+	Delivery.db = {}
+
+	# _Todo DBs
+	Todo.db = {}
+	Todo.completed_db = {}
+
+	# Inventory DBs
+	InventoryItem.db = {}
+	InventoryOrder.db = {}
+
+	# Timesheet DB
+	Timesheet.db = {}
+
+	# Estimating DBs
+	EstimatingJob.completed_db = {}
+	EstimatingJob.db = {}
+	EstimatingQuote.db = {}
+
+
 def init_db(db='trackr_db'):
 
 	logger.debug("Initializing Object DBs...")
@@ -40,31 +69,6 @@ def init_db(db='trackr_db'):
 
 	except:
 		print "Cannot connect to MongoDB Database... Retaining storage cannot be implemented"
-
-		# Worker/Job DBs
-		Worker.db = {}
-		AwardedJob.db = {}
-		AwardedJob.completed_db = {}
-
-		# Material Cycle DBs
-		MaterialList.db = {}
-		Delivery.db = {}
-
-		# _Todo DBs
-		Todo.db = {}
-		Todo.completed_db = {}
-
-		# Inventory DBs
-		InventoryItem.db = {}
-		InventoryOrder.db = {}
-
-		# Timesheet DB
-		Timesheet.db = {}
-
-		# Estimating DBs
-		EstimatingJob.completed_db = {}
-		EstimatingJob.db = {}
-		EstimatingQuote.db = {}
 
 	return True
 

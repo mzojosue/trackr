@@ -149,7 +149,7 @@ def find_job_in_log(obj, po_log=environment.get_po_log):
 
 
 @ensure_write
-def add_job_in_log(obj, po_log=environment.get_po_log):
+def add_job_in_log(obj, po_log=environment.get_po_log, save=True):
 	"""
 	Adds a spreadsheet page to the passed log file to log POs for the given jobs
 	:param obj: job object or int to add to log. Function assumes that the AwardedJob is new to the company
@@ -166,8 +166,10 @@ def add_job_in_log(obj, po_log=environment.get_po_log):
 		log.get_sheet_by_name(_sheet_name)
 		return False
 	except KeyError:
-		log.create_sheet(-2, _sheet_name)
-		log.save(po_log)
+		_sheet = log.create_sheet(-2, _sheet_name)
+		# TODO: add header rows to _sheet
+		if save:
+			log.save(po_log)
 		return find_job_in_log(obj, log)
 
 
@@ -214,7 +216,7 @@ def find_po_in_log(obj, po_log=environment.get_po_log):
 
 
 @ensure_write
-def add_po_in_log(obj, po_log=environment.get_po_log):
+def add_po_in_log(obj, po_log=environment.get_po_log, save=True):
 	try:
 		_po_log = os.path.split(po_log)
 		_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
@@ -252,7 +254,8 @@ def add_po_in_log(obj, po_log=environment.get_po_log):
 				_sheet.cell(row=_nrow, column=col, value=str(val))
 			except Exception as e:
 				raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
-		log.save(po_log)
+		if save:
+			log.save(po_log)
 	elif obj.po_num in _pos:
 		# TODO: show an error to the user if po_num was user supplied. else, show an error in the log
 		pass
@@ -260,7 +263,7 @@ def add_po_in_log(obj, po_log=environment.get_po_log):
 
 
 @ensure_write
-def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_log):
+def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_log, save=True):
 	"""
 	:param po_log: po_log file object to write to
 	:param obj: object to reflect changes on
@@ -292,7 +295,8 @@ def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_
 
 		# TODO: confirm update
 
-		log.save(po_log)
+		if save:
+			log.save(po_log)
 
 		return True
 
