@@ -69,6 +69,7 @@ def init_db(db='trackr_db'):
 
 	except:
 		print "Cannot connect to MongoDB Database... Retaining storage cannot be implemented"
+		disconnect_db()
 
 	return True
 
