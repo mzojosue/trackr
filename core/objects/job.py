@@ -87,8 +87,8 @@ class Job(object):
 
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication')
 
-	_yaml_file = '.job_info.yaml'
-	_yaml_attr = ('date_end', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay')
+	_yaml_filename = '.job_info.yaml'
+	_yaml_attr = ('end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay')
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
@@ -137,10 +137,11 @@ class Job(object):
 		# self.dump_info()
 
 	def load_info(self):
-		_data = yaml.load(self._yaml_file)
+		_data_file = os.path.join(self.path, self._yaml_filename)
+		_data = yaml.load(_data_file)
 		try:
 			for i in self._yaml_attr:
-				_val = _data[i]
+				_val = i
 				# load values from .yaml file to self
 				self.__setattr__(i, _val)
 		except IOError:
@@ -161,9 +162,9 @@ class Job(object):
 			_data[i] = _val
 
 		if hasattr(self, 'path'):
-			_filename = os.path.join(self.path, self._yaml_file)
+			_filename = os.path.join(self.path, self._yaml_filename)
 			_data_file = open(_filename, 'w')
-			yaml.dump(_data, _data_file)
+			yaml.dump(_data, _data_file, default_flow_style=False)
 			_data_file.close()
 
 
@@ -220,8 +221,10 @@ class AwardedJob(Job):
 		# AwardedJob.timesheets.value is [ 'pathname/to/timesheet', { worker.hash: (worker, hours) } ]
 		self.timesheets = {}
 
+		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 		if init_struct:
 			self.init_struct()
+		self.load_info()
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
 
@@ -272,7 +275,6 @@ class AwardedJob(Job):
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
 		# TODO:initialize documents w/ jobs information
-		self.sub_path = os.path.join(AwardedJob.default_sub_dir, self.name)
 		try:
 			os.mkdir(os.path.join(env.env_root, self.sub_path))
 			log.logger.debug('Created project directory for "%s"' % self.name)
