@@ -118,16 +118,10 @@ class Job(object):
 		self.documents = {}
 		self.drawings = {}
 
-
 	@property
 	def name(self):
 		if hasattr(self, 'number'):
 			return '-'.join([str(self.number), str(self._name)])
-
-	@property
-	def sheet_name(self):
-		if hasattr(self, 'number'):
-			return ' - '.join([str(self.number), str(self._name)])
 
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)
@@ -230,6 +224,11 @@ class AwardedJob(Job):
 			self.init_struct()
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
+
+	@property
+	def sheet_name(self):
+		if hasattr(self, 'number'):
+			return ' - '.join([str(self.number), str(self._name)])
 
 	@property
 	def next_po(self):
