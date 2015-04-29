@@ -45,7 +45,6 @@ class TestPOLogParsing(unittest.TestCase):
 		_po_cell = str(_sheet.cell(_po_cell).value)
 		self.assertEqual(self.po.name, _po_cell, "Function did not return correct object")
 
-
 	def testFindPO(self):
 		""" Tests core.find_po_in_log by manually verifying POs """
 		core.add_job_in_log(self.job, po_log=self.log, save=False)

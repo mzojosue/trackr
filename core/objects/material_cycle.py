@@ -53,13 +53,13 @@ class MaterialList(object):
 
 		self._update = True
 
-
 	def __setattr__(self, key, value):
 		if hasattr(self, '_update') and self._update:
 			update_po_in_log(self, key, value)
 		_return = super(MaterialList, self).__setattr__(key, value)
-		if key in MaterialList.listeners:
-			self._listen(key, value)
+		# TODO: automate Task completion via variable listeners
+		#if key in MaterialList.listeners:
+		#	self._listen(key, value)
 		self.update()
 		return _return
 
@@ -200,9 +200,9 @@ class Quote(object):
 	def doc(self):
 		if type(self._doc) is tuple:
 			_path = os.path.join(self.job.path, self._doc[0])
-			return (_path, self._doc[1])
+			return _path, self._doc[1]
 		elif type(self._doc) is str:
-			return (self.path, self._doc)
+			return self.path, self._doc
 		return False
 
 	def __repr__(self):
@@ -308,7 +308,6 @@ class PO(object):
 	def price(self, value):
 		self.quote.price = value
 		self.quote.update()
-
 
 	def __repr__(self):
 		return self.name
