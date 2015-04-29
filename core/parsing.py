@@ -21,6 +21,7 @@ def ensure_write(f, *args, **kwargs):
 		print "Scheduling '%s' for %s" % (f.__name__, sched)
 		logger.warning('Operation (\'%s\') failed. Scheduling for %s' % (f.__name__, sched))
 		return False
+
 	def try_write(*args, **kwargs):
 		try:
 			return f(*args, **kwargs)
@@ -156,10 +157,14 @@ def add_job_in_log(obj, po_log=environment.get_po_log, save=True):
 	:param po_log: path to PO log to to add spreadsheet page to
 	:return: returns output of find_job_in_log to confirm output
 	"""
-	log = openpyxl.load_workbook(po_log)
+	if hasattr(po_log, 'get_sheet_by_name'):
+		# checks to see if Book object was passed
+		log = po_log
+	else:
+		log = openpyxl.load_workbook(po_log, read_only=True)
 	if type(obj) is int:
 		obj = objects.AwardedJob.find(obj)
-	_sheet_name = '%d - %s' % (obj.number, obj._name)
+	_sheet_name = obj.sheet_name
 
 	try:
 		# returns False if sheet already exists
@@ -179,7 +184,7 @@ def dump_pos_from_log(job, po_log=environment.get_po_log):
 		# convert string object to job object
 		job = objects.AwardedJob.find(job)
 
-	_sheet, log = find_job_in_log(job)
+	_sheet, log = find_job_in_log(job, po_log=po_log)
 
 	# calculate dimensions to iterate over
 	_min_col = 'A'
@@ -217,19 +222,24 @@ def find_po_in_log(obj, po_log=environment.get_po_log):
 
 @ensure_write
 def add_po_in_log(obj, po_log=environment.get_po_log, save=True):
-	try:
-		_po_log = os.path.split(po_log)
-		_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
-		os.rename(po_log, _po_log)
-		log = openpyxl.load_workbook(_po_log, guess_types=True)
-	except IOError:
-		print "'%s' is not a valid file path. Cannot update PO log." % po_log
-		return False
+	if hasattr(po_log, 'get_sheet_by_name'):
+		log = po_log
+	else:
+		try:
+			_po_log = os.path.split(po_log)
+			_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
+			os.rename(po_log, _po_log)
+			log = openpyxl.load_workbook(_po_log, guess_types=True)
+		except IOError:
+			print "'%s' is not a valid file path. Cannot update PO log." % po_log
+			return False
 
-	_sheet_name = '%d - %s' % (obj.job.number, obj.job._name)
+	_sheet_name = obj.job.sheet_name
 	_sheet = log.get_sheet_by_name(_sheet_name)
 	# TODO: implement algorithm to apply styling and organization to PO log
 	_nrow = len(_sheet.rows) + 1
+	if _nrow < 3:
+		_nrow = 3
 
 	# iterate through all rows and cache all POs on worksheet to validate obj against
 	_pos = []
@@ -256,10 +266,9 @@ def add_po_in_log(obj, po_log=environment.get_po_log, save=True):
 				raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
 		if save:
 			log.save(po_log)
-	elif obj.po_num in _pos:
-		# TODO: show an error to the user if po_num was user supplied. else, show an error in the log
-		pass
-	print "Successfully added %s to PO log" % obj
+			logger.info("Successfully saved %s to PO log" % obj)
+			print "Successfully saved %s to PO log" % obj
+	return find_po_in_log(obj, po_log)
 
 
 @ensure_write
@@ -273,15 +282,17 @@ def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_
 	"""
 	_attr = ('number', 'vend', 'price', 'date_sent', 'date_expected', 'mat_list', 'quote', 'ordered_by', 'quote_id')
 	if attr in _attr:
-		"""try:
-			_po_log = os.path.split(po_log)
-			_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
-			os.rename(po_log, _po_log)
-			log = openpyxl.load_workbook(_po_log, guess_types=True)
-		except OSError:
-			print "'%s' is not a valid file path. Cannot update PO log." % po_log
-			raise OSError"""
-		log = openpyxl.load_workbook(po_log, guess_types=True)
+		if hasattr(po_log, 'get_sheet_by_name'):
+			log = po_log
+		else:
+			try:
+				_po_log = os.path.split(po_log)
+				_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
+				os.rename(po_log, _po_log)
+				log = openpyxl.load_workbook(_po_log, guess_types=True)
+			except IOError:
+				print "'%s' is not a valid file path. Cannot update PO log." % po_log
+				return False
 
 		# pass opened PO Log object to function
 		_sheet_name, _row = find_po_in_log(obj, log)
@@ -300,3 +311,20 @@ def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_
 
 		return True
 
+def get_po_attr(obj, attr, po_log=environment.get_po_log):
+	# TODO: optimize this bs initialization
+	_attr = {'number': 'A', 'vend': 'B', 'price': 'C', 'date_sent': 'D', 'date_expected': 'E',
+	         'mat_list': 'F', 'quote': 'J', 'ordered_by': 'K', 'quote_id': 'L'}
+	if attr in _attr:
+		if hasattr(po_log, 'get_sheet_by_name'):
+			log = po_log
+		else:
+			log = openpyxl.load_workbook(po_log, guess_types=True)
+
+		_sheet, _row = find_po_in_log(obj, po_log)
+		_sheet = log.get_sheet_by_name(_sheet)
+
+		cell = '%s%d' % (_attr[attr], _row)
+		val = _sheet[cell].value
+
+		return val
