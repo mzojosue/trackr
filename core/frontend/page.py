@@ -74,23 +74,23 @@ def timesheets():
 
 @app.route('/timesheets/upload')
 def upload_timesheet():
-	return NotImplemented
+	return abort(404)
 
 @app.route('/analytics')
 def analytics():
-	return NotImplemented
+	return abort(404)
 
 @app.route('/rentals')
 def rental_log():
-	return NotImplemented
+	return abort(404)
 
 @app.route('/settings')
 def user_settings():
-	return NotImplemented
+	return abort(404)
 
 @app.route('/help')
 def help():
-	return NotImplemented
+	return abort(404)
 
 @app.route('/flash/test')
 def flash_test():

@@ -43,3 +43,7 @@ def upload_file():
 		else:
 			# TODO:show error status on redirect
 			return redirect(request.referrer)
+
+@app.errorhandler(404)
+def not_implemented(e):
+	return "This feature has not been created yet. Go back."

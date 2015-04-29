@@ -29,7 +29,7 @@ def job_analytics(job_num=None):
 	Displays statistics such as estimated jobs cost and labor averages.
 	:param job_num: specifies jobs number
 	"""
-	return NotImplemented
+	return abort(404)
 
 
 @app.route('/materials/<doc_hash>')
@@ -74,7 +74,7 @@ def update_job_quote(job_num, doc_hash):
 	:param doc_hash:
 	:return:
 	"""
-	return NotImplemented
+	return abort(404)
 
 
 
@@ -100,7 +100,7 @@ def job_deliveries(job_num=None):
 	:param job_num: specifies job_num
 	:return:
 	"""
-	return NotImplemented
+	return abort(404)
 
 
 @app.route('/j/<int:job_num>/purchases')
@@ -114,7 +114,7 @@ def job_pos(job_num=None):
 
 @app.route('/j/<int:job_num>/rentals')
 def job_rentals(job_num=None):
-	return NotImplemented
+	return abort(404)
 
 
 @app.route('/j/create', methods=['GET', 'POST'])

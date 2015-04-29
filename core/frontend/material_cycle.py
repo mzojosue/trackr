@@ -86,7 +86,7 @@ def deliveries():
 	Displays all future and past deliveries in a table-like format.
 	:return:
 	"""
-	return NotImplemented
+	return abort(404)
 
 
 @app.route('/delivery/schedule', methods=['POST'])
