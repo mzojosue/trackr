@@ -161,7 +161,7 @@ def add_job_in_log(obj, po_log=environment.get_po_log, save=True):
 		# checks to see if Book object was passed
 		log = po_log
 	else:
-		log = openpyxl.load_workbook(po_log, read_only=True)
+		log = openpyxl.load_workbook(po_log)
 	if type(obj) is int:
 		obj = objects.AwardedJob.find(obj)
 	_sheet_name = obj.sheet_name
