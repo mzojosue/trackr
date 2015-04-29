@@ -92,6 +92,7 @@ class Job(object):
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
+		self._update = False
 		self._name = str(name)
 		self.date_received = date_received
 		self.alt_name = alt_name
@@ -118,6 +119,8 @@ class Job(object):
 		self.documents = {}
 		self.drawings = {}
 
+		self._update = True
+
 	@property
 	def name(self):
 		if hasattr(self, 'number'):
@@ -126,6 +129,10 @@ class Job(object):
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)
 		self.update()
+		try:
+			self.dump_info()
+		except AttributeError:
+			pass
 		return _return
 
 	def __repr__(self):
@@ -138,21 +145,15 @@ class Job(object):
 
 	def load_info(self):
 		_data_file = os.path.join(self.path, self._yaml_filename)
-		_data = yaml.load(_data_file)
 		try:
+			_data = open(_data_file, 'r')
+			_data = yaml.load(_data)
 			for i in self._yaml_attr:
-				_val = i
+				_val = _data[i]
 				# load values from .yaml file to self
 				self.__setattr__(i, _val)
 		except IOError:
-			# file DNE
 			self.dump_info()
-		except KeyError:
-			# attribute is not in .yaml file
-			# TODO: create file??
-			pass
-
-		return None
 
 	def dump_info(self):
 		# dump values from self to .yaml file
