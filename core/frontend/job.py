@@ -169,9 +169,9 @@ def create_job():
 @app.route('/j/<int:job_num>/update', methods=['POST'])
 def update_job_info(job_num):
 	_job = AwardedJob.db[job_num]
-	_job.address = request.form['jobAddress']
-	_job.desc = request.form['jobDesc']
-	_job.po_pre = request.form['poPre']
+	_job.address = str(request.form['jobAddress'])
+	_job.desc = str(request.form['jobDesc'])
+	_job.po_pre = str(request.form['poPre'])
 	return redirect(request.referrer)
 
 

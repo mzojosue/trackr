@@ -1,4 +1,5 @@
 import yaml
+import traceback
 
 from objects import *
 import core.environment as env
@@ -88,7 +89,7 @@ class Job(object):
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication')
 
 	_yaml_filename = '.job_info.yaml'
-	_yaml_attr = ('end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay')
+	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay']
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
@@ -128,11 +129,12 @@ class Job(object):
 
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)
-		self.update()
-		try:
+
+		# do not update yaml file or call self.update() if self is still initializing
+		_caller = traceback.extract_stack(None, 2)[0][2]
+		if _caller is not '__init__':
 			self.dump_info()
-		except AttributeError:
-			pass
+			self.update()
 		return _return
 
 	def __repr__(self):
@@ -171,6 +173,7 @@ class Job(object):
 
 class AwardedJob(Job):
 
+	Job._yaml_attr.append('po_pre')
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
