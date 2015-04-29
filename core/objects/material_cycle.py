@@ -3,6 +3,8 @@ from core.environment import *
 from core.parsing import add_po_in_log, update_po_in_log
 from core.log import logger
 
+import traceback
+
 
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
@@ -23,7 +25,6 @@ class MaterialList(object):
 		:param task: Boolean. If True, SHOULD create a Todo object linked to self
 		:return: None
 		"""
-		self._update = False
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 
 		self.job = job
@@ -51,16 +52,16 @@ class MaterialList(object):
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
-		self._update = True
-
 	def __setattr__(self, key, value):
-		if hasattr(self, '_update') and self._update:
+		# do not update yaml file or call self.update() if self is still initializing
+		_caller = traceback.extract_stack(None, 2)[0][2]
+		if _caller is not '__init__':
 			update_po_in_log(self, key, value)
+			self.update()
 		_return = super(MaterialList, self).__setattr__(key, value)
 		# TODO: automate Task completion via variable listeners
 		#if key in MaterialList.listeners:
 		#	self._listen(key, value)
-		self.update()
 		return _return
 
 	def __repr__(self):
@@ -180,7 +181,6 @@ class MaterialList(object):
 
 class Quote(object):
 	def __init__(self, vend, price=0.0, date_uploaded=None, doc=None):
-		self._update = False
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		self.vend = vend
 		try:
@@ -233,17 +233,17 @@ class MaterialListQuote(Quote):
 		self.mat_list = mat_list
 		self.mat_list.job.add_quote(self)
 
-		# Once object is initialized, any changes made to object will be reflected in PO log
-		self._update = True
-
 	@property
 	def job(self):
 		return self.mat_list.job
 
 	def __setattr__(self, key, value):
-		if hasattr(self, '_update') and self._update:
-			update_po_in_log(self, key, value)
 		_return = super(MaterialListQuote, self).__setattr__(key, value)
+
+		# do not update yaml file if self is still initializing
+		_caller = traceback.extract_stack(None, 2)[0][2]
+		if _caller is not '__init__':
+			update_po_in_log(self, key, value)
 		if hasattr(self, 'mat_list'):
 			self.mat_list.add_quote(self)
 		return _return
