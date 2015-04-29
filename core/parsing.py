@@ -1,7 +1,8 @@
 from parse import parse
+from xlrd import xldate_as_tuple
 import openpyxl
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 import unicodedata
 import os
 
@@ -58,7 +59,9 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 			__vend = _row[1].value
 			__price = _row[2].value
 			if _row[3].value:
-				if type(_row[3].value) is unicode:
+				try:
+					__date_issued = datetime(*xldate_as_tuple(_row[3].value, 0))
+				except ValueError:
 					_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
 					for _format in _date_formats:
 						try:
@@ -66,8 +69,6 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 							break
 						except ValueError:
 							continue
-				else:
-					__date_issued = _row[3].value
 			try:
 				__date_issued
 			except NameError:
