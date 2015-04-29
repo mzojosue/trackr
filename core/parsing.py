@@ -41,7 +41,7 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 			try:
 				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.title)])
 			except TypeError:
-				pass                # sheet does not match regex
+				continue                # skip sheet sheet does not match regex
 		for _row in _sheet.rows:
 			__po = _row[0].value
 			logger.debug('Processing row "%s"' % __po)
