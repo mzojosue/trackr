@@ -124,6 +124,11 @@ class Job(object):
 		if hasattr(self, 'number'):
 			return '-'.join([str(self.number), str(self._name)])
 
+	@property
+	def sheet_name(self):
+		if hasattr(self, 'number'):
+			return ' - '.join([str(self.number), str(self._name)])
+
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)
 		self.update()
