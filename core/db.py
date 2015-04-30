@@ -43,6 +43,7 @@ def disconnect_db():
 
 def init_db(db='trackr_db'):
 
+	print "Initializing Object DBs"
 	logger.debug("Initializing Object DBs...")
 	try:
 		# Worker/Job DBs
