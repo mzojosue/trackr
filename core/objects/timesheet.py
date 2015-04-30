@@ -1,10 +1,11 @@
 from objects import *
+from datetime import timedelta
 
 class Timesheet(object):
-	def __init__(self, job, start_date=None, end_date=None, doc=None, timesheet=dict()):
-		self.hash = abs(hash(''.join([str(job.number), str(start_date), str(end_date)])))
+	def __init__(self, job, end_date=None, doc=None, timesheet=dict()):
+		self.hash = abs(hash(''.join([str(job.number), str(end_date)])))
 		self.job = job
-		self.start_date = start_date
+		self.start_date = end_date - timedelta(7)   # starting date should be a week before ending date
 		self.end_date = end_date
 		self.doc = doc
 

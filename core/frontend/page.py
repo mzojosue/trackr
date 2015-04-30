@@ -84,7 +84,7 @@ def timesheets():
 	if auth is not True:
 		return auth  # redirects to login
 	if hasattr(Timesheet, 'db'):
-		_jobs = AwardedJob.db.itervalues()
+		_jobs = AwardedJob.db.values()
 		_timesheets = Timesheet.db.itervalues()
 		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs)
 

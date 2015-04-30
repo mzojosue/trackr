@@ -319,7 +319,7 @@
 {% endmacro %}
 
 
-{% macro timesheet_input_modal() %}
+{% macro timesheet_input_modal(jobs) %}
 
 	<!-- Button trigger modal -->
 	<button type="button" class="btn btn-success" data-toggle="modal" data-target="#timesheetModal">
@@ -344,15 +344,22 @@
               <label for="jobSelect">
                 Select a job:
               </label>
-              <select name="jobSelect" class="form-control">
+              <select name="jobSelect" id="jobSelect" class="form-control">
                 {% for job in jobs %}
-                  <option value="{{ job.num }}">{{ job.name }}</option>
-                {% else %}
-                  <option>No jobs available</option>
-                {% endfor %}
+	              <option value="{{ job.num }}">{{ job.name }}</option>
+	              {% else %}
+	              <option>No jobs available</option>
+	              {% endfor %}
+	              <option selected>Please select a job</option>
               </select>
             </div>
-            <input type="hidden" value="0" id="workerCounter" name="workerCounter">
+	          <div class="form-group">
+		          <label for="weekEnding">
+			          Week Ending: <small>(Wednesday)</small>
+		          </label>
+		          <input name="weekEnding" id="weekEnding" class="form-control" type="date">
+	          </div>
+	          <input type="hidden" value="0" id="workerCounter" name="workerCounter">
             <table class="table table-condensed timecardTable">
               <tbody id="timecardTable">
                 <tr class="tableHeadings">
