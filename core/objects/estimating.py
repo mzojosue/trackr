@@ -74,8 +74,10 @@ class EstimatingJob(Job):
 		# TODO: implement grouping system
 		self.group = group
 
+		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 		# TODO:prevent directory structure from being created twice
 		self.init_struct()
+		self.load_info()
 
 
 	@property
@@ -190,8 +192,6 @@ class EstimatingJob(Job):
 			return False
 
 	def init_struct(self):
-		self.sub_path = os.path.join(self.default_sub_dir, self.name)
-
 		# create initial bid directory
 		try:
 			print "Creating directory for bid path..."

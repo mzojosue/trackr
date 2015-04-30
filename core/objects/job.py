@@ -89,7 +89,8 @@ class Job(object):
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication')
 
 	_yaml_filename = '.job_info.yaml'
-	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay']
+	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay',
+	              'rate', 'scope', 'bids']
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
