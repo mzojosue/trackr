@@ -1,4 +1,5 @@
 from config import *
+from core.sorting import *
 
 @app.route('/j/')
 def all_jobs():
@@ -104,10 +105,14 @@ def job_deliveries(job_num=None):
 
 
 @app.route('/j/<int:job_num>/purchases')
-def job_pos(job_num=None):
+@app.route('/j/<int:job_num>/purchases/sort/<sort_by>')
+def job_pos(job_num=None, sort_by=None):
 	try:
 		_job = AwardedJob.find(int(job_num))
-		return render_template('jobs/job_purchases.html', job=_job)
+		_pos = _job.POs.values()
+		if sort_by:
+			_pos = sort_pos(_pos, sort_by)
+		return render_template('jobs/job_purchases.html', job=_job, pos=_pos)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 

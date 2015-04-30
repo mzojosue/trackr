@@ -87,3 +87,13 @@ body {
 input[type=file] {
   display: inline;
 }
+
+
+
+/*
+ * Table Styles
+ */
+
+th .not-active {
+  opacity: 0.2;
+}
