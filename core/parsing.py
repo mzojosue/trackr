@@ -61,7 +61,7 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 			if _row[3].value:
 				try:
 					__date_issued = datetime(*xldate_as_tuple(_row[3].value, 0))
-				except ValueError:
+				except (ValueError, TypeError):
 					_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
 					for _format in _date_formats:
 						try:
