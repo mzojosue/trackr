@@ -47,10 +47,13 @@ class MaterialList(object):
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
 		self.delivery = None    # Stores Delivery object
+		self.backorders = {}
 
 		# TODO: set listener to delete todo object associated with sending self out to vendors
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
+
+		self.update()
 
 	def __setattr__(self, key, value):
 		# do not update yaml file or call self.update() if self is still initializing
@@ -100,9 +103,9 @@ class MaterialList(object):
 		return False
 
 	def update(self):
-		if hasattr(MaterialList, 'db') and hasattr(self, 'hash'):
-			MaterialList.db[self.hash] = self
-			if hasattr(self, 'jobs'):
+		if hasattr(self, 'db') and hasattr(self, 'hash'):
+			self.db[self.hash] = self
+			if hasattr(self, 'job'):
 				self.job.add_mat_list(self)
 		return None
 
@@ -233,6 +236,8 @@ class MaterialListQuote(Quote):
 		self.mat_list = mat_list
 		self.mat_list.job.add_quote(self)
 
+		self.update()
+
 	@property
 	def job(self):
 		return self.mat_list.job
@@ -258,7 +263,7 @@ class MaterialListQuote(Quote):
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
-	             quote=None, desc=None, deliveries=None, po_num=None, po_pre=None, update=True):
+	             quote=None, desc=None, delivery=None, po_num=None, po_pre=None, update=True):
 		if not po_num:
 			self.number = job.next_po
 		else:
@@ -267,7 +272,7 @@ class PO(object):
 		self.mat_list = mat_list
 		self.date_issued = date_issued
 		self.quote = quote
-		self.deliveries = deliveries  # stores initial delivery date
+		self.delivery = delivery  # stores initial delivery date
 		self.backorders = []          # stores any backorder delivery dates
 		self.desc = str(desc)
 		if po_pre:

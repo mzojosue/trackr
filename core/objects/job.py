@@ -34,7 +34,10 @@ class Worker(object):
 		elif rate is 'b':
 			self.rate = Worker.B_RATE
 
+		self.job.add_worker(self)
+
 		self.timesheets = []    # list that includes timesheet hashes that worker has been at
+
 
 
 	def __setattr__(self, name, value):
@@ -94,7 +97,6 @@ class Job(object):
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
-		self._update = False
 		self._name = str(name)
 		self.date_received = date_received
 		self.alt_name = alt_name
@@ -121,7 +123,7 @@ class Job(object):
 		self.documents = {}
 		self.drawings = {}
 
-		self._update = True
+		self.update()
 
 	@property
 	def name(self):
@@ -172,10 +174,14 @@ class Job(object):
 				continue
 
 		if hasattr(self, 'path'):
-			_filename = os.path.join(self.path, self._yaml_filename)
-			_data_file = open(_filename, 'w')
-			yaml.dump(_data, _data_file, default_flow_style=False)
-			_data_file.close()
+			try:
+				_filename = os.path.join(self.path, self._yaml_filename)
+				_data_file = open(_filename, 'w')
+				yaml.dump(_data, _data_file, default_flow_style=False)
+				_data_file.close()
+			except IOError:
+				# project directory doesn't exist
+				return None
 
 
 class AwardedJob(Job):
