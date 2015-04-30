@@ -152,9 +152,12 @@ class Job(object):
 			_data = open(_data_file, 'r')
 			_data = yaml.load(_data)
 			for i in self._yaml_attr:
-				_val = _data[i]
-				# load values from .yaml file to self
-				self.__setattr__(i, _val)
+				try:
+					_val = _data[i]
+					# load values from .yaml file to self
+					self.__setattr__(i, _val)
+				except (KeyError, AttributeError):
+					continue
 		except IOError:
 			self.dump_info()
 
