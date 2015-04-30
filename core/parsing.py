@@ -4,7 +4,7 @@ import openpyxl
 
 from datetime import datetime, timedelta
 import unicodedata
-import os
+import os, shutil
 
 import objects
 import environment
@@ -166,7 +166,10 @@ def add_job_in_log(obj, po_log=environment.get_po_log, save=True):
 		# checks to see if Book object was passed
 		log = po_log
 	else:
-		log = openpyxl.load_workbook(po_log)
+		_po_log = os.path.split(po_log)
+		_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
+		shutil.copy2(po_log, _po_log)
+		log = openpyxl.load_workbook(_po_log)
 	if type(obj) is int:
 		obj = objects.AwardedJob.find(obj)
 	_sheet_name = obj.sheet_name
@@ -176,7 +179,7 @@ def add_job_in_log(obj, po_log=environment.get_po_log, save=True):
 		log.get_sheet_by_name(_sheet_name)
 		return False
 	except KeyError:
-		_sheet = log.create_sheet(-2, _sheet_name)
+		_sheet = log.create_sheet(index=int(-2), title=_sheet_name)
 		# TODO: add header rows to _sheet
 		if save:
 			log.save(po_log)
@@ -231,10 +234,7 @@ def add_po_in_log(obj, po_log=environment.get_po_log, save=True):
 		log = po_log
 	else:
 		try:
-			_po_log = os.path.split(po_log)
-			_po_log = os.path.join(_po_log[0], '_%s' % _po_log[1])
-			os.rename(po_log, _po_log)
-			log = openpyxl.load_workbook(_po_log, guess_types=True)
+			log = openpyxl.load_workbook(po_log, guess_types=True)
 		except IOError:
 			print "'%s' is not a valid file path. Cannot update PO log." % po_log
 			return False
