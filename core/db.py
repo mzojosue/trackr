@@ -37,6 +37,9 @@ def disconnect_db():
 	EstimatingJob.db = {}
 	EstimatingQuote.db = {}
 
+	# User Database
+	User.db = {}
+
 
 def init_db(db='trackr_db'):
 
@@ -66,6 +69,9 @@ def init_db(db='trackr_db'):
 		EstimatingJob.db = MongoDict(database=db, collection='estimating_jobs')
 		EstimatingJob.completed_db = MongoDict(database=db, collection='completed_bids')
 		EstimatingQuote.db = MongoDict(database=db, collection='estimating_quotes')
+
+		# User Database
+		User.db = MongoDict(database=db, collection='users')
 
 	except:
 		print "Cannot connect to MongoDB Database... Retaining storage cannot be implemented"

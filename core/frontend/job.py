@@ -7,6 +7,9 @@ def all_jobs():
 	Displays links to all current and past jobs
 	:return:
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return render_template('jobs/all_jobs.html')
 
 
@@ -16,6 +19,9 @@ def job_overview(job_num=None):
 	Renders overview template which displays active objects and general information such as jobs address
 	:param job_num: specifies jobs number
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	try:
 		_job = AwardedJob.find(job_num)
 		_todos = _job.tasks.itervalues()
@@ -36,6 +42,9 @@ def job_analytics(job_num=None):
 @app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')
 def job_material_doc(doc_hash, job_num=None):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if not job_num:
 		_doc = MaterialList.db[int(doc_hash)]
 		_job = _doc.job
@@ -49,6 +58,9 @@ def job_material_doc(doc_hash, job_num=None):
 
 @app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
 def delete_material_doc(doc_hash, job_num=None):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	# TODO:delete document in filesystem
 	AwardedJob.db[job_num].del_material_list(doc_hash)
 	del MaterialList.db[doc_hash]
@@ -58,6 +70,9 @@ def delete_material_doc(doc_hash, job_num=None):
 @app.route('/quote/<doc_hash>')
 @app.route('/j/<int:job_num>/qoutes/<doc_hash>')
 def job_quote_doc(doc_hash, job_num=None):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if not job_num:
 		_doc = MaterialList.db[int(doc_hash)]
 		_job = _doc.job
@@ -75,12 +90,18 @@ def update_job_quote(job_num, doc_hash):
 	:param doc_hash:
 	:return:
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return abort(404)
 
 
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
 def delete_job_quote(job_num, doc_hash):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	# TODO:implement quote deletion functions
 	AwardedJob.db[job_num].del_quote(doc_hash)
 	return redirect(request.referrer)
@@ -88,6 +109,9 @@ def delete_job_quote(job_num, doc_hash):
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/award')
 def job_quote_award_po(doc_hash, job_num=None):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_job = AwardedJob.find(job_num)
 	_doc = _job.quotes[doc_hash]
 	_doc.mat_list.issue_po(_doc)
@@ -101,12 +125,18 @@ def job_deliveries(job_num=None):
 	:param job_num: specifies job_num
 	:return:
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return abort(404)
 
 
 @app.route('/j/<int:job_num>/purchases')
 @app.route('/j/<int:job_num>/purchases/sort/<sort_by>')
 def job_pos(job_num=None, sort_by=None):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	try:
 		_job = AwardedJob.find(int(job_num))
 		_pos = _job.POs.values()
@@ -119,6 +149,9 @@ def job_pos(job_num=None, sort_by=None):
 
 @app.route('/j/<int:job_num>/rentals')
 def job_rentals(job_num=None):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return abort(404)
 
 
@@ -128,6 +161,9 @@ def create_job():
 	First renders jobs creation page, then processes POST request and creates AwardedJob object.
 	:return:
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if request.method == 'POST':
 
 		# TODO:create form field for PO-prefix, foreman, wage rate,
@@ -173,6 +209,9 @@ def create_job():
 
 @app.route('/j/<int:job_num>/update', methods=['POST'])
 def update_job_info(job_num):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_job = AwardedJob.db[job_num]
 	_job.address = str(request.form['jobAddress'])
 	_job.desc = str(request.form['jobDesc'])

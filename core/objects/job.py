@@ -161,8 +161,11 @@ class Job(object):
 		# dump values from self to .yaml file
 		_data = {}
 		for i in self._yaml_attr:
-			_val = self.__getattribute__(i)
-			_data[i] = _val
+			try:
+				_val = self.__getattribute__(i)
+				_data[i] = _val
+			except AttributeError:
+				continue
 
 		if hasattr(self, 'path'):
 			_filename = os.path.join(self.path, self._yaml_filename)

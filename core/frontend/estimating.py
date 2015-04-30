@@ -4,10 +4,16 @@ from werkzeug import secure_filename
 
 @app.route('/estimating')
 def estimating_home():
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return render_template('estimating/estimating.html')
 
 @app.route('/estimating/create', methods=['GET', 'POST'])
 def estimating_create_bid():
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if request.method == 'POST':
 		_name = str(request.form['newBidName'])
 		_addr = str(request.form['jobAddress'])
@@ -36,6 +42,9 @@ def estimating_create_bid():
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def estimating_create_sub_bid(bid_num):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	_gc = request.form['gcName']
 	_gc_contact = request.form['gcContact']
@@ -61,12 +70,18 @@ def estimating_create_sub_bid(bid_num):
 
 @app.route('/estimating/<int:bid_num>/quote/<scope>/<int:q_hash>')
 def bid_quote(bid_num, scope, q_hash):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	_quote = _bid.quotes[scope][q_hash]
 	return send_from_directory(*_quote.doc)
 
 @app.route('/estimating/<int:bid_num>/quote/upload', methods=['POST'])
 def upload_bid_quote(bid_num):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	_scope = request.form['scope']
 	_vend  = request.form['vendor']
@@ -91,6 +106,9 @@ def update_bid_quote(bid_num, q_hash):
 	:param q_hash: quote to update
 	:return: u
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return NotImplemented
 
 @app.route('/estimating/<int:bid_num>/quote/<int:q_hash>/del')
@@ -100,6 +118,9 @@ def delete_bid_quote(bid_num, q_hash):
 	:param q_hash:
 	:return:
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return NotImplemented
 
 @app.route('/estimating/analytics')
@@ -108,16 +129,25 @@ def estimating_analytics():
 
 @app.route('/estimating/bids/current')
 def current_bids():
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		_estimates = EstimatingJob.db.itervalues()
 		return render_template('estimating/current_bids.html', estimates=_estimates)
 
 @app.route('/estimating/bids/past')
 def past_bids():
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return NotImplemented
 
 @app.route('/estimating/bid/<int:bid_num>/overview')
 def bid_overview(bid_num):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
@@ -127,6 +157,9 @@ def bid_overview(bid_num):
 
 @app.route('/estimating/bid/<int:bid_num>/documents')
 def bid_documents(bid_num):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
@@ -136,6 +169,9 @@ def bid_documents(bid_num):
 
 @app.route('/estimating/bid/<int:bid_num>/drawings')
 def bid_drawings(bid_num):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)

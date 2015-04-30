@@ -44,6 +44,49 @@ def upload_file():
 			# TODO:show error status on redirect
 			return redirect(request.referrer)
 
+
+def check_login():
+	""" Checks login and keeps track of user activity. """
+	# TODO:implement a debug mode to bypass login check and return True
+	try:
+		if session['logged_in'] and session['hash_id']:
+			usr = User.find(hash(session['hash_id']))
+			return True
+		return redirect(url_for('login'))
+	except KeyError:
+		return redirect(url_for('login'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	if request.method == 'GET':
+		return render_template('login.html')
+	elif request.method == 'POST':
+		uname = request.form['username']
+		uname = hash(uname)
+		passwd = request.form['password']
+
+		user = User.find(uname)
+		try:
+			if pass_auth(user, passwd):
+				session['hash_id'] = user.hash
+				session['logged_in'] = True     # log the user in
+				flash('You were logged in')
+				return redirect(url_for('home'))
+			else:
+				return "Bad password supplied"
+		except AttributeError:
+			return "User does not exist"
+
+
+@app.route('/logout')
+def logout():
+	"""Logs the user out"""
+	session.pop('logged_in', None)
+	session.pop('hash_id', None)
+	flash('You were logged out')
+	return redirect(url_for('login'))
+
 @app.errorhandler(404)
 def not_implemented(e):
 	return "This feature has not been created yet. Go back."

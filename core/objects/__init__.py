@@ -4,6 +4,7 @@ from job import *
 from material_cycle import *
 from timesheet import *
 from todo import *
+from user import *
 
 
 def get_job_num(*args):

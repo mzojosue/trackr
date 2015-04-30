@@ -6,6 +6,9 @@ def job_materials(job_num=None):
 	Displays history of all active and fulfilled material listed in a table-like format for the specified jobs.
 	:param job_num: specifies jobs number
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	try:
 		_job = AwardedJob.find(int(job_num))
 		if request.method == 'POST':
@@ -56,6 +59,9 @@ def material_list(m_hash):
 	:param m_hash: hash attribute of material list object to display
 	:return: renders material list page
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	try:
 		_list = MaterialList.db[int(m_hash)]
 		_job = _list.job
@@ -71,6 +77,9 @@ def update_material_list(m_hash):
 	:param m_hash: Material list hash to update
 	:return: Redirects to referring page
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_list = MaterialList.db[int(m_hash)]
 	_job = _list.job
 	if 'sentOut' in request.form:
@@ -86,6 +95,9 @@ def deliveries():
 	Displays all future and past deliveries in a table-like format.
 	:return:
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	return abort(404)
 
 
@@ -95,6 +107,9 @@ def schedule_delivery(job_num=None):
 	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`.
 	:param job_num: specifies jobs number
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if not job_num:
 		job_num = int(request.form['jobs-number'])
 	_job = AwardedJob.find(job_num)
@@ -107,6 +122,9 @@ def schedule_delivery(job_num=None):
 
 @app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
 def accept_delivery(job_num, d_hash):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_job = AwardedJob.find(job_num)
 	_dlvry = _job.deliveries[d_hash]
 	if hasattr(_dlvry, 'delivered'):
@@ -120,6 +138,9 @@ def quote():
 	:param:
 	:return:
 	"""
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	if request.method == 'POST':
 		##TODO:correctly implement document upload
 		try:
@@ -144,6 +165,9 @@ def quote():
 
 @app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
 def add_quote_doc(m_hash, q_hash):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_mlist = MaterialList.db[m_hash]
 	_quote = _mlist.quotes[q_hash]
 	_doc = request.files['fileUpload']
@@ -159,6 +183,9 @@ def add_quote_doc(m_hash, q_hash):
 
 @app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
 def update_po_attr(job_num, po_num, attr):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
 	_job = AwardedJob.db[job_num]
 	_po = _job.POs[po_num]
 	_value = request.form['updateValue']
