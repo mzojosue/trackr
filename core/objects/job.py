@@ -1,6 +1,6 @@
 import yaml
-import traceback
 
+from timesheet import *
 from objects import *
 import core.environment as env
 import core.log as log
@@ -40,11 +40,11 @@ class Worker(object):
 
 
 
-	def __setattr__(self, name, value):
+	def __setattr__(self, key, value):
 		""" Alters attribute setting to listen to when self.jobs is changed,
 			the previous jobs is stored in self.prev_jobs
 		"""
-		if name is 'jobs':
+		if key is 'jobs':
 			value.add_worker(self)
 			try:
 				self.prev_jobs.append(self.job)
@@ -52,8 +52,10 @@ class Worker(object):
 				self.job.update()
 			except AttributeError:
 				pass
+		elif key is 'db':
+			Worker.load_workers()
 
-		_return = super(Worker, self).__setattr__(name, value)
+		_return = super(Worker, self).__setattr__(key, value)
 		self.update()
 		return _return
 
@@ -73,7 +75,49 @@ class Worker(object):
 		:return: returns worker object that matches description
 		"""
 		if hasattr(Worker, 'db'):
-			return Worker.db[q_hash]
+			try:
+				return Worker.db[q_hash]
+			except KeyError:
+				return False
+
+	@staticmethod
+	def get_set_or_create(name, job=None):
+		_name = abs(hash(str(name)))
+		worker = Worker.find(_name)
+		if worker:
+			if job:
+				worker.job = job
+			return worker
+		else:
+			return Worker(name, job)
+
+	@staticmethod
+	def load_workers():
+		""" Loads users from campano/workers.yaml in root environment"""
+		# TODO: implement Worker.load_workers function
+		return NotImplemented
+
+	def add_labor(self, hours, date_worked=today(), week_end=None, job=None):
+		if job:
+			self.job = job
+
+		if not week_end:
+			# find correct week end (Wednesday)
+			weekday = date_worked.isoweekday()
+			_wed = 3                    # Wednesday in iso format
+			_diff = _wed - weekday
+			_diff *= -1                 # invert _diff
+			_diff = timedelta(days=_diff)
+			week_end = date_worked + _diff
+
+		# calculate timesheet hash and call add_labor
+		t_hash = abs(hash(''.join([str(self.job.number), str(week_end)])))
+		work = (date_worked, hours)
+		try:
+			timesheet = self.job.timesheets[t_hash]
+		except KeyError:
+			timesheet = Timesheet(self.job, week_end)
+		timesheet.add_labor(self, *work)
 
 	def update(self):
 		"""
@@ -82,7 +126,7 @@ class Worker(object):
 		"""
 		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
 			Worker.db[self.hash] = self
-			if hasattr(self, 'jobs'):
+			if hasattr(self, 'job'):
 				self.job.add_worker(self)
 		return None
 

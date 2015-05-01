@@ -84,13 +84,38 @@ def timesheets():
 	if auth is not True:
 		return auth  # redirects to login
 	if hasattr(Timesheet, 'db'):
-		_jobs = AwardedJob.db.values()
+		_jobs = sort_jobs(AwardedJob.db.values())
 		_timesheets = Timesheet.db.itervalues()
 		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs)
 
-@app.route('/timesheets/upload')
+@app.route('/timesheets/upload', methods=('POST', 'GET'))
 def upload_timesheet():
-	return abort(404)
+	job = int(request.form['jobSelect'])
+	job = AwardedJob.db[job]
+
+	week_ending = datetime.strptime(request.form['weekEnding'], '%Y-%m-%d')
+
+	workerCount = int(request.form['workerCounter']) + 1
+	workerLines = {}
+	for i in range(1, workerCount):
+		_name = 'workerName_%d' % i
+		_name = request.form[_name]
+		_worker = Worker.get_set_or_create(_name, job)
+
+		_work_week = []
+		_days = ('mon', 'tue', 'wed', 'thurs', 'fri', 'sat')
+		for _day in _days:
+			_hours = '%s_Hours_%d' % (_day, i)
+			_hours = int(request.form[_hours])
+			_work_week.append(_hours)
+		_work_week.append(0)                 # blank variable to account for Sunday
+
+		_date = week_ending - timedelta(6)   # offset date to previous Thursday (week beginning)
+		for hours in _work_week:
+			if _date.isoweekday() is not 7:
+				_worker.add_labor(hours, _date, week_ending, job)
+			_date += timedelta(1)            # increment to next day
+	return redirect(request.referrer)
 
 @app.route('/analytics')
 def analytics():

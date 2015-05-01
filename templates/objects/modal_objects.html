@@ -346,7 +346,7 @@
               </label>
               <select name="jobSelect" id="jobSelect" class="form-control">
                 {% for job in jobs %}
-	              <option value="{{ job.num }}">{{ job.name }}</option>
+	              <option value="{{ job.number }}">{{ job.name }}</option>
 	              {% else %}
 	              <option>No jobs available</option>
 	              {% endfor %}
@@ -384,7 +384,7 @@
 
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-	        <button type="submit" class="btn btn-primary" form="itemOrderForm">Submit</button>
+	        <button type="submit" class="btn btn-primary" form="timesheetUploadForm">Submit</button>
 	      </div>
 
 	    </div>

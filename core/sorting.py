@@ -12,3 +12,7 @@ def sort_pos(container, value='number', reverse=False):
 				_container.append(i)
 		container = _container
 	return sorted(container, key=attrgetter(value), reverse=reverse)
+
+
+def sort_jobs(container, value='number', reverse=False):
+	return sorted(container, key=attrgetter, reverse=reverse)

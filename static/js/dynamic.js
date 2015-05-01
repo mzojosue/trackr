@@ -77,55 +77,6 @@ function update_mat_list(selfID, matListID) {
 }
 
 
-function newTimecardRow() {
-
-  var tableArea = document.getElementById('timecardTable');
-  var numi = document.getElementById('workerCounter');
-  var num = (document.getElementById('workerCounter').value -1)+ 2;
-  numi.value = num;
-
-  // Create new row
-  var newRow = document.createElement('tr');
-  var newRowLineID = 'timecardLineID-'+num;
-  newRow.setAttribute('id', newRowLineID);
-
-  // Create worker name table cell
-  var workerNameCell = document.createElement('td');
-  // Create and populate worker name input element
-  var workerNameInput = document.createElement('input');
-  var workerLabelName = 'workerName'+num;
-  workerNameInput.setAttribute('name', workerLabelName);
-  workerNameInput.setAttribute('type', 'text');
-  workerNameInput.setAttribute('class', 'form-control');
-  // Append input element to table-cell
-  workerNameCell.appendChild(workerNameInput);
-  // Append table-cell to row
-  newRow.appendChild(workerNameCell);
-
-  // Set variable for days of the week
-  var daysOfWeek = ['mon', 'tue', 'wed', 'thurs', 'fri', 'sat'];
-  var weekLength = daysOfWeek.length;
-
-  // Iterate over array and create new data cells
-  for (var i=0; i<weekLength; i++) {
-    var dayInputCell = document.createElement('td');
-    var inputDay = document.createElement('input');
-    var inputName = daysOfWeek[i] + 'Hours' + num;
-    inputDay.setAttribute('name', inputName);
-    inputDay.setAttribute('type', 'number');
-    inputDay.setAttribute('class', 'form-control');
-    // Add input element to table-cell
-    dayInputCell.appendChild(inputDay);
-    // Add table-cell to row
-    newRow.appendChild(dayInputCell);
-  }
-
-  // Append new row to table
-  tableArea.appendChild(newRow);
-
-}
-
-
 function unlock_job_for_editing(jobNum) {
     document.getElementById('jobAddress').readOnly = false;
     document.getElementById('jobDesc').readOnly = false;

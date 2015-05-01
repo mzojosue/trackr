@@ -1,5 +1,6 @@
 from flask import *
 from core.objects import *
+from core.sorting import *
 from werkzeug import secure_filename
 
 # Flask environment
