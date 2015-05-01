@@ -41,6 +41,7 @@
 					<th>Job Name:</th>
           <th>Week Finished:</th>
           <th>On Field:</th>
+					<th>Hours:</th>
           <th>Timesheet Document:</th>
 					<th>Del:</th>
 					<!--th>Ordered By:</th-->
@@ -50,6 +51,7 @@
 						<td>{{ ts.job }}</td>
             <td>{{ ts.end_date.date() }}</td>
             <td>{{ ts.bodies_on_field() }}</td>
+						<td>{{ ts.hours }}</td>
             <td>{{ ts.doc }}</td>
 						<td>
               <!-- TODO: implement delete function to timesheet element -->

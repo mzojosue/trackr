@@ -23,8 +23,9 @@ class Timesheet(object):
 		"""
 		# TODO: calculate Saturday hours and overtime
 		_hrs = 0.0
-		for _work in self.timesheet.itervalues():
-			_hrs += float(_work[1])
+		for _worker in self.timesheet.itervalues():
+			for _day in _worker.itervalues():
+				_hrs += float(_day)
 		return _hrs
 
 	def __setattr__(self, key, value):
@@ -46,9 +47,9 @@ class Timesheet(object):
 				date_worked = datetime(*date_worked)
 
 			if worker.hash in self.timesheet:
-				self.timesheet[worker.hash].append((date_worked, float(hours)))
+				self.timesheet[worker.hash][date_worked] = float(hours)
 			else:
-				self.timesheet[worker.hash] = [(date_worked, float(hours))]
+				self.timesheet[worker.hash] = {date_worked: float(hours)}
 
 			if self.hash not in worker.timesheets:
 				worker.timesheets.append(self.hash)

@@ -12,6 +12,10 @@ class Worker(object):
 	A_RATE_journeyman = 97.38
 	B_RATE = 51.76
 
+	yaml_tag = u'!Worker'
+	_yaml_attr = ('hash', 'name', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
+	_yaml_filename = 'workers.yaml'
+
 	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None):
 		"""
 		Initializes employee representation object.
@@ -38,20 +42,23 @@ class Worker(object):
 
 		self.timesheets = []    # list that includes timesheet hashes that worker has been at
 
-
+	@property
+	def job_num(self):
+		return self.job.number
 
 	def __setattr__(self, key, value):
 		""" Alters attribute setting to listen to when self.jobs is changed,
 			the previous jobs is stored in self.prev_jobs
 		"""
-		if key is 'jobs':
+		if key is 'job':
 			value.add_worker(self)
-			try:
+
+			_caller = traceback.extract_stack(None, 2)[0][2]
+			if _caller is not '__init__':
 				self.prev_jobs.append(self.job)
-				del self.job.workers[self.name]
-				self.job.update()
-			except AttributeError:
-				pass
+				del self.job.workers[self.hash]
+
+			self.job.update()
 		elif key is 'db':
 			Worker.load_workers()
 
@@ -118,6 +125,35 @@ class Worker(object):
 		except KeyError:
 			timesheet = Timesheet(self.job, week_end)
 		timesheet.add_labor(self, *work)
+
+	"""def load_info(self):
+		_data_file = os.path.join(self.path, self._yaml_filename)
+		try:
+			_data = open(_data_file, 'r')
+			_data = yaml.load(_data)
+			for i in self._yaml_attr:
+				try:
+					_val = _data[i]
+					# load values from .yaml file to self
+					self.__setattr__(i, _val)
+				except (KeyError, AttributeError):
+					continue
+		except IOError:
+			self.dump_info()"""
+
+	def dump_info(self):
+		""" dump values from self to .yaml file """
+		_data = {}
+		for i in self._yaml_attr:
+			try:
+				_val = self.__getattribute__(i)
+				_data[i] = _val
+			except AttributeError:
+				continue
+		_filename = os.path.join(env.env_root, self._yaml_filename)
+		_data_file = open(_filename, 'w')
+		yaml.dump(self, _data_file, default_flow_style=False)
+		_data_file.close()
 
 	def update(self):
 		"""
@@ -362,8 +398,10 @@ class AwardedJob(Job):
 	def labor(self):
 		""" Calculates labor totals """
 		hrs = 0.0
-		for i in self.timesheets.itervalues():
-			hrs += float(i[1])  # grab second item in list
+		for sheet in self.timesheets.itervalues():
+			for worker in sheet.timesheet.itervalues():
+				for hours in worker.itervalues():
+					hrs += float(hours)  # grab second item in list
 		return hrs
 
 	@property

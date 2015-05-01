@@ -103,12 +103,12 @@ def upload_timesheet():
 		_worker = Worker.get_set_or_create(_name, job)
 
 		_work_week = []
-		_days = ('mon', 'tue', 'wed', 'thurs', 'fri', 'sat')
+		_days = ('thurs', 'fri', 'sat', 'mon', 'tue', 'wed')
 		for _day in _days:
 			_hours = '%s_Hours_%d' % (_day, i)
 			_hours = int(request.form[_hours])
 			_work_week.append(_hours)
-		_work_week.append(0)                 # blank variable to account for Sunday
+		_work_week.insert(3, 0)                 # blank variable to account for Sunday
 
 		_date = week_ending - timedelta(6)   # offset date to previous Thursday (week beginning)
 		for hours in _work_week:
