@@ -12,6 +12,13 @@ class User(object):
 		if hasattr(self, 'db'):
 			self.db[self.hash] = self
 
+	def __setattr__(self, key, value):
+		if key is 'db':
+			User.load_users()
+		_return = super(User, self).__setattr__(key, value)
+		self.update()
+		return _return
+
 	@staticmethod
 	def find(query):
 		if hasattr(User, 'db'):
@@ -20,6 +27,21 @@ class User(object):
 				return User.db[query]
 			except KeyError:
 				return False
+
+	@staticmethod
+	def load_users():
+		""" Loads users from campano/users.yaml in root environment"""
+		# TODO: implement Worker.load_users function
+		return NotImplemented
+
+	def update(self):
+		"""
+		Function re-initializes self.hash as the dictionary key pointed to self
+		:return: None
+		"""
+		if hasattr(User, 'db') and hasattr(self, 'hash'):
+			User.db[self.hash] = self
+		return None
 
 
 def hash_secret(secret, salt=None):
