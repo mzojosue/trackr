@@ -26,7 +26,7 @@ class Worker(object):
 		:param role: worker's role on the jobsite. ie: foreman, installer/mechanic, pipe fitter, etc
 		:param rate: pay rate for employee. can be arbitrary value
 		"""
-		self.name = name
+		self.name = str(name)
 		self.hash = abs(hash(str(self.name)))
 		self.job = job
 		self.prev_jobs = []
@@ -55,7 +55,7 @@ class Worker(object):
 
 			_caller = traceback.extract_stack(None, 2)[0][2]
 			if _caller is not '__init__':
-				self.prev_jobs.append(self.job)
+				self.prev_jobs.append(self.job.name)
 				del self.job.workers[self.hash]
 
 			self.job.update()
@@ -150,10 +150,11 @@ class Worker(object):
 				_data[i] = _val
 			except AttributeError:
 				continue
+		_data = {self.name: _data}
+
 		_filename = os.path.join(env.env_root, self._yaml_filename)
-		_data_file = open(_filename, 'w')
-		yaml.dump(self, _data_file, default_flow_style=False)
-		_data_file.close()
+		with open(_filename, 'a') as _data_file:
+			yaml.dump(_data, _data_file, default_flow_style=False)
 
 	def update(self):
 		"""
