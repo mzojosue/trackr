@@ -74,9 +74,12 @@ def init_db(db='trackr_db'):
 		# User Database
 		User.db = MongoDict(database=db, collection='users')
 
-	except:
+	except AttributeError:
 		print "Cannot connect to MongoDB Database... Retaining storage cannot be implemented"
 		disconnect_db()
+
+	# load values from yaml storage
+	User.load_users()
 
 	return True
 
