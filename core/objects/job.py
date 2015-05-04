@@ -13,10 +13,10 @@ class Worker(object):
 	B_RATE = 51.76
 
 	yaml_tag = u'!Worker'
-	_yaml_attr = ('hash', 'name', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
+	_yaml_attr = ('hash', 'name', 'date_created', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
 	_yaml_filename = 'workers.yaml'
 
-	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None):
+	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today()):
 		"""
 		Initializes employee representation object.
 		:param name: employee's name. hash/key is created from this variable.
@@ -27,7 +27,7 @@ class Worker(object):
 		:param rate: pay rate for employee. can be arbitrary value
 		"""
 		self.name = str(name)
-		self.hash = abs(hash(str(self.name)))
+		self.hash = abs(hash(str(self.name) + str(date_created)))
 		self.job = job
 		self.prev_jobs = []
 		self.phone = str(phone)
@@ -41,6 +41,8 @@ class Worker(object):
 		self.job.add_worker(self)
 
 		self.timesheets = []    # list that includes timesheet hashes that worker has been at
+
+		self.dump_info()
 
 	@property
 	def job_num(self):
@@ -57,8 +59,7 @@ class Worker(object):
 			if _caller is not '__init__':
 				self.prev_jobs.append(self.job.name)
 				del self.job.workers[self.hash]
-
-			self.job.update()
+				self.job.update()
 		elif key is 'db':
 			Worker.load_workers()
 
@@ -101,8 +102,17 @@ class Worker(object):
 	@staticmethod
 	def load_workers():
 		""" Loads users from campano/workers.yaml in root environment"""
-		# TODO: implement Worker.load_workers function
-		return NotImplemented
+		fname = os.path.join(env.env_root, Worker._yaml_filename)
+		try:
+			with open(fname, 'r') as _file_dump:
+				_file_dump = yaml.load(_file_dump)
+				for _uname, _attr in _file_dump.iteritems():
+					_attr['name'] = _uname
+					Worker(**_attr)
+			log.logger.info('Successfully imported users.yaml')
+		except IOError:
+			pass
+		return True
 
 	def add_labor(self, hours, date_worked=today(), week_end=None, job=None):
 		if job:
@@ -143,6 +153,15 @@ class Worker(object):
 
 	def dump_info(self):
 		""" dump values from self to .yaml file """
+		_filename = os.path.join(env.env_root, self._yaml_filename)
+		try:
+			with open(_filename, 'r') as _data_file:
+				_dump = yaml.load(_data_file)
+				if self.name in _dump:
+					# TODO: update object instead of quitting
+					return True
+		except IOError:
+			pass
 		_data = {}
 		for i in self._yaml_attr:
 			try:
@@ -152,7 +171,6 @@ class Worker(object):
 				continue
 		_data = {self.name: _data}
 
-		_filename = os.path.join(env.env_root, self._yaml_filename)
 		with open(_filename, 'a') as _data_file:
 			yaml.dump(_data, _data_file, default_flow_style=False)
 

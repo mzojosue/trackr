@@ -3,20 +3,24 @@ import yaml
 import uuid
 import os
 import traceback
+from datetime import datetime
 
 from core.log import logger
 import core.environment as env
 
+today = datetime.today
+
 
 class User(object):
 	_yaml_filename = 'users.yaml'
-	_yaml_attr = ('username', 'email', 'salt', 'passwd')
+	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created')
 
-	def __init__(self, name, username, email, passwd, salt=None):
+	def __init__(self, name, username, email, passwd, salt=None, date_created=today()):
 		self.name = name
 		self.username = username
 		self.email = email
-		self.hash = hash(str(username))
+		self.hash = abs(hash(str(username) + str(date_created)))
+		self.date_created = date_created
 		if not salt:
 			self.passwd, self.salt = hash_secret(passwd)
 		else:
@@ -48,12 +52,15 @@ class User(object):
 	def load_users():
 		""" Loads users from campano/users.yaml in root environment"""
 		fname = os.path.join(env.env_root, User._yaml_filename)
-		with open(fname, 'r') as _file_dump:
-			_file_dump = yaml.load(_file_dump)
-			for _uname, _attr in _file_dump.iteritems():
-				_attr['name'] = _uname
-				User(**_attr)
-		logger.info('Successfully imported users.yaml')
+		try:
+			with open(fname, 'r') as _file_dump:
+				_file_dump = yaml.load(_file_dump)
+				for _uname, _attr in _file_dump.iteritems():
+					_attr['name'] = _uname
+					User(**_attr)
+			logger.info('Successfully imported users.yaml')
+		except IOError:
+			pass
 		return True
 
 	def dump_info(self):
