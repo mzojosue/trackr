@@ -13,7 +13,7 @@ class Worker(object):
 	B_RATE = 51.76
 
 	yaml_tag = u'!Worker'
-	_yaml_attr = ('hash', 'name', 'date_created', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
+	_yaml_attr = ('date_created', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
 	_yaml_filename = 'workers.yaml'
 
 	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today()):
@@ -37,6 +37,8 @@ class Worker(object):
 			self.rate = Worker.A_RATE
 		elif rate is 'b':
 			self.rate = Worker.B_RATE
+		else:
+			self.rate = rate
 
 		self.job.add_worker(self)
 
@@ -60,8 +62,6 @@ class Worker(object):
 				self.prev_jobs.append(self.job.name)
 				del self.job.workers[self.hash]
 				self.job.update()
-		elif key is 'db':
-			Worker.load_workers()
 
 		_return = super(Worker, self).__setattr__(key, value)
 		self.update()
@@ -173,6 +173,7 @@ class Worker(object):
 
 		with open(_filename, 'a') as _data_file:
 			yaml.dump(_data, _data_file, default_flow_style=False)
+			log.logger.info('Successfully added %s to Worker yaml storage' % self.name)
 
 	def update(self):
 		"""
@@ -183,6 +184,7 @@ class Worker(object):
 			Worker.db[self.hash] = self
 			if hasattr(self, 'job'):
 				self.job.add_worker(self)
+		self.dump_info()
 		return None
 
 
