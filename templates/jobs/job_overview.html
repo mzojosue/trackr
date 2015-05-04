@@ -103,18 +103,7 @@
                 </div>
             </div>
 
-            <div id="workerList" class="col-xs-4 pull-right">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Workers
-                    </div>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            Test
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            {{ objects.worker_widget(job=job) }}
 
             <div class="clearfix visible-lg-block"></div>
             <hr>

@@ -352,3 +352,28 @@
 	</div><!-- /.col -->
 
 {% endmacro %}
+
+
+{% macro worker_widget(job) %}
+
+  <div id="workerList" class="col-xs-4 pull-right">
+	  <div class="panel panel-default">
+		  <div class="panel-heading">
+			  Workers
+		  </div>
+		  <ul class="list-group">
+			  {% for worker in job.workers.itervalues() %}
+			    <li class="list-group-item">
+				    <!-- TODO:add link to worker page -->
+				    {{ worker.name }}
+			    </li>
+			  {% else %}
+			    <li class="list-group-item">
+				    No workers added to job yet
+			    </li>
+			  {% endfor %}
+		  </ul>
+	  </div>
+  </div>
+
+{% endmacro %}
