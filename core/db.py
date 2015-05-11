@@ -92,6 +92,9 @@ def clear_db(db='trackr_db'):
 	client.drop_database(str(db))
 	logger.debug('Database was cleared')
 
+	set_po_log_hash('')
+	init_db(db)
+
 	return True
 
 
@@ -100,13 +103,11 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 
 	print "Beginning to reset database..."
 
-	try:
+	if check_po_log():
 		clear_db()
+		import_po_log(True, log)
+	else:
 		init_db()
-	except:
-		print "Could not connect to database"
-
-	import_po_log(True, log)
 
 	os.chdir(_cwd)
 
