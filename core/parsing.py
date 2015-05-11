@@ -1,3 +1,4 @@
+import hashlib
 from parse import parse
 from xlrd import xldate_as_tuple
 import openpyxl
@@ -29,6 +30,18 @@ def ensure_write(f, *args, **kwargs):
 		except OSError:
 			return schedule_job()
 	return try_write
+
+
+def check_po_log(po_log=environment.get_po_log):
+	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
+	md5 = hashlib.md5()
+	with open(po_log, 'rb') as po_log:
+		buf = po_log.read()
+		md5.update(buf)
+		_hash = str(md5.hexdigest())
+		if _hash != environment.last_po_log_hash:
+			environment.set_po_log_hash(environment.get_po_log, _hash)
+		return True
 
 
 def import_po_log(create=False, po_log=environment.get_po_log):

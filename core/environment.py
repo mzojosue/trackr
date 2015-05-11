@@ -2,11 +2,10 @@ import yaml
 
 config_file = 'config.yaml'
 
-def load_config(f):
+def load_config(f, *args):
 	try:
 		settings = yaml.load(open(config_file))
-		print "Successfully loaded '%s'" % config_file
-		return f(settings)
+		return f(settings, *args)
 	except IOError as e:
 		print "Cannot find '%s'" % config_file
 		return False
@@ -41,3 +40,18 @@ def get_info_log(settings):
 		return str(settings['info_log'])
 	except KeyError:
 		raise KeyError('path', 'Job Contact Sheet', False)
+
+
+@load_config
+def last_po_log_hash(settings):
+	try:
+		return str(settings['last_po_log_hash'])
+	except KeyError:
+		raise KeyError('value', 'the last known PO Log hash', None)
+
+
+def set_po_log_hash(file_hash, settings=yaml.load(open(config_file))):
+	# TODO: test this function!
+	settings['last_po_log_hash'] = str(file_hash)
+	config = open(config_file, 'w')
+	yaml.dump(settings, config, default_flow_style=False)
