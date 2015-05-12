@@ -1,5 +1,4 @@
 import yaml
-from core.log import logger
 
 config_file = 'config.yaml'
 
@@ -57,5 +56,4 @@ def set_po_log_hash(file_hash, settings=config_file):
 		dump = yaml.load(dump)
 		dump['last_po_log_hash'] = str(file_hash)
 	with open(config_file, 'w') as config:
-		logger.info('updating PO Log hash digest stored in %s' % settings)
 		yaml.dump(dump, config, default_flow_style=False)

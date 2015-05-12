@@ -40,6 +40,7 @@ def check_po_log(po_log=environment.get_po_log):
 		md5.update(buf)
 		_hash = str(md5.hexdigest())
 		if _hash != environment.last_po_log_hash:
+			logger.info('updating PO Log hash digest stored')
 			environment.set_po_log_hash(_hash)
 			return False
 		return True
