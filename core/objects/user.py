@@ -42,11 +42,10 @@ class User(object):
 	@staticmethod
 	def find(query):
 		if hasattr(User, 'db'):
-			query = hash(query)
-			try:
-				return User.db[query]
-			except KeyError:
-				return False
+			for i in User.db.values():
+				if i.username == str(query):
+					return i
+			return False
 
 	@staticmethod
 	def load_users():
@@ -55,9 +54,12 @@ class User(object):
 		try:
 			with open(fname, 'r') as _file_dump:
 				_file_dump = yaml.load(_file_dump)
-				for _uname, _attr in _file_dump.iteritems():
-					_attr['name'] = _uname
-					User(**_attr)
+				try:
+					for _uname, _attr in _file_dump.iteritems():
+						_attr['name'] = _uname
+						User(**_attr)
+				except AttributeError:
+					return False
 			logger.info('Successfully imported users.yaml')
 		except IOError:
 			pass
@@ -68,9 +70,12 @@ class User(object):
 		try:
 			with open(_filename, 'r') as _data_file:
 				_dump = yaml.load(_data_file)
-				if self.name in _dump:
-					# TODO: update object instead of quitting
-					return True
+				try:
+					if self.name in _dump:
+						# TODO: update object instead of quitting
+						return True
+				except TypeError:
+					pass
 		except IOError:
 			pass
 		_data = {}
@@ -115,12 +120,11 @@ def hash_secret(secret, salt=None):
 def pass_auth(obj, value):
 	"""Authenticates passwd against obj.passwd
 	::params:
-	    obj:    should be type u, v or str. str is converted to u or v.
+	    obj:    should be type User or str. str is converted to User.
 	::returns:
 	    True:   when passwd == obj.passwd
 	    False:  when passwd != obj.passwd
 	    0:      when user doesn't exist"""
-	#obj should be type u or v at this point
 	passwd = hash_secret(value, obj.salt)[0]  # extract hashed result from returned list
 	if passwd == obj.passwd:
 		return True

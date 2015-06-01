@@ -51,7 +51,7 @@ def check_login():
 	# TODO:implement a debug mode to bypass login check and return True
 	try:
 		if session['logged_in'] and session['hash_id']:
-			usr = User.find(hash(session['hash_id']))
+			usr = User.find(session['hash_id'])
 			return True
 		return redirect(url_for('login'))
 	except KeyError:
@@ -64,7 +64,6 @@ def login():
 		return render_template('login.html')
 	elif request.method == 'POST':
 		uname = request.form['username']
-		uname = hash(uname)
 		passwd = request.form['password']
 
 		user = User.find(uname)

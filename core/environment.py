@@ -55,5 +55,5 @@ def set_po_log_hash(file_hash, settings=config_file):
 	with open(settings, 'r') as dump:
 		dump = yaml.load(dump)
 		dump['last_po_log_hash'] = str(file_hash)
-	with open(config_file, 'w') as config:
-		yaml.dump(dump, config, default_flow_style=False)
+		with open(config_file, 'w') as config:
+			yaml.dump(dump, config, default_flow_style=False)
