@@ -43,8 +43,8 @@ class EstimatingJob(Job):
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 
 		super(EstimatingJob, self).__init__(name, date_received=date_received, date_end=date_end, alt_name=alt_name,
-											address=address, scope=scope, desc=desc, rate=rate,
-											tax_exempt=tax_exempt, certified_pay=certified_pay)
+		                                    address=address, scope=scope, desc=desc, rate=rate,
+		                                    tax_exempt=tax_exempt, certified_pay=certified_pay)
 		self.quotes = {}
 
 		# TODO: implement document/drawing storage
@@ -53,13 +53,16 @@ class EstimatingJob(Job):
 		# should be reset with every rebid and a change in scope
 		self.sent_out = False
 
+		self.sub_path = os.path.join(self.default_sub_dir, self.name)
+		# TODO:prevent directory structure from being created twice
+		self.init_struct()
+		self.load_info()
 
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
 			self.quotes[i] = {}
 		self.bids = {}      # Stores previous bids. Stores self as first bid
 		self.add_bid(date_received, gc, date_end, gc_contact)
-
 
 		# False if jobs is not rebid. Rebid is defined by a bid that is due to the same gc but differs in due date
 		# Variable is pointed to object that is being rebid
@@ -73,12 +76,6 @@ class EstimatingJob(Job):
 		# Variable is either pointed to a sister object, a tuple of objects, a group str label, or a tuple of labels
 		# TODO: implement grouping system
 		self.group = group
-
-		self.sub_path = os.path.join(self.default_sub_dir, self.name)
-		# TODO:prevent directory structure from being created twice
-		self.init_struct()
-		self.load_info()
-
 
 	@property
 	def name(self):
@@ -179,6 +176,19 @@ class EstimatingJob(Job):
 	def add_quote(self, quote_obj, category):
 		if category in self.scope:
 			self.quotes[category][quote_obj.hash] = quote_obj
+			self.update()
+
+	def del_bid(self, bid_hash=None):
+		if bid_hash:
+			del self.bids[bid_hash]
+		elif hasattr(self, 'db'):
+			del self.db[self.number]
+		del self
+		return True
+
+	def del_quote(self, quote_hash, category):
+		if category in self.scope:
+			del self.quotes[category][quote_hash]
 			self.update()
 
 	def find_rebid(self):
