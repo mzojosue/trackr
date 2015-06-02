@@ -49,7 +49,7 @@ def check_po_log(po_log=environment.get_po_log):
 def import_po_log(create=False, po_log=environment.get_po_log):
 	# TODO: add logger debugging hooks
 	log = openpyxl.load_workbook(po_log, read_only=True)
-	_nsheet = len(log.get_sheet_names()) - 2
+	_nsheet = len(log.get_sheet_names()) - 2    # skip over "Blank Page" and "Small Projects" pages
 	for _sheetNum in range(1, _nsheet):
 		_sheet = log.get_sheet_by_name(log.get_sheet_names()[_sheetNum])
 		logger.debug('Working on worksheet "%s"' % _sheet.title)
@@ -348,3 +348,28 @@ def get_po_attr(obj, attr, po_log=environment.get_po_log):
 		val = _sheet[cell].value
 
 		return val
+
+
+def set_log_style(po_log=environment.get_po_log):
+	log = openpyxl.load_workbook(po_log)
+
+	_cols = (('number', 'A', 18),    # automatic width
+	         ('vend', 'B', 17.5),
+	         ('price', 'C', 10),
+	         ('date_sent', 'D', 12),
+	         ('date_expected', 'E', 11),
+	         ('mat_list', 'F', 45),
+	         ('quote', 'G', 60),
+	         ('ordered_by', 'H', 15),
+	         ('comments', 'I', 10))
+
+	_sheets = log.get_sheet_names()
+	for _sheet in _sheets:
+		ws = log.get_sheet_by_name(_sheet)
+		for col in _cols:
+			try:
+				ws.column_dimensions[col[1]].width = col[2]
+			except KeyError:
+				continue
+
+	log.save(po_log)

@@ -270,7 +270,8 @@ class Job(object):
 		for i in self._yaml_attr:
 			try:
 				_val = self.__getattribute__(i)
-				_data[i] = _val
+				if _val is not None:
+					_data[i] = _val
 			except AttributeError:
 				continue
 

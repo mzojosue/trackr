@@ -56,7 +56,6 @@ class EstimatingJob(Job):
 		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 		# TODO:prevent directory structure from being created twice
 		self.init_struct()
-		self.load_info()
 
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
@@ -72,10 +71,10 @@ class EstimatingJob(Job):
 		else:
 			self.rebid = rebid
 
-		# False if jobs is not related to any other bid, current or past
-		# Variable is either pointed to a sister object, a tuple of objects, a group str label, or a tuple of labels
 		# TODO: implement grouping system
 		self.group = group
+
+		self.load_info()
 
 	@property
 	def name(self):
