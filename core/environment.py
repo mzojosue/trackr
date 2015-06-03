@@ -14,13 +14,6 @@ def load_config(f, *args):
 		return e.args[2]
 
 @load_config
-def get_log_file(settings):
-	try:
-		return str( settings['log_file'] )
-	except KeyError:
-		raise KeyError('path', 'log file', False)
-
-@load_config
 def env_root(settings):
 	try:
 		return str( settings['data_root'] )
@@ -28,11 +21,11 @@ def env_root(settings):
 		raise KeyError('path', 'root environment', '/no/root')
 
 @load_config
-def get_po_log(settings):
+def get_estimating_log(settings):
 	try:
-		return str(settings['po_log'])
+		return str(settings['estimating_log'])
 	except KeyError:
-		raise KeyError('path', 'PO log', False)
+		raise KeyError('path', 'Estimating Log', False)
 
 @load_config
 def get_info_log(settings):
@@ -40,6 +33,20 @@ def get_info_log(settings):
 		return str(settings['info_log'])
 	except KeyError:
 		raise KeyError('path', 'Job Contact Sheet', False)
+
+@load_config
+def get_log_file(settings):
+	try:
+		return str( settings['log_file'] )
+	except KeyError:
+		raise KeyError('path', 'log file', False)
+
+@load_config
+def get_po_log(settings):
+	try:
+		return str(settings['po_log'])
+	except KeyError:
+		raise KeyError('path', 'PO log', False)
 
 
 @load_config

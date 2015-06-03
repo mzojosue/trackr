@@ -91,13 +91,13 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 			try:
 				__date_issued
 			except NameError:
-				__date_issued = None
+				__date_issued   = None
 
 			# SKIP _row[4] -> "date expected"
 			try:
 				__mat_list_val  = unicodedata.normalize('NFKD', _row[5].value).encode('ascii','ignore')
 			except TypeError:
-				__mat_list_val = ''
+				__mat_list_val  = ''
 			try:
 				__quote_val     = unicodedata.normalize('NFKD', _row[6].value).encode('ascii','ignore')
 			except TypeError:
@@ -141,7 +141,52 @@ def parse_job_info(jobInfo):
 	return NotImplemented
 
 
-def parse_estimating_log(estimatingLog):
+def parse_estimating_log(estimatingLog=environment.get_estimating_log):
+	log = openpyxl.load_workbook(estimatingLog, read_only=True)
+	_sheet = log.get_active_sheet()
+	logger.debug('Opening Estimating Log')
+
+	#  _prev = None  # buffer for storing previous bids. Used for grouping and alternate bidders
+	for _row in _sheet.rows:
+		__num = _row[0].value
+		print "Processing bid row %s" % __num
+		try:
+			__num = int(__num)
+			__name = _row[1].value
+			#  __date_recvd = _row[2].value
+			__date_due = _row[3].value  # parse bid due date
+			if __date_due == None:
+				__date_due = ''
+			elif __date_due != 'ASAP':
+				if "@" in __date_due:
+					# create datetime object
+					__date_due = [i for i in parse("{} @ {}", __date_due)]
+				else:
+					__date_due = [__date_due]
+				_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
+				for _format in _date_formats:
+					try:
+						__due = datetime.strptime(__date_due[0], _format)
+						if __date_due[1]:
+							#TODO: translate AM/PM
+							__due.hours = parse("{:d}{}", __date_due[1])[0]
+						__date_due = __due
+						break
+					except ValueError:
+						continue
+					except TypeError:
+						break
+			#  __date_sent  # parse date bid sent
+			__gc = _row[5].value          # Default: None
+			__gc_contact = _row[6].value  # Default: None
+			#  __via # default: email
+			#  __scope  # parse spaces, commas, BLOCK in scopes
+			print __num, __name, __date_due
+			#TODO: create estimating bid object
+		except (TypeError, ValueError):
+			# exception raised when row is not estimating job
+			print "exception"
+
 	return NotImplemented
 
 
@@ -330,6 +375,7 @@ def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_
 			log.save(po_log)
 
 		return True
+
 
 def get_po_attr(obj, attr, po_log=environment.get_po_log):
 	# TODO: optimize this bs initialization

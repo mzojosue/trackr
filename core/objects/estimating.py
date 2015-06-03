@@ -63,7 +63,7 @@ class EstimatingJob(Job):
 		self.bids = {}      # Stores previous bids. Stores self as first bid
 		self.add_bid(date_received, gc, date_end, gc_contact)
 
-		# False if jobs is not rebid. Rebid is defined by a bid that is due to the same gc but differs in due date
+		# False if jobs is not rebid. Rebid is defined by a bid that is shares the same name but differs in due date
 		# Variable is pointed to object that is being rebid
 		_rebid = self.find_rebid()
 		if not rebid and _rebid and hasattr(_rebid, 'hash') and (_rebid.hash != self.hash):
