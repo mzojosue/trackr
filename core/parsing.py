@@ -156,7 +156,7 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 			#  __date_recvd = _row[2].value
 			__date_due = _row[3].value  # parse bid due date
 			if __date_due == None:
-				__date_due = ''
+				__date_due = 'ASAP'
 			elif __date_due != 'ASAP':
 				if "@" in __date_due:
 					# create datetime object
@@ -167,9 +167,11 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 				for _format in _date_formats:
 					try:
 						__due = datetime.strptime(__date_due[0], _format)
-						if __date_due[1]:
+						if __date_due[1:]:
+							#TODO: implement
 							#TODO: translate AM/PM
-							__due.hours = parse("{:d}{}", __date_due[1])[0]
+							#__due.hour = parse("{:d}{}", __date_due[1])[0]
+							pass
 						__date_due = __due
 						break
 					except ValueError:
@@ -181,7 +183,7 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 			__gc_contact = _row[6].value  # Default: None
 			#  __via # default: email
 			#  __scope  # parse spaces, commas, BLOCK in scopes
-			print __num, __name, __date_due
+			#print __num, __name, __date_due, __gc, __gc_contact
 			#TODO: create estimating bid object
 		except (TypeError, ValueError):
 			# exception raised when row is not estimating job
