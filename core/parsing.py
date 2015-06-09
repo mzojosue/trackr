@@ -152,15 +152,21 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 		print "Processing bid row %s" % __num
 		try:
 			__num = int(__num)
-			__name = _row[1].value
-			#  __date_recvd = _row[2].value
-			__date_due = _row[3].value  # parse bid due date
-			if __date_due == None:
-				__date_due = 'ASAP'
-			elif __date_due != 'ASAP':
+		except (ValueError, TypeError):
+			continue
+		__name = _row[1].value
+		#  __date_recvd = _row[2].value
+		__date_due = _row[3].value  # parse bid due date
+		if __date_due == None:
+			__date_due = 'ASAP'
+		elif __date_due != 'ASAP':
+			try:
+				__date_due = _row[3].value
+				__date_due.date()
+			except AttributeError:
 				if "@" in __date_due:
-					# create datetime object
 					__date_due = [i for i in parse("{} @ {}", __date_due)]
+				# create datetime object
 				else:
 					__date_due = [__date_due]
 				_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
@@ -178,16 +184,15 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 						continue
 					except TypeError:
 						break
-			#  __date_sent  # parse date bid sent
-			__gc = _row[5].value          # Default: None
-			__gc_contact = _row[6].value  # Default: None
-			#  __via # default: email
-			#  __scope  # parse spaces, commas, BLOCK in scopes
-			#print __num, __name, __date_due, __gc, __gc_contact
-			#TODO: create estimating bid object
-		except (TypeError, ValueError):
-			# exception raised when row is not estimating job
-			print "exception"
+		#  __date_sent  # parse date bid sent
+		if _row[5].value: __gc = _row[5].value          # Default: None
+		else: __gc = None
+		if _row[6].value: __gc_contact = _row[6].value  # Default: None
+		else: __gc_contact = None
+		#  __via # default: email
+		#  __scope  # parse spaces, commas, BLOCK in scopes
+		print __num, __name, __date_due, __gc, __gc_contact
+		objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'])
 
 	return NotImplemented
 
