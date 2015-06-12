@@ -16,7 +16,7 @@ class EstimatingJob(Job):
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
 	             address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
-	             tax_exempt=False, certified_pay=False, sub_path=None, group=False):
+	             tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False):
 		"""
 		:param name: The desired name for the bid
 		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
@@ -44,7 +44,7 @@ class EstimatingJob(Job):
 
 		super(EstimatingJob, self).__init__(name, date_received=date_received, date_end=date_end, alt_name=alt_name,
 		                                    address=address, scope=scope, desc=desc, rate=rate,
-		                                    tax_exempt=tax_exempt, certified_pay=certified_pay)
+		                                    tax_exempt=tax_exempt, certified_pay=certified_pay, completed=completed)
 		self.quotes = {}
 
 		# TODO: implement document/drawing storage
@@ -233,8 +233,11 @@ class EstimatingJob(Job):
 
 	@staticmethod
 	def find(num):
-		if hasattr(EstimatingJob, 'db'):
-			return EstimatingJob.db[num]
+		if hasattr(EstimatingJob, 'db') and hasattr(EstimatingJob, 'completed_db'):
+			try:
+				return EstimatingJob.db[num]
+			except KeyError:
+				return EstimatingJob.completed_db[num]
 
 	@staticmethod
 	def get_bid_num():

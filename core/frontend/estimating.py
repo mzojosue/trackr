@@ -133,7 +133,7 @@ def current_bids():
 	if auth is not True:
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
-		_estimates = EstimatingJob.db.itervalues()
+		_estimates = EstimatingJob.db.values()
 		return render_template('estimating/current_bids.html', estimates=_estimates)
 
 @app.route('/estimating/bids/past')
@@ -141,7 +141,10 @@ def past_bids():
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
-	return NotImplemented
+
+	if hasattr(EstimatingJob, 'completed_db'):
+		_estimates = EstimatingJob.completed_db.values()
+		return render_template('estimating/past_bids.html', estimates=_estimates)
 
 @app.route('/estimating/bid/<int:bid_num>/overview')
 def bid_overview(bid_num):

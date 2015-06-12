@@ -197,7 +197,7 @@ class Job(object):
 	              'rate', 'scope', 'bids']
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
-	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False):
+	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False, completed=False):
 		self._name = str(name)
 		self.date_received = date_received
 		self.alt_name = alt_name
@@ -224,6 +224,7 @@ class Job(object):
 		self.documents = {}
 		self.drawings = {}
 
+		self.completed = completed
 		self.update()
 
 	@property
@@ -246,7 +247,10 @@ class Job(object):
 
 	def update(self):
 		if hasattr(self, 'db') and hasattr(self, 'number'):
-			self.db[self.number] = self
+			if hasattr(self, 'completed') and self.completed and hasattr(self, 'completed_db'):
+				self.completed_db[self.number] = self
+			else:
+				self.db[self.number] = self
 		# self.dump_info()
 
 	def load_info(self):

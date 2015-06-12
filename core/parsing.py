@@ -192,7 +192,17 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 		#  __via # default: email
 		#  __scope  # parse spaces, commas, BLOCK in scopes
 		print __num, __name, __date_due, __gc, __gc_contact
-		objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'])
+		try:
+			if objects.today() < __date_due:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'])
+			else:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'], completed=True)
+				# TODO: create Bid as "Past Bid" if due date is past due.
+				pass
+		except TypeError:
+			# Executed if __date_due is 'ASAP'
+			# TODO: check styling to determine if bid turned in or not
+			pass
 
 	return NotImplemented
 
