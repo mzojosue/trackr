@@ -143,7 +143,7 @@ def past_bids():
 		return auth  # redirects to login
 
 	if hasattr(EstimatingJob, 'completed_db'):
-		_estimates = EstimatingJob.completed_db.values()
+		_estimates = reversed(EstimatingJob.completed_db.values())
 		return render_template('estimating/past_bids.html', estimates=_estimates)
 
 @app.route('/estimating/bid/<int:bid_num>/overview')

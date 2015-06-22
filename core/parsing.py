@@ -193,7 +193,7 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 		#  __scope  # parse spaces, commas, BLOCK in scopes
 		print __num, __name, __date_due, __gc, __gc_contact
 		try:
-			if objects.today() < __date_due:
+			if objects.today() <= __date_due:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'])
 			else:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'], completed=True)
