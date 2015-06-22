@@ -88,9 +88,13 @@ def init_db(db='trackr_db'):
 def clear_db(db='trackr_db'):
 
 	print "Clearing Database..."
-	client = pymongo.MongoClient("localhost", 27017)
-	client.drop_database(str(db))
-	logger.debug('Database was cleared')
+	try:
+		client = pymongo.MongoClient("localhost", 27017)
+		client.drop_database(str(db))
+		logger.debug('Database was cleared')
+	except:
+		print "Couldn't connect to database"
+		logger.debug('Couldnt connect to database')
 
 	set_po_log_hash('')
 	init_db(db)
@@ -103,7 +107,7 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 
 	print "Beginning to reset database..."
 
-	if check_po_log():
+	if True: # check_po_log():
 		clear_db()
 		import_po_log(True, log)
 	else:
