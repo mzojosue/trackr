@@ -58,6 +58,15 @@ def check_login():
 		return redirect(url_for('login'))
 
 
+def get_user():
+	try:
+		if session['logged_in'] and session['hash_id']:
+			usr = User.find(session['hash_id'])
+			return usr
+	except KeyError:
+		return redirect(url_for('login'))
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 	if request.method == 'GET':

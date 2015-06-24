@@ -12,7 +12,7 @@ class MaterialList(object):
 	listeners = ('sent_out', 'po', 'delivered')
 	_steps = ('send_out', 'assess_quotes', 'send_po', 'receive_delivery', 'complete')
 
-	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
+	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True, user=None):
 		"""
 		Initializes a representational object for a material list document.
 		:param job: AwardedJob that material list is for
@@ -147,11 +147,11 @@ class MaterialList(object):
 		self.update()
 		return None
 
-	def issue_po(self, quote_obj):
+	def issue_po(self, quote_obj, user=None):
 		quote_obj.awarded = True
 		self.fulfilled = True
 		self.sent_out = True
-		_obj = PO(self.job, quote=quote_obj, mat_list=self)
+		_obj = PO(self.job, quote=quote_obj, mat_list=self, user=user)
 		self.update()
 		return _obj
 
@@ -264,7 +264,7 @@ class MaterialListQuote(Quote):
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
-	             quote=None, desc=None, delivery=None, po_num=None, po_pre=None, update=True):
+	             quote=None, desc=None, delivery=None, po_num=None, po_pre=None, update=True, user=None):
 		if not po_num:
 			self.number = job.next_po
 		else:
@@ -276,6 +276,7 @@ class PO(object):
 		self.delivery = delivery  # stores initial delivery date
 		self.backorders = []          # stores any backorder delivery dates
 		self.desc = str(desc)
+		self.user = user
 		if po_pre:
 			self.po_pre = str(po_pre)
 
