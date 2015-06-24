@@ -4,6 +4,7 @@ from mongodict import *
 from objects import *
 from parsing import *
 from log import logger
+from os import remove
 
 """
 Database initialization functions should go here
@@ -107,7 +108,10 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 
 	print "Beginning to reset database..."
 
-	if True: # check_po_log():
+	# TODO: reinitialize logger
+	#remove(environment.get_log_file)
+
+	if True:  # check_po_log():
 		clear_db()
 		import_po_log(True, log)
 	else:
