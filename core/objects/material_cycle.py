@@ -2,6 +2,7 @@ from objects import *
 from core.environment import *
 from core.parsing import add_po_in_log, update_po_in_log
 from core.log import logger
+from core.scheduler import scheduler
 
 import traceback
 
@@ -59,8 +60,8 @@ class MaterialList(object):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__':
-			update_po_in_log(self, key, value)
 			self.update()
+			update_po_in_log(self, key, value)
 		_return = super(MaterialList, self).__setattr__(key, value)
 		# TODO: automate Task completion via variable listeners
 		#if key in MaterialList.listeners:
@@ -248,7 +249,7 @@ class MaterialListQuote(Quote):
 		# do not update yaml file if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__':
-			update_po_in_log(self, key, value)
+			scheduler.add_job(update_po_in_log, args=[self, key, value])
 		if hasattr(self, 'mat_list'):
 			self.mat_list.add_quote(self)
 		return _return
@@ -288,7 +289,7 @@ class PO(object):
 
 		if update:
 			try:
-				add_po_in_log(self)
+				scheduler.add_job(add_po_in_log, args=[self])
 			except TypeError:
 				logger.warning('There was an error adding PO to the log.')
 				print "There was an error adding PO to log. Possibly no spreadsheet for jobs??"
