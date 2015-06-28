@@ -177,13 +177,9 @@ class Worker(object):
 
 	def update(self):
 		"""
-		Function re-initializes self.hash as the dictionary key pointed to self. Also adds itself to self.jobs.workers.
+		Calls self.dump_info
 		:return: None
 		"""
-		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
-			Worker.db[self.hash] = self
-			if hasattr(self, 'job'):
-				self.job.add_worker(self)
 		self.dump_info()
 		return None
 
@@ -471,10 +467,12 @@ class AwardedJob(Job):
 		:param mlist_obj: material list object to add to self
 		:return: None
 		"""
+		if not mlist_obj.hash in self.materials:
+			log.logger.info('Added material list %s (%s) to %s' % (mlist_obj.hash, mlist_obj.items, self.name))
+
 		self.materials[mlist_obj.hash] = mlist_obj
 		self.update()
 
-		log.logger.info('Added material list %s (%s) to %s' % (mlist_obj.hash, mlist_obj.items, self.name))
 
 	def add_quote(self, quote_obj):
 		"""
@@ -506,13 +504,14 @@ class AwardedJob(Job):
 		:param po_obj: PO object to add to self.
 		:return: None
 		"""
+		if po_obj.number not in self.POs:
+			log.logger.info('Awarded %s to %s for %s' % (po_obj.name, po_obj.vend, self.name))
 		self.POs[po_obj.number] = po_obj
 		_mat_list = po_obj.mat_list.hash
 		self.materials[_mat_list].po = po_obj
 		self.materials[_mat_list].fulfilled = True
 		self.update()
 
-		log.logger.info('Awarded %s to %s for %s' % (po_obj.name, po_obj.vend, self.name))
 
 	def add_worker(self, wrkr_obj):
 		"""

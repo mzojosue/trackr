@@ -250,8 +250,7 @@ class MaterialListQuote(Quote):
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__':
 			scheduler.add_job(update_po_in_log, args=[self, key, value])
-		if hasattr(self, 'mat_list'):
-			self.mat_list.add_quote(self)
+		self.update()
 		return _return
 
 	def update(self):
