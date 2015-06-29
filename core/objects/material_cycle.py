@@ -78,6 +78,9 @@ class MaterialList(object):
 		else:
 			return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt)
 
+	def __len__(self):
+		return len(self.items)
+
 	@property
 	def age(self):
 		"""
@@ -348,6 +351,14 @@ class Delivery(object):
 		if hasattr(Delivery, 'db'):
 			return Delivery.db[q_hash]
 
+	def __repr__(self):
+		if self.mat_list.label:
+			return '%s delivery for %s expected %s' % (self.mat_list.label, self.job, self.expected)
+		elif len(self.mat_list):
+			return 'Delivery for %s containing %d item(s)' % (self.job, len(self.mat_list))
+		else:
+			return 'Delivery for %s ordered by %s' % (self.job, self.mat_list.po.user)
+
 	def __setattr__(self, key, value):
 		_return = super(Delivery, self).__setattr__(key, value)
 		if hasattr(Delivery, 'db'):
@@ -356,6 +367,10 @@ class Delivery(object):
 			self.po.job.deliveries[self.hash] = self
 			self.job.update()
 		return _return
+
+	@property
+	def label(self):
+		return self.__repr__()
 
 	@property
 	def job(self):
@@ -372,3 +387,7 @@ class Delivery(object):
 	@property
 	def countdown(self):
 		return (self.expected - today()).days
+
+	@property
+	def timestamp(self):
+		return int(self.expected.strftime("%s")) * 1000

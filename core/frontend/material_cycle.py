@@ -1,4 +1,8 @@
+import json
 from config import *
+
+
+# Material List Pages #
 
 @app.route('/j/<int:job_num>/materials', methods=['POST', 'GET'])
 def job_materials(job_num=None):
@@ -89,8 +93,17 @@ def update_material_list(m_hash):
 		return redirect(request.referrer)
 
 
+# Delivery Pages #
+
 @app.route('/deliveries')
 def deliveries():
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+	return render_template('deliveries.html')
+
+@app.route('/deliveries/json')
+def serialized_deliveries():
 	"""
 	Displays all future and past deliveries in a table-like format.
 	:return:
@@ -98,7 +111,29 @@ def deliveries():
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
-	return abort(404)
+
+	# Grab 'from' and 'to' GET requests
+	#TODO: implement 'from' and 'to' as search queries
+	date_scope = [request.args.get('from'), request.args.get('to')]
+
+	result = ['id', 'title', 'url', 'class', 'start', 'end']
+	grab = ['hash', 'label', 'hash', 'countdown', 'timestamp', 'timestamp']
+	if hasattr(Delivery, 'db'):
+		_deliveries = []
+		for delivery in Delivery.db.itervalues():
+			_deliv = {}
+			for i, z in zip(result, grab):
+				_deliv[i] = delivery.__getattribute__(z)
+			#TODO: format url value
+
+			#TODO: format class value
+			_deliv['class'] = 'event-important'
+
+			#TODO: format start and end values
+
+			_deliveries.append(_deliv)
+		_return = {"success": 1, "result": _deliveries}
+		return json.dumps(_return)
 
 
 @app.route('/delivery/schedule', methods=['POST'])
@@ -120,6 +155,7 @@ def schedule_delivery(job_num=None):
 	flash('Delivery successfully scheduled.', 'success')
 	return redirect(request.referrer)
 
+
 @app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
 def accept_delivery(job_num, d_hash):
 	auth = check_login()
@@ -132,6 +168,7 @@ def accept_delivery(job_num, d_hash):
 	return redirect(request.referrer)
 
 
+# Quote Pages #
 @app.route('/quote', methods=['GET', 'POST'])
 def quote():
 	""" Used for uploading and associating a quote with a material list via HTTP POST methods
