@@ -33,6 +33,11 @@ def home():
 		return render_template('dashboard.html')
 
 
+@app.route('overview')
+def serialized_overview():
+	""" Sums up all events occuring within given timestamps. Pulls upcoming deliveries, bid due dates, and other key dates. """
+	return abort(404)
+
 @app.route('/inventory')
 def inventory():
 	auth = check_login()
