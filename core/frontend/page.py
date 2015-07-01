@@ -33,9 +33,17 @@ def home():
 		return render_template('dashboard.html')
 
 
-@app.route('overview')
+@app.route('/overview/json')
 def serialized_overview():
 	""" Sums up all events occuring within given timestamps. Pulls upcoming deliveries, bid due dates, and other key dates. """
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+	result = ['id', 'title', 'url', 'class', 'start', 'end']
+
+	# Estimating Variables to grab
+	# TODO: implement variable grabbing correctly
+	grab = []
 	return abort(404)
 
 @app.route('/inventory')
