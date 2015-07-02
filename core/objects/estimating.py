@@ -42,7 +42,7 @@ class EstimatingJob(Job):
 		# hash is used to keep bid unique
 		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 
-		super(EstimatingJob, self).__init__(name, date_received=date_received, date_end=date_end, alt_name=alt_name,
+		super(EstimatingJob, self).__init__(name, date_received=date_received, alt_name=alt_name,
 		                                    address=address, scope=scope, desc=desc, rate=rate,
 		                                    tax_exempt=tax_exempt, certified_pay=certified_pay, completed=completed)
 		self.quotes = {}
@@ -102,6 +102,16 @@ class EstimatingJob(Job):
 				return 'Bid is due today'
 		else:
 			return 'ASAP'
+
+	@property
+	def start_timestamp(self):
+		""" Returns the date that bid was received as a millisecond timestamp ready to be displayed on calendar object """
+		return int(self.date_received.strftime("%s")) * 1000
+
+	@property
+	def end_timestamp(self):
+		""" Returns the bid due date as a millisecond timestamp ready to be displayed on caldendar """
+		return int(self.bid_date.strftime("%s")) * 1000
 
 	@property
 	def bidding_to(self):

@@ -1,5 +1,5 @@
 from config import *
-
+import json
 
 @app.route('/upload/<filename>')
 def uploaded_file(filename):
@@ -39,12 +39,32 @@ def serialized_overview():
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
+
+	# Grab 'from' and 'to' GET requests
+	#TODO: implement 'from' and 'to' as search queries
+	date_scope = [request.args.get('from'), request.args.get('to')]
+
 	result = ['id', 'title', 'url', 'class', 'start', 'end']
+	_results = []
 
 	# Estimating Variables to grab
 	# TODO: implement variable grabbing correctly
-	grab = []
-	return abort(404)
+	grab = ['number', 'name', 'number', 'countdown', 'start_timestamp', 'end_timestamp']
+	if hasattr(EstimatingJob, 'completed_db'):
+		_estimates = []
+		for estimate in EstimatingJob.completed_db.itervalues():
+			_bid = {}
+			for i, z in zip(result, grab):
+				_bid[i] = estimate.__getattribute__(z)
+			_bid['url'] = url_for('bid_overview', bid_num = _bid['url'])
+			# TODO: format class value based on countdown
+			_bid['class'] = 'event-important'
+			# TODO: format start and end values
+			_estimates.append(_bid)
+		#_results.extend(_estimates)
+		_return = {"success": 1, "result": _estimates}
+		return json.dumps(_return)
+
 
 @app.route('/inventory')
 def inventory():
