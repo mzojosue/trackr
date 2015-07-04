@@ -152,9 +152,9 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 		print "Processing bid row %s" % __num
 		try:
 			__num = int(__num)
+			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
 		except (ValueError, TypeError):
 			continue
-		__name = _row[1].value
 		#  __date_recvd = _row[2].value
 		__date_due = _row[3].value  # parse bid due date
 		if __date_due == None:
