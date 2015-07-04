@@ -93,7 +93,7 @@ class EstimatingJob(Job):
 		"""
 		_bid_date = self.bid_date
 		if type(_bid_date) is not str:
-			_days = (_bid_date - today())
+			_days = (_bid_date - today()).days
 			if _days > 0:
 				return 'Due in %s days' % _days
 			elif _days < 0:
