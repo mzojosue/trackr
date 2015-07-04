@@ -48,22 +48,37 @@ def serialized_overview():
 	_results = []
 
 	# Estimating Variables to grab
-	# TODO: implement variable grabbing correctly
-	grab = ['number', 'name', 'number', 'countdown', 'start_timestamp', 'end_timestamp']
+	grab = ['number', 'name', 'number', 'countdown', 'bid_timestamp', 'bid_timestamp']
 	if hasattr(EstimatingJob, 'completed_db'):
 		_estimates = []
 		for estimate in EstimatingJob.completed_db.itervalues():
 			_bid = {}
 			for i, z in zip(result, grab):
 				_bid[i] = estimate.__getattribute__(z)
-			_bid['url'] = url_for('bid_overview', bid_num = _bid['url'])
+			_bid['url'] = url_for('bid_overview', bid_num=_bid['url'])
 			# TODO: format class value based on countdown
-			_bid['class'] = 'event-important'
+			_bid['class'] = 'event-special'
 			# TODO: format start and end values
 			_estimates.append(_bid)
-		#_results.extend(_estimates)
-		_return = {"success": 1, "result": _estimates}
-		return json.dumps(_return)
+		_results.extend(_estimates)
+
+	# Delivery variables to grab
+	grab = ['hash', 'label', 'hash', 'countdown', 'timestamp', 'timestamp']
+	if hasattr(Delivery, 'db'):
+		_deliveries = []
+		for delivery in Delivery.db.itervalues():
+			_deliv = {}
+			for i, z in zip(result, grab):
+				_deliv[i] = delivery.__getattribute__(z)
+
+			_deliv['url'] = url_for('material_list', m_hash=delivery.mat_list.hash)
+			_deliv['class'] = 'event-info'
+			#TODO: format start and end values
+			_deliveries.append(_deliv)
+		_results.extend(_deliveries)
+
+	_return = {"success": 1, "result": _results}
+	return json.dumps(_return)
 
 
 @app.route('/inventory')

@@ -79,7 +79,10 @@ class MaterialList(object):
 			return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt)
 
 	def __len__(self):
-		return len(self.items)
+		try:
+			return len(self.items)
+		except TypeError:
+			return 0
 
 	@property
 	def age(self):
@@ -390,4 +393,5 @@ class Delivery(object):
 
 	@property
 	def timestamp(self):
-		return int(self.expected.strftime("%s")) * 1000
+		epoch = datetime(1969, 12, 31)  # why does this work???
+		return (self.expected - epoch).total_seconds() * 1000

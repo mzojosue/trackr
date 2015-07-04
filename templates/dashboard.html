@@ -56,7 +56,7 @@
             {
                 day: "{{ today().strftime("%Y-%m-%d") }}",
                 tmpl_path: "/static/calendar/",
-                events_source: '{{ url_for('serialized_deliveries') }}',
+                events_source: '{{ url_for('serialized_overview') }}',
                 first_day: 1,
                 onAfterEventsLoad: function(events) {
                     if(!events) {

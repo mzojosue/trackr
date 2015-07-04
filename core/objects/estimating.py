@@ -104,14 +104,10 @@ class EstimatingJob(Job):
 			return 'ASAP'
 
 	@property
-	def start_timestamp(self):
-		""" Returns the date that bid was received as a millisecond timestamp ready to be displayed on calendar object """
-		return int(self.date_received.strftime("%s")) * 1000
-
-	@property
-	def end_timestamp(self):
-		""" Returns the bid due date as a millisecond timestamp ready to be displayed on caldendar """
-		return int(self.bid_date.strftime("%s")) * 1000
+	def bid_timestamp(self):
+		""" Returns the bid due date as a millisecond timestamp ready to be displayed on calendar """
+		epoch = datetime(1969, 12, 31)  # why does this work???
+		return (self.bid_date - epoch).total_seconds() * 1000
 
 	@property
 	def bidding_to(self):
