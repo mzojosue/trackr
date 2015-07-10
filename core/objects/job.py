@@ -186,7 +186,7 @@ class Worker(object):
 
 class Job(object):
 
-	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication')
+	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install')
 
 	_yaml_filename = '.job_info.yaml'
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay',

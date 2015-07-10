@@ -156,9 +156,13 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 		except (ValueError, TypeError):
 			continue
 		#  __date_recvd = _row[2].value
-		__date_due = _row[3].value  # parse bid due date
-		if __date_due == None:
+
+		# Parse Bid Due Date #
+		__date_due = _row[3].value
+		if __date_due is None:
 			__date_due = 'ASAP'
+		elif __date_due == 'ASAP':
+			__date_due = str('ASAP')
 		elif __date_due != 'ASAP':
 			try:
 				__date_due = _row[3].value
@@ -184,27 +188,59 @@ def parse_estimating_log(estimatingLog=environment.get_estimating_log):
 						continue
 					except TypeError:
 						break
-		#  __date_sent  # parse date bid sent
+		# Parse Date Submitted #
+		__date_sent = _row[4].value
+		if __date_sent is not None:
+			_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
+			for _format in _date_formats:
+				try:
+					__date_sent = datetime.strptime(__date_sent, _format)
+					break
+				except ValueError:
+					continue
+				except TypeError:
+					break
+
 		if _row[5].value: __gc = _row[5].value          # Default: None
 		else: __gc = None
 		if _row[6].value: __gc_contact = _row[6].value  # Default: None
 		else: __gc_contact = None
 		#  __via # default: email
-		#  __scope  # parse spaces, commas, BLOCK in scopes
-		print __num, __name, __date_due, __gc, __gc_contact
+
+		# Scope parsing #
+		__scope = str(_row[8].value)
+		if ',' in __scope or len(__scope) == 1:
+			#TODO: account for solo 'M' in data cell
+			_tmp_scope = []
+			valid_scope = ('M', 'E', 'I', 'B', 'P')
+			for _letter in __scope:
+				if _letter in valid_scope:
+					_tmp_scope.append(_letter)
+			__scope = _tmp_scope   # does not change variable while in iterating
+		else:
+			__scope = __scope.lower()
+			if 'fab' in __scope:
+				__scope = ['fabrication']
+			elif "install" in __scope or not len(__scope):
+				__scope = ['install']
+			else:
+				# This is executed if there is an invalid value and not blank
+				#TODO: raise an error
+				pass
+
+		print __num, __name, __date_due, __date_sent, __gc, __gc_contact, __scope
 		try:
 			if objects.today() <= __date_due:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'])
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
 			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=['M'], completed=True)
-				# TODO: create Bid as "Past Bid" if due date is past due.
-				pass
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
 		except TypeError:
 			# Executed if __date_due is 'ASAP'
 			# TODO: check styling to determine if bid turned in or not
-			pass
-
-	return NotImplemented
+			if not __date_sent:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
+			else:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
 
 
 def find_job_in_log(obj, po_log=environment.get_po_log):

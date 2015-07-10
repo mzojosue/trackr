@@ -101,13 +101,16 @@ class EstimatingJob(Job):
 			else:
 				return 'Bid is due today'
 		else:
-			return 'ASAP'
+			return 'Bid Due ASAP'
 
 	@property
 	def bid_timestamp(self):
 		""" Returns the bid due date as a millisecond timestamp ready to be displayed on calendar """
-		epoch = datetime(1969, 12, 31)  # why does this work???
-		return (self.bid_date - epoch).total_seconds() * 1000
+		try:
+			epoch = datetime(1969, 12, 31)  # why does this work???
+			return (self.bid_date - epoch).total_seconds() * 1000
+		except TypeError:
+			return 0
 
 	@property
 	def bidding_to(self):
