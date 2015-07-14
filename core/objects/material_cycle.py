@@ -1,6 +1,6 @@
 from objects import *
 from core.environment import *
-from core.parsing import add_po_in_log, update_po_in_log
+from core.parsing import add_po_to_log, update_po_in_log
 from core.log import logger
 from core.scheduler import scheduler
 
@@ -295,7 +295,7 @@ class PO(object):
 
 		if update:
 			try:
-				scheduler.add_job(add_po_in_log, args=[self])
+				scheduler.add_job(add_po_to_log, args=[self])
 			except TypeError:
 				logger.warning('There was an error adding PO to the log.')
 				print "There was an error adding PO to log. Possibly no spreadsheet for jobs??"

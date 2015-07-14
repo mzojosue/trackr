@@ -46,6 +46,145 @@ def check_po_log(po_log=environment.get_po_log):
 		return True
 
 
+def import_job_info(jobInfo):
+	return NotImplemented
+
+
+# Estimating Log Functions #
+
+def import_estimating_log(estimatingLog=environment.get_estimating_log):
+	log = openpyxl.load_workbook(estimatingLog, read_only=True)
+	_sheet = log.get_active_sheet()
+	logger.debug('Opening Estimating Log')
+
+	#  _prev = None  # buffer for storing previous bids. Used for grouping and alternate bidders
+	for _row in _sheet.rows:
+		__num = _row[0].value
+		print "Processing bid row %s" % __num
+		try:
+			__num = int(__num)
+			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
+		except (ValueError, TypeError):
+			continue
+		#  __date_recvd = _row[2].value
+
+		# Parse Bid Due Date #
+		__date_due = _row[3].value
+		if __date_due is None:
+			__date_due = 'ASAP'
+		elif __date_due == 'ASAP':
+			__date_due = str('ASAP')
+		elif __date_due != 'ASAP':
+			try:
+				__date_due = _row[3].value
+				__date_due.date()
+			except AttributeError:
+				if "@" in __date_due:
+					__date_due = [i for i in parse("{} @ {}", __date_due)]
+				# create datetime object
+				else:
+					__date_due = [__date_due]
+				_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
+				for _format in _date_formats:
+					try:
+						__due = datetime.strptime(__date_due[0], _format)
+						if __date_due[1:]:
+							#TODO: implement
+							#TODO: translate AM/PM
+							#__due.hour = parse("{:d}{}", __date_due[1])[0]
+							pass
+						__date_due = __due
+						break
+					except ValueError:
+						continue
+					except TypeError:
+						break
+		# Parse Date Submitted #
+		__date_sent = _row[4].value
+		if __date_sent.lower() == "no bid":
+			print "Skipping bid %s" % __num
+			continue
+		elif __date_sent is not None:
+			_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
+			for _format in _date_formats:
+				try:
+					__date_sent = datetime.strptime(__date_sent, _format)
+					break
+				except ValueError:
+					continue
+				except TypeError:
+					break
+
+		if _row[5].value: __gc = _row[5].value          # Default: None
+		else: __gc = None
+		if _row[6].value: __gc_contact = _row[6].value  # Default: None
+		else: __gc_contact = None
+		#  __via # default: email
+
+		# Scope parsing #
+		__scope = str(_row[8].value)
+		if ',' in __scope or len(__scope) == 1:
+			_tmp_scope = []
+			valid_scope = ('M', 'E', 'I', 'B', 'P')
+			for _letter in __scope:
+				if _letter in valid_scope:
+					_tmp_scope.append(_letter)
+			__scope = _tmp_scope   # does not change variable while in iterating
+		else:
+			__scope = __scope.lower()
+			if 'fab' in __scope:
+				__scope = ['fabrication']
+			elif "install" in __scope or not len(__scope):
+				__scope = ['install']
+			else:
+				# This is executed if there is an invalid value and not blank
+				#TODO: raise an error
+				pass
+
+		print __num, __name, __date_due, __date_sent, __gc, __gc_contact, __scope
+		try:
+			if objects.today() <= __date_due:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
+			else:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
+		except TypeError:
+			# Executed if __date_due is 'ASAP'
+			# TODO: check styling to determine if bid turned in or not
+			if not __date_sent:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
+			else:
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
+
+
+@ensure_write
+def add_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
+	#TODO: check for rebid
+	if type(obj) is int:
+		obj = objects.EstimatingJob.find(obj)
+	log = openpyxl.load_workbook(estimatingLog)
+
+	_sheet = log.get_active_sheet()
+	_nrow = len(_sheet.rows) + 1
+	_row = ['number', 'name', 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , 'method', 'scope']
+	_row[3] = None  # skip 'date_sent' and 'method'
+	_row[6] = None
+
+	_row = zip(range(1, len(_row) + 1), _row)
+	for col, val in _row:
+		try:
+			if val:
+				_val = obj.__getattribute__(val)
+				_sheet.cell(row=_nrow, column=col, value=str(_val))
+		except Exception as e:
+			raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
+
+	log.save(estimatingLog)
+	logger.info("Successfully saved %s to Estimating log" % obj)
+	print "Successfully saved %s to Estimating log" % obj
+
+
+# PO Log functions #
+
 def import_po_log(create=False, po_log=environment.get_po_log):
 	# TODO: add logger debugging hooks
 	log = openpyxl.load_workbook(po_log, read_only=True)
@@ -137,112 +276,6 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 			del __po, __vend, __price, __date_issued, __mat_list_val, __quote_val, __comment
 
 
-def parse_job_info(jobInfo):
-	return NotImplemented
-
-
-def parse_estimating_log(estimatingLog=environment.get_estimating_log):
-	log = openpyxl.load_workbook(estimatingLog, read_only=True)
-	_sheet = log.get_active_sheet()
-	logger.debug('Opening Estimating Log')
-
-	#  _prev = None  # buffer for storing previous bids. Used for grouping and alternate bidders
-	for _row in _sheet.rows:
-		__num = _row[0].value
-		print "Processing bid row %s" % __num
-		try:
-			__num = int(__num)
-			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
-		except (ValueError, TypeError):
-			continue
-		#  __date_recvd = _row[2].value
-
-		# Parse Bid Due Date #
-		__date_due = _row[3].value
-		if __date_due is None:
-			__date_due = 'ASAP'
-		elif __date_due == 'ASAP':
-			__date_due = str('ASAP')
-		elif __date_due != 'ASAP':
-			try:
-				__date_due = _row[3].value
-				__date_due.date()
-			except AttributeError:
-				if "@" in __date_due:
-					__date_due = [i for i in parse("{} @ {}", __date_due)]
-				# create datetime object
-				else:
-					__date_due = [__date_due]
-				_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
-				for _format in _date_formats:
-					try:
-						__due = datetime.strptime(__date_due[0], _format)
-						if __date_due[1:]:
-							#TODO: implement
-							#TODO: translate AM/PM
-							#__due.hour = parse("{:d}{}", __date_due[1])[0]
-							pass
-						__date_due = __due
-						break
-					except ValueError:
-						continue
-					except TypeError:
-						break
-		# Parse Date Submitted #
-		__date_sent = _row[4].value
-		if __date_sent is not None:
-			_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
-			for _format in _date_formats:
-				try:
-					__date_sent = datetime.strptime(__date_sent, _format)
-					break
-				except ValueError:
-					continue
-				except TypeError:
-					break
-
-		if _row[5].value: __gc = _row[5].value          # Default: None
-		else: __gc = None
-		if _row[6].value: __gc_contact = _row[6].value  # Default: None
-		else: __gc_contact = None
-		#  __via # default: email
-
-		# Scope parsing #
-		__scope = str(_row[8].value)
-		if ',' in __scope or len(__scope) == 1:
-			#TODO: account for solo 'M' in data cell
-			_tmp_scope = []
-			valid_scope = ('M', 'E', 'I', 'B', 'P')
-			for _letter in __scope:
-				if _letter in valid_scope:
-					_tmp_scope.append(_letter)
-			__scope = _tmp_scope   # does not change variable while in iterating
-		else:
-			__scope = __scope.lower()
-			if 'fab' in __scope:
-				__scope = ['fabrication']
-			elif "install" in __scope or not len(__scope):
-				__scope = ['install']
-			else:
-				# This is executed if there is an invalid value and not blank
-				#TODO: raise an error
-				pass
-
-		print __num, __name, __date_due, __date_sent, __gc, __gc_contact, __scope
-		try:
-			if objects.today() <= __date_due:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
-			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
-		except TypeError:
-			# Executed if __date_due is 'ASAP'
-			# TODO: check styling to determine if bid turned in or not
-			if not __date_sent:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
-			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
-
-
 def find_job_in_log(obj, po_log=environment.get_po_log):
 	"""
 	Finds and returns the sheet title for the passed job object in the given po log
@@ -268,7 +301,7 @@ def find_job_in_log(obj, po_log=environment.get_po_log):
 
 
 @ensure_write
-def add_job_in_log(obj, po_log=environment.get_po_log, save=True):
+def add_job_to_log(obj, po_log=environment.get_po_log, save=True):
 	"""
 	Adds a spreadsheet page to the passed log file to log POs for the given jobs
 	:param obj: job object or int to add to log. Function assumes that the AwardedJob is new to the company
@@ -342,7 +375,7 @@ def find_po_in_log(obj, po_log=environment.get_po_log):
 
 
 @ensure_write
-def add_po_in_log(obj, po_log=environment.get_po_log, save=True):
+def add_po_to_log(obj, po_log=environment.get_po_log, save=True):
 	if hasattr(po_log, 'get_sheet_by_name'):
 		log = po_log
 	else:

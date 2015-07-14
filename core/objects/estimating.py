@@ -92,7 +92,7 @@ class EstimatingJob(Job):
 		:return: formatted string of countdown in days until bid is due
 		"""
 		_bid_date = self.bid_date
-		if type(_bid_date) is not str:
+		if type(_bid_date) is datetime:
 			_days = (_bid_date - today()).days
 			if _days > 0:
 				return 'Due in %s days' % _days
@@ -251,12 +251,20 @@ class EstimatingJob(Job):
 	@staticmethod
 	def get_bid_num():
 		try:
+			#TODO: check completed_db as well
+			num = 0
 			if hasattr(EstimatingJob, 'db'):
 				_keys = EstimatingJob.db.keys()
-				num = int(_keys[-1]) + 1
-				return num
+				num = int(_keys[-1])
+			if hasattr(EstimatingJob, 'completed_db'):
+				_keys = EstimatingJob.completed_db.keys()
+				_num = int(_keys[-1])
+				if _num > num:
+					num = _num
+			return num + 1
 		except IndexError:
 			# no bids in database. assume a bid number of 1
+			#TODO: check completed_db
 			return 1
 
 

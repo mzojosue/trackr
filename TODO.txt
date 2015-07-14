@@ -3,7 +3,7 @@ TODOs:
     * what should the default role should a Worker object have? (ask Joe)
 
     * create an EstimatingJob creating page
-    * test out add_po_in_log function
+    * test out add_po_to_log function
     * implement update_in_po_log function
     * implement "Unlock for Editing" button in PO log
     * implement "Unlock for Editing" button in material list page

@@ -49,15 +49,15 @@ def serialized_overview():
 
 	# Estimating Variables to grab
 	grab = ['number', 'name', 'number', 'countdown', 'bid_timestamp', 'bid_timestamp']
-	if hasattr(EstimatingJob, 'completed_db'):
+	if hasattr(EstimatingJob, 'db'):
 		_estimates = []
-		for estimate in EstimatingJob.completed_db.itervalues():
+		for estimate in EstimatingJob.db.itervalues():
 			_bid = {}
 			for i, z in zip(result, grab):
 				_bid[i] = estimate.__getattribute__(z)
 			_bid['url'] = url_for('bid_overview', bid_num=_bid['url'])
 			# TODO: format class value based on countdown
-			_bid['class'] = 'event-special'
+			_bid['class'] = 'event-success'
 			# TODO: format start and end values
 			_estimates.append(_bid)
 		_results.extend(_estimates)

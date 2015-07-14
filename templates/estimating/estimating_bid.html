@@ -96,7 +96,7 @@
 						</div>
 						<div class="panel-body">
 							<p>GC Contact: {{ b.gc_contact }}</p>
-							<p>Date Recvd: {{ b.date_received.date() }}</p>
+							<p>Date Recvd: {% if b.date_received %}{{ b.date_received.date() }}{% else %}None{% endif %}</p>
 							<span class="lead">
 								<span class="label label-info">
 									Due Date: {{ b.bid_date }}
