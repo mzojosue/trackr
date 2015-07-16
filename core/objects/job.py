@@ -16,7 +16,7 @@ class Worker(object):
 	_yaml_attr = ('date_created', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
 	_yaml_filename = 'workers.yaml'
 
-	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today()):
+	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today(), timesheets=[]):
 		"""
 		Initializes employee representation object.
 		:param name: employee's name. hash/key is created from this variable.
@@ -28,6 +28,7 @@ class Worker(object):
 		"""
 		self.name = str(name)
 		self.hash = abs(hash(str(self.name) + str(date_created)))
+		self.date_created = date_created
 		self.job = job
 		self.prev_jobs = []
 		self.phone = str(phone)
@@ -42,7 +43,7 @@ class Worker(object):
 
 		self.job.add_worker(self)
 
-		self.timesheets = []    # list that includes timesheet hashes that worker has been at
+		self.timesheets = timesheets  # list that includes timesheet hashes that worker has been at
 
 		self.dump_info()
 
@@ -54,17 +55,16 @@ class Worker(object):
 		""" Alters attribute setting to listen to when self.jobs is changed,
 			the previous jobs is stored in self.prev_jobs
 		"""
-		if key is 'job':
-			value.add_worker(self)
-
-			_caller = traceback.extract_stack(None, 2)[0][2]
-			if _caller is not '__init__':
+		_caller = traceback.extract_stack(None, 2)[0][2]
+		if _caller is not '__init__':
+			if key is 'job':
+				value.add_worker(self)
 				self.prev_jobs.append(self.job.name)
 				del self.job.workers[self.hash]
 				self.job.update()
-
+			else:
+				self.update()
 		_return = super(Worker, self).__setattr__(key, value)
-		self.update()
 		return _return
 
 	def __repr__(self):
@@ -108,6 +108,8 @@ class Worker(object):
 				_file_dump = yaml.load(_file_dump)
 				for _uname, _attr in _file_dump.iteritems():
 					_attr['name'] = _uname
+					_attr['job'] = AwardedJob.find(_attr['job_num'])
+					del _attr['job_num']
 					Worker(**_attr)
 			log.logger.info('Successfully imported users.yaml')
 		except IOError:
@@ -180,6 +182,10 @@ class Worker(object):
 		Calls self.dump_info
 		:return: None
 		"""
+		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
+			Worker.db[self.hash] = self
+			if hasattr(self, 'job'):
+				self.job.add_worker(self)
 		self.dump_info()
 		return None
 
