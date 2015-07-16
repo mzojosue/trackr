@@ -101,7 +101,7 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 						break
 		# Parse Date Submitted #
 		__date_sent = _row[4].value
-		if __date_sent.lower() == "no bid":
+		if hasattr(__date_sent, 'lower') and __date_sent.lower() == "no bid":
 			print "Skipping bid %s" % __num
 			continue
 		elif __date_sent is not None:
