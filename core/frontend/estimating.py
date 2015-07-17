@@ -40,6 +40,28 @@ def estimating_create_bid():
 	else:
 		return render_template('estimating/estimating_create.html')
 
+@app.route('/estimating/bid/<int:bid_num>/cancel')
+def cancel_bid(bid_num):
+	""" Moves calls EstiamtingJob.complete_bid to separate submitted bids from unsubmitted ones.
+	:param bid_num: Desired bid to complete
+	:return:
+	"""
+	_bid = EstimatingJob.find(bid_num)
+	_bid.cancel_bid()
+	#TODO: somehow show feedback that bid was successfully moved
+	return redirect(request.referrer)
+
+@app.route('/estimating/bid/<int:bid_num>/complete')
+def complete_bid(bid_num):
+	""" Moves calls EstiamtingJob.complete_bid to separate submitted bids from unsubmitted ones.
+	:param bid_num: Desired bid to complete
+	:return:
+	"""
+	_bid = EstimatingJob.find(bid_num)
+	_bid.complete_bid()
+	#TODO: somehow show feedback that bid was successfully moved
+	return redirect(request.referrer)
+
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def estimating_create_sub_bid(bid_num):
 	auth = check_login()
@@ -52,6 +74,8 @@ def estimating_create_sub_bid(bid_num):
 		_bidDate = datetime(*request.form['bidDate'])
 	except:
 		_bidDate = None
+		print _bidDate
+
 
 	_scope = []
 	__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']

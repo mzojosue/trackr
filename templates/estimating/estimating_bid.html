@@ -25,6 +25,22 @@
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
       {{ bid }}
+			{% if bid.completed %}
+				{% if bid.completed == "No bid" %}
+					<span class="label label-danger">No bid</span>
+				{% else %}
+					<span class="label label-success" >Bid sent
+						{% if hasattr(bid.completed, 'date') %}
+							{{ bid.completed.date() }}
+						{% endif %}
+					</span>
+				{% endif %}
+			{% else %}
+				<a href="{{ url_for('complete_bid', bid_num=bid.number) }}"
+					class="btn btn-success btn-sm">Submit Bid</a>
+				<a href="{{ url_for('cancel_bid', bid_num=bid.number) }}"
+					class="btn btn-danger btn-sm">No Bid</a>
+			{% endif %}
     </h1>
     {%- with messages = get_flashed_messages(with_categories=True) -%}
       {%- if messages -%}
@@ -59,29 +75,31 @@
 		<div class="row">
 
       <div class="col-xs-4">
-	      {% for scope in bid.quotes %}
-	        <div class="panel panel-default">
-	          <div class="panel-heading">
-	            Scope: <strong>{{ scope }}</strong>
-	          </div>
-		        <ul class="list-group">
-	            {% for i in bid.quotes[scope].values() %}
-								<li class="list-group-item">
-									{{ i }}&nbsp;
-									{% if i.doc %}
-										<a href="{{ url_for('bid_quote', bid_num=bid.number, scope=scope, q_hash=i.hash) }}" target="_blank">
-											<span class="glyphicon glyphicon-paperclip"></span>
-										</a>
-									{% endif %}
-								</li>
-		          {% else %}
-		            <li class="list-group-item">No quotes uploaded</li>
-		          {% endfor %}
-	          </ul>
-	        </div>
-	      {% endfor %}
+	      {% if bid.quotes %}
+		      {% for scope in bid.quotes %}
+		        <div class="panel panel-default">
+		          <div class="panel-heading">
+		            Scope: <strong>{{ scope }}</strong>
+		          </div>
+			        <ul class="list-group">
+		            {% for i in bid.quotes[scope].values() %}
+									<li class="list-group-item">
+										{{ i }}&nbsp;
+										{% if i.doc %}
+											<a href="{{ url_for('bid_quote', bid_num=bid.number, scope=scope, q_hash=i.hash) }}" target="_blank">
+												<span class="glyphicon glyphicon-paperclip"></span>
+											</a>
+										{% endif %}
+									</li>
+			          {% else %}
+			            <li class="list-group-item">No quotes uploaded</li>
+			          {% endfor %}
+		          </ul>
+		        </div>
+		      {% endfor %}
 
-        {{ estimating.quote_modal(bid) }}
+	        {{ estimating.quote_modal(bid) }}
+	      {% endif %}
       </div>
 
 			<div class="col-xs-4 pull-right">
@@ -90,7 +108,8 @@
 						<div class="panel-heading">
 							Bid to
 							<strong>{{ b.gc }}</strong>
-              <span class="badge badge-default pull-right">
+              <span class="badge pull-right award-button">
+	              Award &nbsp;
                 <span class="glyphicon glyphicon-ok"></span>
               </span>
 						</div>

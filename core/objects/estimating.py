@@ -11,7 +11,6 @@ from material_cycle import Quote
 
 
 class EstimatingJob(Job):
-
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
@@ -40,7 +39,7 @@ class EstimatingJob(Job):
 			self.number = job_num
 
 		# hash is used to keep bid unique
-		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+		self.hash = abs(hash(''.join([str(now()), os.urandom(4)])))
 
 		super(EstimatingJob, self).__init__(name, date_received=date_received, alt_name=alt_name,
 		                                    address=address, scope=scope, desc=desc, rate=rate,
@@ -49,10 +48,7 @@ class EstimatingJob(Job):
 
 		# TODO: implement document/drawing storage
 		self.docs = {}
-        self.takeoff = {}  # stores dict of takeoff document paths stored as PDF. dict key is the md5 hash of file
-		# TODO: implement `sent_out` status and appropriate labels on EstimatingJob page
-		# should be reset with every rebid and a change in scope
-		self.sent_out = False
+		self.takeoff = {}  # stores dict of takeoff document paths stored as PDF. dict key is the md5 hash of file
 
 		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 		# TODO:prevent directory structure from being created twice
@@ -61,7 +57,7 @@ class EstimatingJob(Job):
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
 			self.quotes[i] = {}
-		self.bids = {}      # Stores previous bids. Stores self as first bid
+		self.bids = {}  # Stores previous bids. Stores self as first bid
 		self.add_bid(date_received, gc, date_end, gc_contact)
 
 		# False if jobs is not rebid. Rebid is defined by a bid that is shares the same name but differs in due date
@@ -82,13 +78,13 @@ class EstimatingJob(Job):
 		if hasattr(self, 'number'):
 			return 'E%d-%s' % (self.number, self._name)
 
-        
+
 	@property
 	def bid_date(self):
 		""" finds and returns most recently due bid date """
 		return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
 
-    
+
 	@property
 	def countdown(self):
 		"""
@@ -106,7 +102,7 @@ class EstimatingJob(Job):
 		else:
 			return 'Bid Due ASAP'
 
-        
+
 	@property
 	def bid_timestamp(self):
 		""" Returns the bid due date as a millisecond timestamp ready to be displayed on calendar """
@@ -116,7 +112,7 @@ class EstimatingJob(Job):
 		except TypeError:
 			return 0
 
-        
+
 	@property
 	def bidding_to(self):
 		"""
@@ -127,14 +123,14 @@ class EstimatingJob(Job):
 			_gc.append(i['gc'])
 		return _gc
 
-    
+
 	@property
 	def path(self):
 		""" Return absolute sub path using global project path and AwardedJob.sub_path """
 		_path = os.path.join(env.env_root, self.sub_path)
 		return _path
 
-    
+
 	@property
 	def bid_count(self):
 		"""
@@ -142,7 +138,7 @@ class EstimatingJob(Job):
 		"""
 		return len(self.bids)
 
-    
+
 	@property
 	def quote_count(self):
 		count = 0
@@ -167,7 +163,7 @@ class EstimatingJob(Job):
 			_need = 'No quotes needed'
 		return (_status, _need)
 
-    
+
 	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
 		"""
 		:param date_received: date that bid request was received/uploaded
@@ -177,8 +173,9 @@ class EstimatingJob(Job):
 		:param scope: scope of bid request
 		"""
 		if not bid_date: bid_date = 'ASAP'
-		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
-		_bid_hash = abs(hash(str(gc).lower()])))
+		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
+		        'scope': scope}
+		_bid_hash = abs(hash(str(gc).lower()))
 		self.bids[_bid_hash] = _bid
 		for i in scope:
 			if i not in self.scope:
@@ -208,7 +205,7 @@ class EstimatingJob(Job):
 			del self.quotes[category][quote_hash]
 			self.update()
 
-            
+
 	def find_rebid(self):
 		"""
 		:return: bid jobs object if there is a bid that has the same name. Else function returns false.
@@ -219,22 +216,35 @@ class EstimatingJob(Job):
 					return i
 			return False
 
-    
-    def complete_bid(self):
-        if hasattr(self, 'db') and hasattr(self, 'completed_db'):
-            if self.number in self.db.keys():
-                self.completed_db[self.number] = self
-                del self.db[self.number]
-                return True
-            
-    def award_bid(self, gc):
-        """ Function that creates an AwardedJob object based on EstimatingJob object and selected gc. This function is run through the webApp and is bound to a specific bid/gc
-        :param gc: string object representing GC that bid was sent to"""
-        if hasattr(gc, 'lower'):  # proves that passed object is a string or Unicode
-            gc = abs(hash(gc.lower))
-            with self.bids[gc] as bid:
-                AwardedJob(name=self.name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid.gc, gc_contact=bid.gc_contact, scope=self.scope, desc=self.desc, rate=self.rate)
-        
+
+	def complete_bid(self):
+		if hasattr(self, 'db') and hasattr(self, 'completed_db'):
+			if self.number in self.db.keys():
+				self.completed_db[self.number] = self
+				del self.db[self.number]
+				self.completed = today()
+				#TODO: update sent_out data cell in Estimating Log and style row
+				return True
+
+	def cancel_bid(self):
+		if hasattr(self, 'db') and hasattr(self, 'completed_db'):
+			if self.number in self.db.keys():
+				self.completed_db[self.number] = self
+				del self.db[self.number]
+				self.completed = "No bid"
+				#TODO: update sent_out data cell in Estimating Log and style row
+				return True
+
+	def award_bid(self, gc):
+		""" Function that creates an AwardedJob object based on EstimatingJob object and selected gc. This function is run through the webApp and is bound to a specific bid/gc
+		:param gc: string object representing GC that bid was sent to"""
+		if hasattr(gc, 'lower'):  # proves that passed object is a string or Unicode
+			gc = abs(hash(gc.lower))
+			with self.bids[gc] as bid:
+				AwardedJob(name=self.name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid.gc,
+			           gc_contact=bid.gc_contact, scope=self.scope, desc=self.desc, rate=self.rate)
+
+
 	def init_struct(self):
 		# create initial bid directory
 		try:
@@ -266,7 +276,7 @@ class EstimatingJob(Job):
 		print "Folder directory for %s created\n" % self.name
 		return True
 
-    
+
 	@staticmethod
 	def find(num):
 		if hasattr(EstimatingJob, 'db') and hasattr(EstimatingJob, 'completed_db'):
@@ -275,11 +285,11 @@ class EstimatingJob(Job):
 			except KeyError:
 				return EstimatingJob.completed_db[num]
 
-            
+
 	@staticmethod
 	def get_bid_num():
 		try:
-			#TODO: check completed_db as well
+			# TODO: check completed_db as well
 			num = 0
 			if hasattr(EstimatingJob, 'db'):
 				_keys = EstimatingJob.db.keys()
@@ -292,11 +302,10 @@ class EstimatingJob(Job):
 			return num + 1
 		except IndexError:
 			# no bids in database. assume a bid number of 1
-			#TODO: check completed_db
+			# TODO: check completed_db
 			return 1
 
 
-        
 class EstimatingQuote(Quote):
 	def __init__(self, bid, vend, category, price=0.0, doc=None):
 		super(EstimatingQuote, self).__init__(vend, price, doc)

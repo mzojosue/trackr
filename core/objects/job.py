@@ -196,7 +196,7 @@ class Job(object):
 
 	_yaml_filename = '.job_info.yaml'
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay',
-	              'rate', 'scope', 'bids']
+	              'rate', 'scope', 'bids', 'completed', 'materials']
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False, completed=False):

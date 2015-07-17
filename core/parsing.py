@@ -103,7 +103,7 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 		__date_sent = _row[4].value
 		if hasattr(__date_sent, 'lower') and __date_sent.lower() == "no bid":
 			print "Skipping bid %s" % __num
-			continue
+			__date_sent = "No bid"
 		elif __date_sent is not None:
 			_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
 			for _format in _date_formats:
@@ -146,14 +146,14 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 			if objects.today() <= __date_due:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
 			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent)
 		except TypeError:
 			# Executed if __date_due is 'ASAP'
 			# TODO: check styling to determine if bid turned in or not
 			if not __date_sent:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
 			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=True)
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent)
 
 
 @ensure_write
