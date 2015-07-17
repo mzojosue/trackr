@@ -79,10 +79,6 @@ def init_db(db='trackr_db'):
 		print "Cannot connect to MongoDB Database... Retaining storage cannot be implemented"
 		disconnect_db()
 
-	# load values from yaml storage
-	User.load_users()
-	Worker.load_workers()
-
 	return True
 
 
@@ -114,6 +110,7 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 	if True:  # check_po_log():
 		clear_db()
 		import_po_log(True, log)
+		Worker.load_workers()
 	else:
 		init_db()
 
