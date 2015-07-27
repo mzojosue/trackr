@@ -144,16 +144,16 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 		print __num, __name, __date_due, __date_sent, __gc, __gc_contact, __scope
 		try:
 			if objects.today() <= __date_due:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, add_to_log=False)
 			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent)
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
 		except TypeError:
 			# Executed if __date_due is 'ASAP'
 			# TODO: check styling to determine if bid turned in or not
 			if not __date_sent:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope)
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, add_to_log=False)
 			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent)
+				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
 
 
 @ensure_write
@@ -165,22 +165,35 @@ def add_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
 
 	_sheet = log.get_active_sheet()
 	_nrow = len(_sheet.rows) + 1
-	_row = ['number', 'name', 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , 'method', 'scope']
-	_row[3] = None  # skip 'date_sent' and 'method'
-	_row[6] = None
+	_row = ['number', '_name', 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , 'method', 'scope']
+	_row[4] = None  # skip 'date_sent' and 'method'
+	_row[7] = None
 
 	_row = zip(range(1, len(_row) + 1), _row)
 	for col, val in _row:
 		try:
 			if val:
 				_val = obj.__getattribute__(val)
-				_sheet.cell(row=_nrow, column=col, value=str(_val))
+				if hasattr(_val, 'strftime'):
+					_val = _val.strftime('%m.%d.%Y')
+				elif hasattr(_val, 'sort'):
+					_val = ', '.join(sorted(_val))
+				_sheet.cell(row=_nrow, column=col, value=_val)
 		except Exception as e:
 			raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
 
 	log.save(estimatingLog)
 	logger.info("Successfully saved %s to Estimating log" % obj)
 	print "Successfully saved %s to Estimating log" % obj
+
+@ensure_write
+def add_sub_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
+	""" Adds extra row representing a sub bid to an already existing bid
+	:param obj: EstimatingJob object to write to log
+	:param estimatingLog: pathname for estimating log
+	:return: None
+	"""
+	return NotImplemented
 
 
 # PO Log functions #

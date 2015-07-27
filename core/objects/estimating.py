@@ -15,7 +15,7 @@ class EstimatingJob(Job):
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
 	             address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
-	             tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False):
+	             tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False, add_to_log=True):
 		"""
 		:param name: The desired name for the bid
 		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
@@ -72,6 +72,8 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.load_info()
+		if add_to_log:
+			env.add_bid_to_log(self)
 
 	@property
 	def name(self):
@@ -293,10 +295,10 @@ class EstimatingJob(Job):
 			num = 0
 			if hasattr(EstimatingJob, 'db'):
 				_keys = EstimatingJob.db.keys()
-				num = int(_keys[-1])
+				num = int(sorted(_keys)[-1])
 			if hasattr(EstimatingJob, 'completed_db'):
 				_keys = EstimatingJob.completed_db.keys()
-				_num = int(_keys[-1])
+				_num = int(sorted(_keys)[-1])
 				if _num > num:
 					num = _num
 			return num + 1
