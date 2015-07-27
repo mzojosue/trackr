@@ -107,13 +107,14 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
-	if True:  # check_po_log():
+	if not check_po_log():
 		clear_db()
 		import_po_log(True, log)
-		Worker.load_workers()
 	else:
 		init_db()
 
+	Worker.load_workers()
+	User.load_users()
 	os.chdir(_cwd)
 
 	print "Database was successfully reset"
