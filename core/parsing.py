@@ -52,6 +52,19 @@ def import_job_info(jobInfo):
 
 # Estimating Log Functions #
 
+def check_estimating_log(est_log=environment.get_estimating_log):
+	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
+	md5 = hashlib.md5()
+	with open(est_log, 'rb') as _estimating_log:
+		buf = _estimating_log.read()
+		md5.update(buf)
+		_hash = str(md5.hexdigest())
+		if _hash != environment.last_estimating_log_hash:
+			logger.info('updating Estimating Log hash digest stored')
+			environment.set_estimating_log_hash(_hash)
+			return False
+		return True
+
 def import_estimating_log(estimatingLog=environment.get_estimating_log):
 	log = openpyxl.load_workbook(estimatingLog, read_only=True)
 	_sheet = log.get_active_sheet()
