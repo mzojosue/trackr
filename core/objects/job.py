@@ -291,6 +291,39 @@ class Job(object):
 				# project directory doesn't exist
 				return None
 
+	@property
+	def has_drawings(self):
+		""" Checks to see if self has any takeoff documents
+		:return: Returns boolean if self has files in Takeoff folder
+		"""
+		if hasattr(self, 'sub_path'):
+			_dir = os.path.join(env.env_root, self.sub_path, 'Drawings')
+			if os.path.isdir(_dir):
+				_dwgs = os.listdir(_dir)
+				return bool(len(_dwgs))
+
+	@property
+	def has_documents(self):
+		""" Checks to see if self has any takeoff documents
+		:return: Returns boolean if self has files in Takeoff folder
+		"""
+		if hasattr(self, 'sub_path'):
+			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
+			if os.path.isdir(_dir):
+				_documents = os.listdir(_dir)
+				return bool(len(_documents))
+
+	@property
+	def has_addendums(self):
+		""" Checks to see if self has any takeoff documents
+		:return: Returns boolean if self has files in Takeoff folder
+		"""
+		if hasattr(self, 'sub_path'):
+			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
+			if os.path.isdir(_dir):
+				_addendums = os.listdir(_dir)
+				return bool(len(_addendums))
+
 
 class AwardedJob(Job):
 

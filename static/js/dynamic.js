@@ -58,7 +58,6 @@ function addMaterialItem() {
 
 }
 
-
 function removeMaterialItem(divNum) {s
 
   var d = document.getElementById('itemizedMaterialArea');

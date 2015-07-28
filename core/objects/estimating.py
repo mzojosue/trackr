@@ -259,7 +259,7 @@ class EstimatingJob(Job):
 		# create bid sub folders
 		try:
 			print "Creating bid sub folders..."
-			_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes')
+			_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Takeoffs')
 			for _folder in _folders:
 				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
 			print "...operation successful"
@@ -278,6 +278,15 @@ class EstimatingJob(Job):
 		print "Folder directory for %s created\n" % self.name
 		return True
 
+	@property
+	def has_takeoff(self):
+		""" Checks to see if self has any takeoff documents
+		:return: Returns boolean if self has files in Takeoff folder
+		"""
+		_takeoff_dir = os.path.join(env.env_root, self.sub_path, 'Takeoffs')
+		if os.path.isdir(_takeoff_dir):
+			_takeoffs = os.listdir(_takeoff_dir)
+			return bool(len(_takeoffs))
 
 	@staticmethod
 	def find(num):

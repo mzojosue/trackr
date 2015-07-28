@@ -163,7 +163,6 @@
 							<span class="hide-value">{{ i.price }}</span>
 						</td>
 						<!-- TODO:show appropriate styling for completed lists -->
-						<!-- TODO:add button for deleting material list -->
 						<td>
 							<a href="{{ url_for('delete_job_quote', doc_hash=i.hash, job_num=i.mat_list.job.number) }}">
 								<span class="glyphicon glyphicon-trash"></span>
