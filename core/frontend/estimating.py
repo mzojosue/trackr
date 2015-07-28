@@ -1,4 +1,5 @@
 from config import *
+from job import *
 from datetime import datetime
 from werkzeug import secure_filename
 
@@ -61,6 +62,12 @@ def complete_bid(bid_num):
 	_bid.complete_bid()
 	#TODO: somehow show feedback that bid was successfully moved
 	return redirect(request.referrer)
+
+@app.route('/estimating/bid/<int:bid_num>/award/<int:bid_hash>')
+def award_bid(bid_num, bid_hash):
+	bid = EstimatingJob.find(bid_num)
+	job = bid.award_bid(bid_hash)
+	return redirect(url_for('job_overview', job_num=job.number))
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def estimating_create_sub_bid(bid_num):

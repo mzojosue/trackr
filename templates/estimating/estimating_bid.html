@@ -108,10 +108,12 @@
 						<div class="panel-heading">
 							Bid to
 							<strong>{{ b.gc }}</strong>
-              <span class="badge pull-right award-button">
-	              Award &nbsp;
-                <span class="glyphicon glyphicon-ok"></span>
-              </span>
+              <a href="{{ url_for('award_bid', bid_num=bid.number, bid_hash=b.bid_hash) }}">
+                <span class="badge pull-right award-button">
+                  Award &nbsp;
+                  <span class="glyphicon glyphicon-ok"></span>
+                </span>
+              </a>
 						</div>
 						<div class="panel-body">
 							<p>GC Contact: {{ b.gc_contact }}</p>

@@ -624,3 +624,15 @@ class AwardedJob(Job):
 	def find(num):
 		if hasattr(AwardedJob, 'db'):
 			return AwardedJob.db[num]
+
+
+def get_job_num(*args):
+	try:
+		if hasattr(AwardedJob, 'db'):
+			_keys = AwardedJob.db.keys()
+			_keys.sort()  # sort tuple of keys so that highest number is on right
+			num = int(_keys[-1]) + 1
+			return num
+	except IndexError:
+		# no bids in database. assume a jobs number of 1
+		return 1

@@ -1,5 +1,6 @@
 import core as env
 from objects import *
+from job import AwardedJob, get_job_num
 from operator import itemgetter
 from datetime import datetime
 
@@ -175,9 +176,9 @@ class EstimatingJob(Job):
 		:param scope: scope of bid request
 		"""
 		if not bid_date: bid_date = 'ASAP'
-		_bid = {'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
-		        'scope': scope}
 		_bid_hash = abs(hash(str(gc).lower()))
+		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
+		        'scope': scope}
 		self.bids[_bid_hash] = _bid
 		for i in scope:
 			if i not in self.scope:
@@ -237,14 +238,24 @@ class EstimatingJob(Job):
 				#TODO: update sent_out data cell in Estimating Log and style row
 				return True
 
-	def award_bid(self, gc):
+	def delete_bid(self):
+		try:
+			if hasattr(self, 'db'):
+				del self.db[self.number]
+		except KeyError:
+			if hasattr(self, 'completed_db'):
+				del self.completed_db[self.number]
+		return True
+
+	def award_bid(self, bid_hash):
 		""" Function that creates an AwardedJob object based on EstimatingJob object and selected gc. This function is run through the webApp and is bound to a specific bid/gc
 		:param gc: string object representing GC that bid was sent to"""
-		if hasattr(gc, 'lower'):  # proves that passed object is a string or Unicode
-			gc = abs(hash(gc.lower))
-			with self.bids[gc] as bid:
-				AwardedJob(name=self.name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid.gc,
-			           gc_contact=bid.gc_contact, scope=self.scope, desc=self.desc, rate=self.rate)
+		bid = self.bids[bid_hash]
+		if not self.completed:
+			self.complete_bid()
+		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid['gc'],
+			gc_contact=bid['gc_contact'], scope=self.scope, desc=self.desc, rate=self.rate)
+
 
 
 	def init_struct(self):
