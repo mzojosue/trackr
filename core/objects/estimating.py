@@ -225,6 +225,7 @@ class EstimatingJob(Job):
 				self.completed = today()
 				del self.db[self.number]
 				#TODO: update sent_out data cell in Estimating Log and style row
+				env.update_bid_in_log(self, 'complete', self.completed.date())
 				return True
 
 	def cancel_bid(self):
@@ -234,6 +235,7 @@ class EstimatingJob(Job):
 				self.completed = "No bid"
 				del EstimatingJob.db[self.number]
 				#TODO: update sent_out data cell in Estimating Log and style row
+				env.update_bid_in_log(self, 'complete', "No bid")
 				return True
 
 	def delete_bid(self):
@@ -243,6 +245,7 @@ class EstimatingJob(Job):
 		except KeyError:
 			if hasattr(self, 'completed_db'):
 				del self.completed_db[self.number]
+		# TODO: delete row(s) from Estimating Log
 		return True
 
 	def award_bid(self, bid_hash):

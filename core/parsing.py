@@ -168,6 +168,8 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 			else:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
 
+def find_bid_in_log(obj, estimatingLog=environment.get_estimating_log):
+	return NotImplemented
 
 @ensure_write
 def add_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
@@ -207,6 +209,49 @@ def add_sub_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
 	:return: None
 	"""
 	return NotImplemented
+
+def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environment.get_estimating_log, save=True):
+	"""
+	:param estimatingLog: estimating log file object to write to
+	:param obj: object to reflect changes on
+	:param attr: object attribute that has been changed
+	:param value: object attribute new value
+	:return: True if operation successful
+	"""
+	_attr = ('number', '_name', 'date_recieved', 'date_end', 'completed', 'gc', 'gc_contact', 'method', 'scope')
+	if attr in _attr and hasattr(obj, 'number'):
+		if hasattr(estimating_log, 'get_sheet_by_name'):
+			log = estimating_log
+		else:
+			try:
+				_est_log = os.path.split(estimating_log)
+				_est_log = os.path.join(_est_log[0], '_%s' % _est_log[1])
+				#os.rename(estimating_log, _est_log)
+				#log = openpyxl.load_workbook(_est_log, guess_types=True)
+				log = openpyxl.load_workbook(estimating_log, guess_types=True)
+			except IOError:
+				print "'%s' is not a valid file path. Cannot update PO log." % estimating_log
+				return False
+
+		# Assume that the active sheet is the one that we need
+		_sheet = log.get_active_sheet()
+		_row_count = 0
+
+		for _row in _sheet.rows:
+			_row_count += 1
+			if _row[0].value == obj.number:
+				# column to edit
+				_col = _attr.index(attr) + 1
+
+				# update information
+				_sheet.cell(row=_row_count, column=_col).value = value
+
+				# TODO: confirm update
+
+				if save:
+					log.save(estimating_log)
+
+				return True
 
 
 # PO Log functions #
