@@ -52,8 +52,6 @@ class EstimatingJob(Job):
 		self.takeoff = {}  # stores dict of takeoff document paths stored as PDF. dict key is the md5 hash of file
 
 		self.sub_path = os.path.join(self.default_sub_dir, self.name)
-		# TODO:prevent directory structure from being created twice
-		self.init_struct()
 
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
