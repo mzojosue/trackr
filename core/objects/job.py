@@ -248,8 +248,8 @@ class Job(object):
 		return self.name
 
 	def update(self):
-		if hasattr(self, 'db') and hasattr(self, 'number'):
-			if hasattr(self, 'completed') and self.completed and hasattr(self, 'completed_db'):
+		if hasattr(self, 'number'):
+			if self.completed and hasattr(self, 'completed_db'):
 				self.completed_db[self.number] = self
 			else:
 				self.db[self.number] = self

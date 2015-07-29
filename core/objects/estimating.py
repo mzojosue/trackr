@@ -222,8 +222,8 @@ class EstimatingJob(Job):
 		if hasattr(self, 'db') and hasattr(self, 'completed_db'):
 			if self.number in self.db.keys():
 				self.completed_db[self.number] = self
-				del self.db[self.number]
 				self.completed = today()
+				del self.db[self.number]
 				#TODO: update sent_out data cell in Estimating Log and style row
 				return True
 
@@ -231,8 +231,8 @@ class EstimatingJob(Job):
 		if hasattr(self, 'db') and hasattr(self, 'completed_db'):
 			if self.number in self.db.keys():
 				self.completed_db[self.number] = self
-				del self.db[self.number]
 				self.completed = "No bid"
+				del EstimatingJob.db[self.number]
 				#TODO: update sent_out data cell in Estimating Log and style row
 				return True
 
