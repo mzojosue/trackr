@@ -107,7 +107,7 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
-	if not check_po_log():
+	if True: #not check_po_log():
 		clear_db()
 		import_po_log(True, log)
 	else:
