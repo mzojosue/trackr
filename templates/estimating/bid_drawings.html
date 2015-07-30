@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	Current Bids - Campano HVAC
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+  {{ layout.navbar_links('estimating_home') }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.bid_sidebar('bid_overview', bid=bid) }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+			{{ bid.name }} - Drawings&nbsp;
+		</h1>
+
+		<div class="row">
+
+			<table class="table table-striped">
+				<tr id="tableHeadings">
+					<th>Doc #</th>
+          <th>Project Name:</th>
+          <th>Date Added</th>
+          <th>Scope:</th>
+					<!--th>Uploaded By:</th-->
+				</tr>
+				{% for dwg in bid.drawings %}
+					<tr>
+						<td>{{ bid.drawings.index(dwg) }}</td>
+						<td>{{ dwg }}</td>
+						<td>d8 added</td>
+						<td>Mech</td>
+					</tr>
+				{% endfor %}
+			</table>
+
+		</div><!-- /.row -->
+	</div><!-- /.main -->
+
+{% endblock %}

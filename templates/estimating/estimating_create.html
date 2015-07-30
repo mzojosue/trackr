@@ -57,9 +57,11 @@
 							GC:
 						</label>
 						<select name="gc" class="form-control" id="genContracter">
+							<!-- TODO: dynamically enumerate GCs to database instead of hard-coding values -->
 							<option>Falasca Mechanical</option>
 							<option>McCloskey Mechanical</option>
 							<option>Gary F. Gardner</option>
+							<option>Other GC</option><!-- TODO: create text input when "Other" is selected -->
 						</select>
 					</div>
 					<div class="form-group">
@@ -71,7 +73,7 @@
 				</div>
 
 				<div class="col-xs-3 form-group">
-					<label for="scopeArea">Vendor Scope:</label>
+					<label for="scopeArea">Scope of Work:</label>
 					<div id="scopeArea" class="form-group">
             <label class="checkbox-inline">
               <input name=materialsScope value=True type="checkbox">M
@@ -90,11 +92,10 @@
 						<label for="bidDate">
 							Bid Date:
 						</label>
-						<input name="bidtDate" type="date" id="bidDate" class="form-control" default="">
+						<input name="bidDate" type="date" id="bidDate" class="form-control">
 					</div>
 				</div>
 
-				<!-- TODO: create radio input to specify areas of scope. eg: M, E, I, B, P, etc  -->
 				<div class="clearfix visible-lg-block"></div>
 
 				<button class="btn btn-success btn-lg pull-right" type="submit">Create job</button>

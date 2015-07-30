@@ -197,7 +197,7 @@ def bid_documents(bid_num):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('bid_documents.html', bid=_bid)
+			return render_template('estimating/bid_documents.html', bid=_bid)
 		except KeyError:
 			return "Error: Bid does not exist."
 
@@ -209,6 +209,6 @@ def bid_drawings(bid_num):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('bid_drawings.html', bid=_bid)
+			return render_template('estimating/bid_drawings.html', bid=_bid)
 		except KeyError:
 			return "Error: Bid does not exist."

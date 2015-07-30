@@ -78,6 +78,7 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 			__num = int(__num)
 			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
 		except (ValueError, TypeError):
+			# TODO: check for sub_bid
 			continue
 		#  __date_recvd = _row[2].value
 

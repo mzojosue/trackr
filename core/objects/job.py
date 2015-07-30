@@ -224,7 +224,6 @@ class Job(object):
 		self.certified_pay = certified_pay
 
 		self.documents = {}
-		self.drawings = {}
 
 		self.completed = completed
 		self.update()
@@ -291,16 +290,28 @@ class Job(object):
 				# project directory doesn't exist
 				return None
 
+
+	@property
+	def drawings(self):
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Drawings')
+			if os.path.isdir(_dir):
+				_dwgs = os.listdir(_dir)
+				_return = {}
+				for dwg in _dwgs:
+					_path = os.path.join(_dir, dwg)
+					_mod_time = os.stat(_path)
+					# TODO: process dwg type
+					_return[dwg] = [_path, _mod_time]
+				return _return
+
 	@property
 	def has_drawings(self):
 		""" Checks to see if self has any takeoff documents
 		:return: Returns boolean if self has files in Takeoff folder
 		"""
-		if hasattr(self, 'sub_path'):
-			_dir = os.path.join(env.env_root, self.sub_path, 'Drawings')
-			if os.path.isdir(_dir):
-				_dwgs = os.listdir(_dir)
-				return bool(len(_dwgs))
+		_dwgs = self.drawings
+		return bool(len(_dwgs))
 
 	@property
 	def has_documents(self):
