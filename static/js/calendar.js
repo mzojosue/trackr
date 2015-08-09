@@ -1052,20 +1052,6 @@ if(!String.prototype.formatNum) {
 
 		var week = $(document.createElement('div')).attr('id', 'cal-week-box');
 		var start = this.options.position.start.getFullYear() + '-' + this.options.position.start.getMonthFormatted() + '-';
-		$('.cal-month-box .cal-row-fluid')
-			.on('mouseenter', function() {
-				var p = new Date(self.options.position.start);
-				var child = $('.cal-cell1:first-child .cal-month-day', this);
-				var day = (child.hasClass('cal-month-first-row') ? 1 : $('[data-cal-date]', child).text());
-				p.setDate(parseInt(day));
-				day = (day < 10 ? '0' + day : day);
-				week.html(self.locale.week.format(p.getWeek()));
-				week.attr('data-cal-week', start + day).show().appendTo(child);
-			})
-			.on('mouseleave', function() {
-				week.hide();
-			})
-		;
 
 		week.click(function() {
 			self.options.day = $(this).data('cal-week');

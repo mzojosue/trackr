@@ -5,18 +5,12 @@ import json
 def uploaded_file(filename):
 	return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-
 @app.route('/')
 def root():
 	return redirect(url_for('login'))
 
 
-
-################
-## Home pages ##
-
-
-## _Todo functions ##
+## Home Functions ##
 @app.route('/home')
 def home():
 	auth = check_login()
@@ -31,7 +25,6 @@ def home():
 	else:
 		# TODO:display db error on page
 		return render_template('dashboard.html')
-
 
 @app.route('/overview/json')
 def serialized_overview():
@@ -48,7 +41,7 @@ def serialized_overview():
 	_results = []
 
 	# Estimating Variables to grab
-	grab = ['number', 'name', 'number', 'countdown', 'bid_timestamp', 'bid_timestamp']
+	grab = ['number', 'name', 'number', 'countdown', 'timestamp', 'timestamp']
 	if hasattr(EstimatingJob, 'db'):
 		_estimates = []
 		for estimate in EstimatingJob.db.itervalues():
@@ -80,6 +73,8 @@ def serialized_overview():
 	_return = {"success": 1, "result": _results}
 	return json.dumps(_return)
 
+
+# Inventory Functions #
 
 @app.route('/inventory')
 def inventory():
@@ -126,6 +121,8 @@ def del_inventory_item(item_hash):
 	return redirect(request.referrer)
 
 
+# Timesheet Functions #
+
 @app.route('/timesheets')
 def timesheets():
 	auth = check_login()
@@ -164,6 +161,9 @@ def upload_timesheet():
 				_worker.add_labor(hours, _date, week_ending, job)
 			_date += timedelta(1)            # increment to next day
 	return redirect(request.referrer)
+
+
+# Misc Pages #
 
 @app.route('/analytics')
 def analytics():

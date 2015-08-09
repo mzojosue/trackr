@@ -149,7 +149,7 @@ range{# templates/objects/estimating-objects.html #}
 	      </div>
 
 	      <div class="modal-body">
-					<form id="subBidForm" action="{{ url_for('estimating_create_sub_bid', bid_num=bid.number) }}" enctype="multipart/form-data" method="post">
+					<form id="subBidForm" action="{{ url_for('create_sub_bid', bid_num=bid.number) }}" enctype="multipart/form-data" method="post">
 						<div class="form-group">
 							<label for="gcName">GC:</label>
 							<input type="text" name="gcName" id="gcName" class="form-control" placeholder="GC Name">

@@ -3,15 +3,10 @@ from job import *
 from datetime import datetime
 from werkzeug import secure_filename
 
-@app.route('/estimating')
-def estimating_home():
-	auth = check_login()
-	if auth is not True:
-		return auth  # redirects to login
-	return render_template('estimating/estimating.html')
+# Top-Level Bid Functions #
 
 @app.route('/estimating/create', methods=['GET', 'POST'])
-def estimating_create_bid():
+def create_bid():
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
@@ -41,6 +36,12 @@ def estimating_create_bid():
 	else:
 		return render_template('estimating/estimating_create.html')
 
+@app.route('/estimating/bid/<int:bid_num>/award/<int:bid_hash>')
+def award_bid(bid_num, bid_hash):
+	bid = EstimatingJob.find(bid_num)
+	job = bid.award_bid(bid_hash)
+	return redirect(url_for('job_overview', job_num=job.number))
+
 @app.route('/estimating/bid/<int:bid_num>/cancel')
 def cancel_bid(bid_num):
 	""" Moves calls EstiamtingJob.complete_bid to separate submitted bids from unsubmitted ones.
@@ -63,14 +64,16 @@ def complete_bid(bid_num):
 	#TODO: somehow show feedback that bid was successfully moved
 	return redirect(request.referrer)
 
-@app.route('/estimating/bid/<int:bid_num>/award/<int:bid_hash>')
-def award_bid(bid_num, bid_hash):
-	bid = EstimatingJob.find(bid_num)
-	job = bid.award_bid(bid_hash)
-	return redirect(url_for('job_overview', job_num=job.number))
+@app.route('/estimating/bid/<int:bid_num>/delete')
+def delete_bid(bid_num):
+	""" Removes the existence of bid object via passed `bid_num`
+	:param bid_num: Bid object to delete
+	:return: Redirects page to `request.referrer`
+	"""
+	return NotImplemented
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
-def estimating_create_sub_bid(bid_num):
+def create_sub_bid(bid_num):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
@@ -98,6 +101,23 @@ def estimating_create_sub_bid(bid_num):
 	_bid.add_bid(datetime.now(), _gc, _bidDate, _gc_contact, _scope)
 	return redirect(url_for('bid_overview', bid_num=_bid.number))
 
+
+# Sub Bid Functions #
+
+@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/delete')
+def delete_sub_bid(bid_num, sub_hash):
+	return NotImplemented
+
+@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/cancel')
+def cancel_sub_bid(bid_num, sub_hash):
+	return NotImplemented
+
+@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/award')
+def award_sub_bid(bid_num, sub_hash):
+	return NotImplemented
+
+
+# Bid Quote Functions #
 
 @app.route('/estimating/<int:bid_num>/quote/<scope>/<int:q_hash>')
 def bid_quote(bid_num, scope, q_hash):
@@ -154,6 +174,42 @@ def delete_bid_quote(bid_num, q_hash):
 		return auth  # redirects to login
 	return NotImplemented
 
+
+# Bid Pages #
+
+@app.route('/estimating')
+def estimating_home():
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+	return render_template('estimating/estimating.html')
+
+@app.route('/estimating/bids/json')
+def estimating_serialized_overview():
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+
+	# Grab 'from' and 'to' GET requests
+	#TODO: implement 'from' and 'to' as search queries
+	date_scope = [request.args.get('from'), request.args.get('to')]
+
+	result = ['id', 'title', 'url', 'class', 'start', 'end']
+	grab = ['hash', 'name', 'number', 'countdown', 'timestamp', 'timestamp']
+	if hasattr(EstimatingJob, 'db'):
+		_estimates = []
+		for estimate in EstimatingJob.db.itervalues():
+			_bid = {}
+			for i, z in zip(result, grab):
+				_bid[i] = estimate.__getattribute__(z)
+			_bid['url'] = url_for('bid_overview', bid_num=_bid['url'])
+			# TODO: format class value based on completion/countdown status
+			_bid['class'] = 'event-success'
+			# TODO: format start and end values
+			_estimates.append(_bid)
+		_return = {"success": 1, "result": _estimates}
+		return json.dumps(_return)
+
 @app.route('/estimating/analytics')
 def estimating_analytics():
 	return NotImplemented
@@ -185,7 +241,7 @@ def bid_overview(bid_num):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/estimating_bid.html', bid=_bid)
+			return render_template('estimating/bid_overview.html', bid=_bid)
 		except KeyError:
 			return "Error: Bid does not exist."
 
