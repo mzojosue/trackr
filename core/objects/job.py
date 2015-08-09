@@ -201,13 +201,12 @@ class Job(object):
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False, completed=False):
 		self._name = str(name)
+		self._alt_name = alt_name
 		self.date_received = date_received
-		self.alt_name = alt_name
 		self.address = address
 		self.gc = gc
 		self.gc_contact = gc_contact
-		# validate scope argument and then add to self
-		try:
+		try:					# validate scope argument and then add to self
 			self.scope = []
 			for i in scope:
 				if i in Job.valid_scope:
@@ -232,6 +231,13 @@ class Job(object):
 	def name(self):
 		if hasattr(self, 'number'):
 			return '-'.join([str(self.number), str(self._name)])
+
+	@property
+	def alt_name(self):
+		if hasattr(self, '_alt_name'):
+			return self._alt_name
+		else:
+			return self.name
 
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)

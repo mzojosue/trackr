@@ -79,12 +79,10 @@ class EstimatingJob(Job):
 		if hasattr(self, 'number'):
 			return 'E%d-%s' % (self.number, self._name)
 
-
 	@property
 	def bid_date(self):
 		""" finds and returns most recently due bid date """
 		return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
-
 
 	@property
 	def countdown(self):
@@ -103,16 +101,14 @@ class EstimatingJob(Job):
 		else:
 			return 'Bid Due ASAP'
 
-
 	@property
-	def bid_timestamp(self):
+	def timestamp(self):
 		""" Returns the bid due date as a millisecond timestamp ready to be displayed on calendar """
 		try:
 			epoch = datetime(1969, 12, 31)  # why does this work???
 			return (self.bid_date - epoch).total_seconds() * 1000
 		except TypeError:
 			return 0
-
 
 	@property
 	def bidding_to(self):
@@ -124,13 +120,11 @@ class EstimatingJob(Job):
 			_gc.append(i['gc'])
 		return _gc
 
-
 	@property
 	def path(self):
 		""" Return absolute sub path using global project path and AwardedJob.sub_path """
 		_path = os.path.join(env.env_root, self.sub_path)
 		return _path
-
 
 	@property
 	def bid_count(self):
@@ -138,7 +132,6 @@ class EstimatingJob(Job):
 		:return: current number of bids
 		"""
 		return len(self.bids)
-
 
 	@property
 	def quote_count(self):
