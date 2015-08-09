@@ -93,7 +93,7 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 				__date_due = _row[3].value
 				__date_due.date()
 			except AttributeError:
-				if "@" in __date_due:
+				if "@" in str(__date_due):
 					__date_due = [i for i in parse("{} @ {}", __date_due)]
 				# create datetime object
 				else:
