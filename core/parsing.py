@@ -80,7 +80,17 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 		except (ValueError, TypeError):
 			# TODO: check for sub_bid
 			continue
-		#  __date_recvd = _row[2].value
+		__date_recvd = _row[2].value
+		if __date_recvd is not None:
+			_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
+			for _format in _date_formats:
+				try:
+					__date_recvd = datetime.strptime(__date_recvd, _format)
+					break
+				except ValueError:
+					continue
+				except TypeError:
+					break
 
 		# Parse Bid Due Date #
 		__date_due = _row[3].value
@@ -116,7 +126,6 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 		# Parse Date Submitted #
 		__date_sent = _row[4].value
 		if hasattr(__date_sent, 'lower') and __date_sent.lower() == "no bid":
-			print "Skipping bid %s" % __num
 			__date_sent = "No bid"
 		elif __date_sent is not None:
 			_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']

@@ -120,7 +120,12 @@
 							<p>Date Recvd: {% if b.date_received %}{{ b.date_received.date() }}{% else %}None{% endif %}</p>
 							<span class="lead">
 								<span class="label label-info">
-									Due Date: {{ b.bid_date }}
+									Due Date:
+									{% if hasattr(b.bid_date, 'date') %}
+										{{ b.bid_date.date() }}
+									{% else %}
+										{{ b.bid_date }}
+									{% endif %}
 								</span>
 							</span>
 						</div>
