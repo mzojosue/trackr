@@ -121,6 +121,13 @@ class EstimatingJob(Job):
 		return _gc
 
 	@property
+	def list_gc(self):
+		_GCs = []
+		for i in self.bids.itervalues():
+			_GCs.append(i['gc'])
+		return _GCs
+
+	@property
 	def path(self):
 		""" Return absolute sub path using global project path and AwardedJob.sub_path """
 		_path = os.path.join(env.env_root, self.sub_path)
@@ -132,6 +139,7 @@ class EstimatingJob(Job):
 		:return: current number of bids
 		"""
 		return len(self.bids)
+
 
 	@property
 	def quote_count(self):
