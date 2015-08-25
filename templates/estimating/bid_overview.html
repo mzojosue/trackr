@@ -27,9 +27,9 @@
       {{ bid }}
 			{% if bid.completed %}
 				{% if bid.completed == "No bid" %}
-					<span class="label label-danger">No bid</span>
+					<span class="btn btn-danger disabled">No bid</span>
 				{% else %}
-					<span class="label label-success" >Bid sent
+					<span class="btn btn-success disabled" >Bid sent
 						{% if hasattr(bid.completed, 'date') %}
 							{{ bid.completed.date() }}
 						{% endif %}
