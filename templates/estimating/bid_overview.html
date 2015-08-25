@@ -75,14 +75,14 @@
 		<div class="row">
 
       <div class="col-xs-4">
-	      {% if bid.quotes %}
+	      {% if bid.has_quotes %}
 		      {% for scope in bid.quotes %}
 		        <div class="panel panel-default">
 		          <div class="panel-heading">
 		            Scope: <strong>{{ scope }}</strong>
 		          </div>
 			        <ul class="list-group">
-		            {% for i in bid.quotes[scope].values() %}
+		            {% for i in bid.quotes[scope] %}
 									<li class="list-group-item">
 										{{ i }}&nbsp;
 										{% if i.doc %}
