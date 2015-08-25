@@ -81,20 +81,18 @@ def create_sub_bid(bid_num):
 	_gc = request.form['gcName']
 	_gc_contact = request.form['gcContact']
 	try:
-		_bidDate = datetime(*request.form['bidDate'])
-	except:
+		_bidDate = datetime.strptime(request.form['bidDate'], '%Y-%m-%d')
+	except ValueError:
 		_bidDate = None
-		print _bidDate
 
 
 	_scope = []
 	__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']
 	for i in __scope:
 		try:
-			if bool(request.form[i]):
-				__s = str(i[0])
-				__s = __s.upper()
-				_scope.append(__s)
+			if bool(request.form[i]):    # see if form with same id label returns bool
+				__s = str(i[0]).upper()
+				_scope.append(__s)       # append first letter to scope
 		except:
 			continue
 
