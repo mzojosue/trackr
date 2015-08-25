@@ -196,7 +196,7 @@ class Job(object):
 
 	_yaml_filename = '.job_info.yaml'
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay',
-	              'rate', 'scope', 'bids', 'completed', 'materials']
+	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False, completed=False):
@@ -258,7 +258,7 @@ class Job(object):
 				self.completed_db[self.number] = self
 			else:
 				self.db[self.number] = self
-		# self.dump_info()
+		self.dump_info()
 
 	def load_info(self):
 		_data_file = os.path.join(self.path, self._yaml_filename)
