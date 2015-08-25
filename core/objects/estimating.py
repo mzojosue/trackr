@@ -45,7 +45,7 @@ class EstimatingJob(Job):
 		super(EstimatingJob, self).__init__(name, date_received=date_received, alt_name=alt_name,
 		                                    address=address, scope=scope, desc=desc, rate=rate,
 		                                    tax_exempt=tax_exempt, certified_pay=certified_pay, completed=completed)
-		self.quotes = {}
+		self._quotes = {}
 
 		# TODO: implement document/drawing storage
 		self.docs = {}
@@ -55,7 +55,7 @@ class EstimatingJob(Job):
 
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
-			self.quotes[i] = {}
+			self._quotes[i] = {}
 		self.bids = {}  # Stores previous bids. Stores self as first bid
 		self.add_bid(date_received, gc, date_end, gc_contact)
 
@@ -300,6 +300,22 @@ class EstimatingJob(Job):
 		if os.path.isdir(_takeoff_dir):
 			_takeoffs = os.listdir(_takeoff_dir)
 			return bool(len(_takeoffs))
+
+	@property
+	def has_quotes(self):
+		return NotImplemented
+
+	@property
+	def quotes(self):
+		_dir = os.path.join(env.env_root, self.sub_path, 'Quotes')
+		if os.path.isdir(_dir):
+			_return = {}
+			_scope_folders = os.listdir(_dir)
+			for i in _scope_folders:
+				_scope = os.path.join(_dir, i)
+				if os.path.isdir(_scope):
+					_return[i] = os.listdir(_scope)
+			return _return
 
 	@staticmethod
 	def find(num):
