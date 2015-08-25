@@ -166,7 +166,7 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 
 		print __num, __name, __date_due, __date_sent, __gc, __gc_contact, __scope
 		try:
-			if objects.today() <= __date_due:
+			if objects.today() <= __date_due or not __date_sent:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, add_to_log=False)
 			else:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
