@@ -70,7 +70,12 @@ def delete_bid(bid_num):
 	:param bid_num: Bid object to delete
 	:return: Redirects page to `request.referrer`
 	"""
-	return NotImplemented
+	auth = check_login()  # verify that user has admin privileges
+	if auth is not True:
+		return auth
+	_bid = EstimatingJob.find(bid_num)
+	if _bid.del_bid():
+		return redirect(url_for('current_bids'))
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def create_sub_bid(bid_num):
@@ -96,7 +101,7 @@ def create_sub_bid(bid_num):
 		except:
 			continue
 
-	_bid.add_bid(datetime.now(), _gc, _bidDate, _gc_contact, _scope)
+	_bid.add_sub(datetime.now(), _gc, _bidDate, _gc_contact, _scope)
 	return redirect(url_for('bid_overview', bid_num=_bid.number))
 
 

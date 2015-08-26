@@ -23,3 +23,9 @@
   background-color: #5cb85c !important;
   content: "Award Bid!" !important;
 }
+
+.bid-sidebar > #delete-bid {
+  bottom: 0;
+  position: fixed;
+  margin-bottom: 10px;
+}

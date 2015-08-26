@@ -44,7 +44,7 @@ range{# templates/objects/estimating-objects.html #}
                   ('bid_documents', 'Documents'),
                   ('bid_drawings', 'Drawings')] %}
 
-	<div class="col-sm-3 col-md-2 sidebar">
+	<div class="col-sm-3 col-md-2 sidebar bid-sidebar">
     <ul class="nav nav-sidebar">
       {% for _link in links %}
         {% if _link[0] == active_link %}
@@ -64,6 +64,10 @@ range{# templates/objects/estimating-objects.html #}
         </li>
       {% endfor %}
 		</ul>
+		<a href="{{ url_for('delete_bid', bid_num=bid.number) }}" id="delete-bid" class="btn btn-danger">
+			<span class="glyphicon glyphicon-trash"></span>&nbsp;
+			Delete Bid
+		</a>
 	</div><!-- /.sidebar -->
 
 {% endmacro %}

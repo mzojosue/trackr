@@ -13,7 +13,7 @@ def dummy_env(update=False):
 		bid = core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'] )
 		for z in bid.scope:
 			core.EstimatingQuote(bid, 'test vendor', z, i, 'test.file')
-		bid.add_bid(now(), 'test gc', 'ASAP', scope=['M', 'E'])
+		bid.add_sub(now(), 'test gc', 'ASAP', scope=['M', 'E'])
 
 	# create 10 dummy jobs
 	for i in xrange(amt):

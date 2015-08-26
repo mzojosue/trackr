@@ -71,7 +71,7 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.load_info()
-		self.add_bid(date_received, gc, date_end, gc_contact)  # self.init_struct occurs here
+		self.add_sub(date_received, gc, date_end, gc_contact)  # self.init_struct occurs here
 		if add_to_log:
 			env.add_bid_to_log(self)
 
@@ -83,7 +83,11 @@ class EstimatingJob(Job):
 	@property
 	def bid_date(self):
 		""" finds and returns most recently due bid date """
-		return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
+		try:
+			return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
+		except TypeError:  # occurs when at least one date is 'ASAP'
+			return today()
+
 
 	@property
 	def countdown(self):
@@ -167,7 +171,7 @@ class EstimatingJob(Job):
 		return (_status, _need)
 
 
-	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
+	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
 		"""
 		:param date_received: date that bid request was received/uploaded
 		:param gc: string or object of GC
@@ -189,16 +193,27 @@ class EstimatingJob(Job):
 		# rebuild directory structure to implement new scope and for good measure
 		self.init_struct()
 
+	def del_sub(self, bid_hash):
+		"""
+		Deletes the specified sub bid based on bid hash
+		:param bid_hash: Bid hash to delete
+		:return: Returns True if operation successful
+		"""
+		del self.bids[bid_hash]
+		self.update()
+		return True
+
 	def add_quote(self, quote_obj, category):
 		if category in self.scope:
 			self.quotes[category][quote_obj.hash] = quote_obj
 			self.update()
 
-	def del_bid(self, bid_hash=None):
-		if bid_hash:
-			del self.bids[bid_hash]
-		elif hasattr(self, 'db'):
-			del self.db[self.number]
+	def del_bid(self):
+		"""
+		Deletes self from database. Should only be shown to users with admin privileges
+		:return: True if operation successful
+		"""
+		del self.db[self.number]
 		del self
 		return True
 
