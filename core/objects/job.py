@@ -225,7 +225,6 @@ class Job(object):
 		self.documents = {}
 
 		self.completed = completed
-		self.update()
 
 	@property
 	def name(self):
@@ -258,7 +257,7 @@ class Job(object):
 				self.completed_db[self.number] = self
 			else:
 				self.db[self.number] = self
-		self.dump_info()
+			self.dump_info()
 
 	def load_info(self):
 		_data_file = os.path.join(self.path, self._yaml_filename)
@@ -269,7 +268,7 @@ class Job(object):
 				try:
 					_val = _data[i]
 					# load values from .yaml file to self
-					self.__setattr__(i, _val)
+					super(Job, self).__setattr__(i, _val)
 				except (KeyError, AttributeError):
 					continue
 		except IOError:

@@ -1,3 +1,4 @@
+import traceback
 import core as env
 from objects import *
 from job import AwardedJob, get_job_num
@@ -57,7 +58,6 @@ class EstimatingJob(Job):
 			# create sub-dictionaries for storing quotes by category/trade
 			self._quotes[i] = {}
 		self.bids = {}  # Stores previous bids. Stores self as first bid
-		self.add_bid(date_received, gc, date_end, gc_contact)
 
 		# False if jobs is not rebid. Rebid is defined by a bid that is shares the same name but differs in due date
 		# Variable is pointed to object that is being rebid
@@ -71,6 +71,7 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.load_info()
+		self.add_bid(date_received, gc, date_end, gc_contact)  # self.init_struct occurs here
 		if add_to_log:
 			env.add_bid_to_log(self)
 
@@ -183,8 +184,8 @@ class EstimatingJob(Job):
 			if i not in self.scope:
 				self.scope.append(i)
 				self.quotes[i] = {}
-		self.update()
 
+		self.update()
 		# rebuild directory structure to implement new scope and for good measure
 		self.init_struct()
 
