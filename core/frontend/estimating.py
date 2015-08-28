@@ -107,17 +107,32 @@ def create_sub_bid(bid_num):
 
 # Sub Bid Functions #
 
-@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/delete')
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/delete')
 def delete_sub_bid(bid_num, sub_hash):
 	return NotImplemented
 
-@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/cancel')
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/cancel')
 def cancel_sub_bid(bid_num, sub_hash):
 	return NotImplemented
 
-@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/award')
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/award')
 def award_sub_bid(bid_num, sub_hash):
 	return NotImplemented
+
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/update', methods=['POST'])
+def update_sub_bid(bid_num, sub_hash):
+	#TODO:add more attributes to update
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+	bid = EstimatingJob.find(bid_num)
+	sub = int(sub_hash)
+
+	_val = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
+	bid.bids[sub]['bid_date'] = _val
+	bid.update()
+	return redirect(request.referrer)
+
 
 
 # Bid Quote Functions #
