@@ -135,11 +135,6 @@ range{# templates/objects/estimating-objects.html #}
 
 {% macro sub_bid_modal(bid=False) %}
 
-	<!-- Button trigger modal -->
-	<button type="button" class="btn btn-warning pull-right" data-toggle="modal" data-target="#subBidModal">
-		New Sub Bid
-	</button>
-
 	<!-- Modal -->
 	<div class="modal fade" id="subBidModal" tabindex="-1" role="dialog" aria-labelledby="subBidModalLabel" aria-hidden="true">
 	  <div class="modal-dialog">
@@ -194,5 +189,11 @@ range{# templates/objects/estimating-objects.html #}
 	    </div>
 	  </div>
 	</div>
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-warning btn-sm pull-right" data-toggle="modal" data-target="#subBidModal">
+		<span class="glyphicon glyphicon-plus"></span>&nbsp;
+		New
+	</button>
 
 {% endmacro %}

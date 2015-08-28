@@ -33,3 +33,12 @@
 .date-input {
   width: 60% !important;
 }
+
+.sub-bid-btn {
+  margin-top: -5px;
+  margin-right: -10px;
+}
+
+#subBidModal {
+  color: #4E4E4E;
+}
