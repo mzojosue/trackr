@@ -122,7 +122,7 @@ class EstimatingJob(Job):
 		"""
 		_gc = []
 		for i in self.bids.itervalues():
-			_gc.append(i['gc'])
+			_gc.append(str(i['gc']))
 		return _gc
 
 	@property
@@ -205,7 +205,7 @@ class EstimatingJob(Job):
 
 	def add_quote(self, quote_obj, category):
 		if category in self.scope:
-			self.quotes[category][quote_obj.hash] = quote_obj
+			self._quotes[category][quote_obj.hash] = quote_obj
 			self.update()
 
 	def del_bid(self):
