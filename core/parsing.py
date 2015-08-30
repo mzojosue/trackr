@@ -50,12 +50,13 @@ def import_job_info(jobInfo):
 	return NotImplemented
 
 
+
 # Estimating Log Functions #
 
-def check_estimating_log(est_log=environment.get_estimating_log):
+def check_estimating_log(estimating_log=environment.get_estimating_log):
 	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
 	md5 = hashlib.md5()
-	with open(est_log, 'rb') as _estimating_log:
+	with open(estimating_log, 'rb') as _estimating_log:
 		buf = _estimating_log.read()
 		md5.update(buf)
 		_hash = str(md5.hexdigest())
@@ -65,8 +66,8 @@ def check_estimating_log(est_log=environment.get_estimating_log):
 			return False
 		return True
 
-def import_estimating_log(estimatingLog=environment.get_estimating_log):
-	log = openpyxl.load_workbook(estimatingLog, read_only=True)
+def import_estimating_log(estimating_log=environment.get_estimating_log):
+	log = openpyxl.load_workbook(estimating_log, read_only=True)
 	_sheet = log.get_active_sheet()
 	logger.debug('Opening Estimating Log')
 
@@ -178,15 +179,62 @@ def import_estimating_log(estimatingLog=environment.get_estimating_log):
 			else:
 				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
 
-def find_bid_in_log(obj, estimatingLog=environment.get_estimating_log):
+def dump_bids_from_log(estimating_log=environment.get_estimating_log):
+	log = openpyxl.load_workbook(estimating_log, read_only=True)
+	_sheet = log.get_active_sheet()
+
+	# calculate dimensions to iterate over
+	_min_col = 'A'
+	_min_row = 3     # do not iterate over header rows
+	_max_col = 'I'
+	_max_row = _sheet.max_row + 1
+	_iter_dim = '%s%s:%s%s' % (_min_col, _min_row, _max_col, _max_row)
+
+	_rows = []
+	for _row in _sheet.iter_rows(_iter_dim):
+		_rows.append(_row)
+	_row_count = len(_rows)
+	for _num, _row in zip(range(1, _row_count + 1), _rows):
+		_num += 2    # offset for header rows
+		yield (_num), _row
+
+def find_bid_in_log(obj, sub_hash=None, estimating_log=environment.get_estimating_log):
+	"""
+	:param obj: bid object to find in log or to reference for sub bid
+	:param sub_hash: if specified, returns row number of sub bid hash from given bid object
+	:param estimating_log: pathname for estimating log
+	:return: row number of given bid or sub_bid object
+	"""
+	if sub_hash:
+		sub_bid = obj.bids[sub_hash]
+		_in_sub = False   # boolean for when the parent bid object has been reached while iterating rows
+	_bid_dump = dump_bids_from_log()  # creates a generator object
+	for _num, _row in _bid_dump:
+		if str(_row[0].value) == str(obj.number):
+			if sub_hash:
+				_in_sub = True
+			else:
+				return _num  # returns the row where object occurs
+			if sub_hash and _in_sub and sub_bid:
+				if str(_row[5].value) == str(sub_bid['gc']):
+					return _num
+
+def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
+	"""
+	Inserts blank row after the returned value of `find_bid_in_log`
+	:param obj: bid object to insert row after
+	:param estimating_log: pathname for estimating log
+	:return: True if operation complete
+	"""
 	return NotImplemented
 
+
 @ensure_write
-def add_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
+def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 	#TODO: check for rebid
 	if type(obj) is int:
 		obj = objects.EstimatingJob.find(obj)
-	log = openpyxl.load_workbook(estimatingLog)
+	log = openpyxl.load_workbook(estimating_log)
 
 	_sheet = log.get_active_sheet()
 	_nrow = len(_sheet.rows) + 1
@@ -207,15 +255,16 @@ def add_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
 		except Exception as e:
 			raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
 
-	log.save(estimatingLog)
+	log.save(estimating_log)
 	logger.info("Successfully saved %s to Estimating log" % obj)
 	print "Successfully saved %s to Estimating log" % obj
 
 @ensure_write
-def add_sub_bid_to_log(obj, estimatingLog=environment.get_estimating_log):
+def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_log):
 	""" Adds extra row representing a sub bid to an already existing bid
 	:param obj: EstimatingJob object to write to log
-	:param estimatingLog: pathname for estimating log
+	:param sub_hash: new sub bid hash to write to log
+	:param estimating_log: pathname for estimating log
 	:return: None
 	"""
 	return NotImplemented
@@ -262,6 +311,15 @@ def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environmen
 					log.save(estimating_log)
 
 				return True
+
+def delete_bid_from_log(obj=None, estimating_log=environment.get_estimating_log):
+	"""
+	:param obj: Object to locate and delete from log
+	:param estimating_log: Default file to parse as log
+	:return: True if operation successful. False if not
+	"""
+	return NotImplemented
+
 
 
 # PO Log functions #
@@ -448,7 +506,7 @@ def find_po_in_log(obj, po_log=environment.get_po_log):
 		_job = obj.job
 
 		_sheet, po_log = find_job_in_log(_job, po_log)
-		_po_dump = dump_pos_from_log(_job, po_log)
+		_po_dump = dump_pos_from_log(_job, po_log)  # creates a generator object
 		for _num, _row in _po_dump:
 			if str(_row[0].value) == str(obj.name):
 				_po_row = _num
