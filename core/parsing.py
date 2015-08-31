@@ -224,9 +224,24 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 	Inserts blank row after the returned value of `find_bid_in_log`
 	:param obj: bid object to insert row after
 	:param estimating_log: pathname for estimating log
-	:return: True if operation complete
+	:return: returns new row number if operation successful. False if there was an error
 	"""
-	return NotImplemented
+	wb = openpyxl.Workbook(optimized_write=True)
+
+	row = find_bid_in_log(obj, estimating_log=estimating_log)
+	with open(estimating_log, 'rb') as log:
+		_old_wb = openpyxl.load_workbook(log, guess_types=True)
+		_old_ws = _old_wb.get_active_sheet()
+		_new_ws = wb.create_sheet(0, 'Estimating Log')
+		_num = 1   # counter when iterating through old worksheet rows
+		for _row in _old_ws.rows:
+			# TODO: copy styles from old row
+			_new_ws.append(_row)
+			if _num == row:
+				_new_ws.append(['bam'])
+			_num += 1
+	wb.save(estimating_log)
+
 
 
 @ensure_write
