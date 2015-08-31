@@ -238,27 +238,31 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 	:param estimating_log: pathname for estimating log
 	:return: returns new row number if operation successful. False if there was an error
 	"""
-	wb = openpyxl.Workbook()
+	wb = openpyxl.Workbook(optimized_write=True)
 
-	row = find_bid_in_log(obj, estimating_log=estimating_log)
+	_row = find_bid_in_log(obj, estimating_log=estimating_log)  # desired row to insert after
 	with open(estimating_log, 'rb') as log:
 		_old_wb = openpyxl.load_workbook(log, guess_types=True)
 		_old_ws = _old_wb.get_active_sheet()
 		_new_ws = wb.create_sheet(0, 'Estimating Log')
-		_num = 1   # counter when iterating through old worksheet rows
+
+		_num = 0   # counter when iterating through old worksheet rows
 		_return = None  # row number to return
 		for row in _old_ws.rows:
+			_num += 1
 			for i in row:
-				_new_ws.cell(row=_num, column=i.column, value=i.value)
-				_new_ws.cell(row=_num, column=i.column).style = i.style
-			if _num == row:
+				_col = ord(i.column) - 64  # offset from ASCII char value
+				_new_ws.cell(row=_num, column=_col, value=i.value)
+				_new_ws.cell(row=_num, column=_col).style = i.style
+			if _num == _row:
 				# TODO: insert blank row and save _num to return
-				_return = _num + 1
-				_num += 2
-			else:
+				_new_ws.append([''])
 				_num += 1
+				_return = _num
 		_new_ws._styles = _old_ws._styles
-		_new_ws.column_dimensions = _old_ws.column_dimensions
+		for col, dim in _old_ws.column_dimensions.items():
+			if dim.width:
+				_new_ws.column_dimensions[col].width = dim.width
 	wb.save(estimating_log)
 	return _return
 
