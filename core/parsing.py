@@ -82,12 +82,35 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 		except (ValueError, TypeError):
 			# attempt to parse _row as a sub bid
 			if _row[5].value:  # sub bid hash is based off of 'gc' string/column
-				_attr = (None, None, 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , None, 'scope')
+				_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact' , None, 'scope')
 				sub_bid = {}  # stores grabbed values
 				for attr in _attr:
 					if attr:
 						_col = _attr.index(attr)
 						sub_bid[attr] = _row[_col].value
+
+				for i in ('date_received', 'bid_date'):
+					__date = sub_bid[i]
+					if "@" in str(__date):
+						__date_due = [i for i in parse("{} @ {}", __date)]
+						# create datetime object
+					else:
+						__date = [__date]
+					_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
+					for _format in _date_formats:
+						try:
+							__due = datetime.strptime(__date[0], _format)
+							if __date[1:]:
+								#TODO: implement
+								#TODO: translate AM/PM
+								#__due.hour = parse("{:d}{}", __date_due[1])[0]
+								pass
+							sub_bid[i] = __due
+							break
+						except ValueError:
+							continue
+						except TypeError:
+							break
 				if hasattr(_prev, 'bids'):
 					_prev.add_sub(**sub_bid)
 			continue  # move onto next row
@@ -165,16 +188,17 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 				if _letter in valid_scope:
 					_tmp_scope.append(_letter)
 			__scope = _tmp_scope   # does not change variable while in iterating
+		elif __scope == 'None':
+			__scope = [None]
 		else:
 			__scope = __scope.lower()
 			if 'fab' in __scope:
 				__scope = ['fabrication']
 			elif "install" in __scope or not len(__scope):
 				__scope = ['install']
-			else:
-				# This is executed if there is an invalid value and not blank
-				#TODO: raise an error
-				pass
+			else:  # executed if there is an invalid value and not blank
+				__scope = [None]  # sanitize bad value
+				# TODO: silently raise an error
 
 		print __num, __name, __date_due, __date_sent, __gc, __gc_contact, __scope
 		try:
@@ -188,6 +212,7 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 			else:
 				obj = objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
 		_prev = obj
+		# TODO: delete leftover variables for debugging purposes
 
 def dump_bids_from_log(estimating_log=environment.get_estimating_log):
 	log = openpyxl.load_workbook(estimating_log, read_only=True)
