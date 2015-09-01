@@ -81,7 +81,7 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
 		except (ValueError, TypeError):
 			# attempt to parse _row as a sub bid
-			if _row[5].value:  # sub bid hash is based off of 'gc' string/column
+			if _row[5].value and __num == None:  # sub bid hash is based off of 'gc' string/column and 'number' should be None
 				_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact' , None, 'scope')
 				sub_bid = {}  # stores grabbed values
 				for attr in _attr:
@@ -112,7 +112,7 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 						except TypeError:
 							break
 				if hasattr(_prev, 'bids'):
-					_prev.add_sub(**sub_bid)
+					_prev.add_sub(add_to_log=False, **sub_bid)
 			continue  # move onto next row
 
 		__date_recvd = _row[2].value
@@ -263,13 +263,12 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 	:param estimating_log: pathname for estimating log
 	:return: returns new row number if operation successful. False if there was an error
 	"""
-	wb = openpyxl.Workbook(optimized_write=True)
-
 	_row = find_bid_in_log(obj, estimating_log=estimating_log)  # desired row to insert after
-	with open(estimating_log, 'rb') as log:
-		_old_wb = openpyxl.load_workbook(log, guess_types=True)
-		_old_ws = _old_wb.get_active_sheet()
-		_new_ws = wb.create_sheet(0, 'Estimating Log')
+	with open(estimating_log, 'r+b') as log:
+		_wb = openpyxl.load_workbook(log, guess_types=True)
+		_old_ws = _wb.get_active_sheet()
+		_old_ws.title = 'old-' + _old_ws.title
+		_new_ws = _wb.create_sheet(0, 'Estimating Log')
 
 		_num = 0   # counter when iterating through old worksheet rows
 		_return = None  # row number to return
@@ -288,8 +287,8 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 		for col, dim in _old_ws.column_dimensions.items():
 			if dim.width:
 				_new_ws.column_dimensions[col].width = dim.width
-	wb.save(estimating_log)
-	return _return
+		_wb.remove_sheet(_old_ws)
+		return (_wb, _return)
 
 
 @ensure_write
@@ -322,7 +321,6 @@ def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 	logger.info("Successfully saved %s to Estimating log" % obj)
 	print "Successfully saved %s to Estimating log" % obj
 
-@ensure_write
 def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_log):
 	""" Adds extra row representing a sub bid to an already existing bid
 	:param obj: EstimatingJob object to write to log
@@ -334,22 +332,20 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 		# TODO: ensure that bid attributes shown in log are up to date
 		return True
 	else:  # bid has not been added to the estimating log yet
-		_row_int = insert_bid_row(obj, estimating_log)   # stores new row
-		with open(estimating_log, 'w') as log:
-			wb = openpyxl.load_workbook(log, guess_types=True)
-			ws = wb.get_active_sheet()
+		wb, _row_int = insert_bid_row(obj, estimating_log)   # stores new row
+		ws = wb.get_active_sheet()
 
-			_attr = (None, None, 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , None, 'scope')
-			for attr in _attr:
-				if attr:  # Do not write to first 2 columns ('number', '_name') and 'method' column
-					_col = _attr.index(attr) + 1
-					# TODO: change date format
-					ws.cell(row=_row_int, column=_col).value = obj.bids[sub_hash][attr]
-					# TODO: style element according to bid status
+		_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact' , None, 'scope')
+		for attr in _attr:
+			if attr:  # Do not write to first 2 columns ('number', '_name') and 'method' column
+				_col = _attr.index(attr) + 1
+				# TODO: change date format
+				ws.cell(row=_row_int, column=_col).value = str(obj.bids[sub_hash][attr])
+				# TODO: style element according to bid status
 
-			# TODO: confirm update
+		# TODO: confirm update
 
-			wb.save(estimating_log)
+		wb.save(estimating_log)
 		return True
 
 
@@ -416,10 +412,7 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 		_sheet = log.get_sheet_by_name(log.get_sheet_names()[_sheetNum])
 		logger.debug('Working on worksheet "%s"' % _sheet.title)
 		if create:
-			try:
-				_job = objects.AwardedJob(*[i for i in parse("{} - {}", _sheet.title)])
-			except TypeError:
-				continue                # skip sheet sheet does not match regex
+			_job = objects.AwardedJob(*[i for i in parse("{}-{}", _sheet.title)])
 		for _row in _sheet.rows:
 			__po = _row[0].value
 			logger.debug('Processing row "%s"' % __po)

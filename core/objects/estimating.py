@@ -1,15 +1,13 @@
-import traceback
-import core as env
-from objects import *
-from job import AwardedJob, get_job_num
 from operator import itemgetter
 from datetime import datetime
 
 today = datetime.today
 
-# Import parent classes for estimating objects
-from job import Job
+# Import parent classes and methods for estimating objects
+import core as env
+from objects import *
 from material_cycle import Quote
+from job import AwardedJob, get_job_num, Job
 
 
 class EstimatingJob(Job):
@@ -71,7 +69,7 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.load_info()
-		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope)  # self.init_struct occurs here
+		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope, add_to_log=False)  # self.init_struct occurs here
 		if add_to_log:
 			env.add_bid_to_log(self)
 
@@ -171,7 +169,7 @@ class EstimatingJob(Job):
 		return (_status, _need)
 
 
-	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
+	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], add_to_log=True):
 		"""
 		:param date_received: date that bid request was received/uploaded
 		:param gc: string or object of GC
@@ -182,7 +180,7 @@ class EstimatingJob(Job):
 		if not bid_date: bid_date = 'ASAP'
 		_bid_hash = abs(hash(str(gc).lower()))
 		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
-		        'scope': scope}
+				'scope': scope}
 		self.bids[_bid_hash] = _bid
 		if scope:
 			for i in scope:
@@ -191,8 +189,9 @@ class EstimatingJob(Job):
 					self._quotes[i] = {}
 
 		self.update()
-		# rebuild directory structure to implement new scope and for good measure
-		self.init_struct()
+		self.init_struct()  # rebuild directory structure to implement new scope and for good measure
+		if add_to_log:
+			env.add_sub_bid_to_log(self, _bid_hash)
 
 	def del_sub(self, bid_hash):
 		"""
@@ -325,14 +324,14 @@ class EstimatingJob(Job):
 	@property
 	def quotes(self):
 		_dir = os.path.join(env.env_root, self.sub_path, 'Quotes')
+		_return = {}
 		if os.path.isdir(_dir):
-			_return = {}
 			_scope_folders = os.listdir(_dir)
 			for i in _scope_folders:
 				_scope = os.path.join(_dir, i)
 				if os.path.isdir(_scope):
 					_return[i] = os.listdir(_scope)
-			return _return
+		return _return
 
 	@staticmethod
 	def find(num):
