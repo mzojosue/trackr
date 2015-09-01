@@ -71,7 +71,7 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.load_info()
-		self.add_sub(date_received, gc, date_end, gc_contact)  # self.init_struct occurs here
+		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope)  # self.init_struct occurs here
 		if add_to_log:
 			env.add_bid_to_log(self)
 

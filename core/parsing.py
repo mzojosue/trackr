@@ -214,10 +214,12 @@ def find_bid_in_log(obj, sub_hash=None, estimating_log=environment.get_estimatin
 			if sub_hash:
 				_in_sub = True
 			else:
-				return _num  # returns the row where object occurs
+				return _num      # returns row number where base bid object occurs
 			if sub_hash and _in_sub and sub_bid:
 				if str(_row[5].value) == str(sub_bid['gc']):
-					return _num
+					return _num  # returns row number where sub bid object occurs
+	else:
+		return False
 
 def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 	"""
@@ -290,7 +292,24 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 	:param estimating_log: pathname for estimating log
 	:return: None
 	"""
-	return NotImplemented
+	if find_bid_in_log(obj, sub_hash, estimating_log):
+		# TODO: ensure that bid attributes shown in log are up to date
+		return True
+	else:  # bid has not been added to the estimating log yet
+		_row_int = insert_bid_row(obj, estimating_log)   # stores new row
+		with open(estimating_log, 'w') as log:
+			wb = openpyxl.load_workbook(log, guess_types=True)
+			ws = wb.get_active_sheet()
+
+			_attr = (None, None, 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , None, 'scope')
+			for attr in _attr:
+				if attr:  # Do not write to first 2 columns ('number', '_name') and 'method' column
+					_col = _attr.index(attr) + 1
+					ws.cell(row=_row_int, column=_col).value = obj.bids[sub_hash][attr]
+					# TODO: style element according to bid status
+			wb.save(estimating_log)
+		return True
+
 
 def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environment.get_estimating_log, save=True):
 	"""
@@ -300,7 +319,7 @@ def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environmen
 	:param value: object attribute new value
 	:return: True if operation successful
 	"""
-	_attr = ('number', '_name', 'date_recieved', 'date_end', 'completed', 'gc', 'gc_contact', 'method', 'scope')
+	_attr = ('number', '_name', 'date_received', 'date_end', 'completed', 'gc', 'gc_contact', 'method', 'scope')
 	if attr in _attr and hasattr(obj, 'number'):
 		if hasattr(estimating_log, 'get_sheet_by_name'):
 			log = estimating_log
