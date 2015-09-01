@@ -71,16 +71,27 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 	_sheet = log.get_active_sheet()
 	logger.debug('Opening Estimating Log')
 
-	#  _prev = None  # buffer for storing previous bids. Used for grouping and alternate bidders
+	_prev = None  # buffer for storing previous bids. Used for grouping and alternate bidders
 	for _row in _sheet.rows:
 		__num = _row[0].value
 		print "Processing bid row %s" % __num
+
 		try:
 			__num = int(__num)
 			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
 		except (ValueError, TypeError):
-			# TODO: check for sub_bid
-			continue
+			# attempt to parse _row as a sub bid
+			if _row[5].value:  # sub bid hash is based off of 'gc' string/column
+				_attr = (None, None, 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , None, 'scope')
+				sub_bid = {}  # stores grabbed values
+				for attr in _attr:
+					if attr:
+						_col = _attr.index(attr)
+						sub_bid[attr] = _row[_col].value
+				if hasattr(_prev, 'bids'):
+					_prev.add_sub(**sub_bid)
+			continue  # move onto next row
+
 		__date_recvd = _row[2].value
 		if __date_recvd is not None:
 			_date_formats = ['%m.%d.%y', '%m.%d.%Y', '%m/%d/%y', '%m/%d/%Y']
@@ -143,7 +154,7 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 		else: __gc = None
 		if _row[6].value: __gc_contact = _row[6].value  # Default: None
 		else: __gc_contact = None
-		#  __via # default: email
+		#  __via = _row[7].value# default: email
 
 		# Scope parsing #
 		__scope = str(_row[8].value)
@@ -168,16 +179,15 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 		print __num, __name, __date_due, __date_sent, __gc, __gc_contact, __scope
 		try:
 			if objects.today() <= __date_due or not __date_sent:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, add_to_log=False)
+				obj = objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, add_to_log=False)
 			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
-		except TypeError:
-			# Executed if __date_due is 'ASAP'
-			# TODO: check styling to determine if bid turned in or not
+				obj = objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
+		except TypeError:  # __date_due is 'ASAP'
 			if not __date_sent:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, add_to_log=False)
+				obj = objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, add_to_log=False)
 			else:
-				objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
+				obj = objects.EstimatingJob(__name, __num, date_end=__date_due, gc=__gc, gc_contact=__gc_contact, scope=__scope, completed=__date_sent, add_to_log=False)
+		_prev = obj
 
 def dump_bids_from_log(estimating_log=environment.get_estimating_log):
 	log = openpyxl.load_workbook(estimating_log, read_only=True)
@@ -253,7 +263,6 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 	return _return
 
 
-
 @ensure_write
 def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 	#TODO: check for rebid
@@ -305,8 +314,12 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 			for attr in _attr:
 				if attr:  # Do not write to first 2 columns ('number', '_name') and 'method' column
 					_col = _attr.index(attr) + 1
+					# TODO: change date format
 					ws.cell(row=_row_int, column=_col).value = obj.bids[sub_hash][attr]
 					# TODO: style element according to bid status
+
+			# TODO: confirm update
+
 			wb.save(estimating_log)
 		return True
 
