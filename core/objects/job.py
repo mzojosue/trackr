@@ -206,13 +206,10 @@ class Job(object):
 		self.address = address
 		self.gc = gc
 		self.gc_contact = gc_contact
-		try:					# validate scope argument and then add to self
-			self.scope = []
-			for i in scope:
-				if i in Job.valid_scope:
-					self.scope.append(i)
-		except TypeError:
-			self.scope = scope
+		self.scope = []
+		for i in scope:
+			if i in Job.valid_scope and len(i) == 1:
+				self.scope.append(i)
 
 		self.desc = desc
 		if rate is 'a':

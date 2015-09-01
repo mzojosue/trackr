@@ -184,10 +184,11 @@ class EstimatingJob(Job):
 		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
 		        'scope': scope}
 		self.bids[_bid_hash] = _bid
-		for i in scope:
-			if i not in self.scope:
-				self.scope.append(i)
-				self._quotes[i] = {}
+		if scope:
+			for i in scope:
+				if i not in self.scope and i in self.valid_scope:
+					self.scope.append(i)
+					self._quotes[i] = {}
 
 		self.update()
 		# rebuild directory structure to implement new scope and for good measure
@@ -297,10 +298,11 @@ class EstimatingJob(Job):
 		# create folders for holding quotes
 		print "Creating sub folders for quotes"
 		for _scope in self.scope:
-			try:
-				os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
-			except OSError:
-				print "...Directory for [%s] quotes already exist" % _scope
+			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
+				try:
+					os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
+				except OSError:
+					print "...Directory for [%s] quotes already exist" % _scope
 		print "...operation successful"
 
 		print "Folder directory for %s created\n" % self.name
