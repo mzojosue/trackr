@@ -187,7 +187,7 @@ class EstimatingJob(Job):
 		for i in scope:
 			if i not in self.scope:
 				self.scope.append(i)
-				self.quotes[i] = {}
+				self._quotes[i] = {}
 
 		self.update()
 		# rebuild directory structure to implement new scope and for good measure
