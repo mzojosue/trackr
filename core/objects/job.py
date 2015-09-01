@@ -207,9 +207,10 @@ class Job(object):
 		self.gc = gc
 		self.gc_contact = gc_contact
 		self.scope = []
-		for i in scope:
-			if i in Job.valid_scope and len(i) == 1:
-				self.scope.append(i)
+		if scope:
+			for i in scope:  # validate scope items before appending to list
+				if i in Job.valid_scope and len(i) == 1:
+					self.scope.append(i)
 
 		self.desc = desc
 		if rate is 'a':
