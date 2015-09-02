@@ -1,5 +1,6 @@
 from config import *
 
+
 @app.route('/dynamic/j/<int:job_num>/materials')
 @app.route('/dynamic/j/<int:job_num>/materials/<query>')
 def get_mat_lists(job_num, query=None):
@@ -32,6 +33,7 @@ def get_mat_lists(job_num, query=None):
 		return ''.join(_return)
 	elif hasattr(_job, 'materials'):
 		_return.append('<option>No material lists available</option>')
+
 
 @app.route('/dynamic/j/has_open_lists')
 def job_with_open_list():

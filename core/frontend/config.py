@@ -1,9 +1,11 @@
-from flask import *
-from core.objects import *
-from core.sorting import *
-from werkzeug import secure_filename
 from os import path
-import datetime, time
+import time
+
+from flask import *
+from werkzeug import secure_filename
+
+from core.objects import *
+
 
 # Flask environment
 TEMPLATE_FOLDER = "../../templates"

@@ -4,7 +4,7 @@ from mongodict import *
 from objects import *
 from parsing import *
 from log import logger
-from os import remove
+
 
 """
 Database initialization functions should go here

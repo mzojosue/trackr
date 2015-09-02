@@ -1,5 +1,6 @@
 from page import *
 
+
 @app.route('/task/new', methods=['POST'])
 def new_todo():
 	_title = request.form['title']
@@ -14,6 +15,7 @@ def new_todo():
 		Todo(_title, task=_task)
 	return redirect(request.referrer)
 
+
 @app.route('/task/<int:t_hash>/complete')
 def todo_complete(t_hash):
 	# TODO:implement job_completion for jobs-linked tasks
@@ -22,6 +24,7 @@ def todo_complete(t_hash):
 	if _todo.complete():
 		return redirect(request.referrer)
 	# create unknown error exception
+
 
 @app.route('/task/<t_hash>/del')
 def del_todo(t_hash):

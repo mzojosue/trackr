@@ -1,10 +1,9 @@
+import traceback
+
 from objects import *
-from core.environment import *
 from core.parsing import add_po_to_log, update_po_in_log
 from core.log import logger
 from core.scheduler import scheduler
-
-import traceback
 
 
 class MaterialList(object):
@@ -103,10 +102,10 @@ class MaterialList(object):
 	def doc(self):
 		if type(self._doc) is tuple:
 			_path = os.path.join(self.job.path, self._doc[0])
-			return (_path, self._doc[1])
+			return _path, self._doc[1]
 		elif type(self._doc) is str:
 			_path = os.path.join(self.job.path, 'Materials')
-			return (_path, self._doc)
+			return _path, self._doc
 		return False
 
 	def update(self):

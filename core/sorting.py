@@ -1,5 +1,3 @@
-import objects as obj
-
 from datetime import datetime
 from operator import attrgetter
 

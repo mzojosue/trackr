@@ -1,16 +1,16 @@
 import hashlib
+from datetime import datetime
+import unicodedata
+import os
+import shutil
+
 from parse import parse
 from xlrd import xldate_as_tuple
 import openpyxl
 
-from datetime import datetime, timedelta
-import unicodedata
-import os, shutil
-
 import objects
 import environment
 from log import logger
-from core.scheduler import scheduler
 
 
 def check_po_log(po_log=environment.get_po_log):
@@ -61,7 +61,7 @@ def import_estimating_log(estimating_log=environment.get_estimating_log):
 			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
 		except (ValueError, TypeError):
 			# attempt to parse _row as a sub bid
-			if _row[5].value and __num == None:  # sub bid hash is based off of 'gc' string/column and 'number' should be None
+			if _row[5].value and __num is None:  # sub bid hash is based off of 'gc' string/column and 'number' should be None
 				_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact' , None, 'scope')
 				sub_bid = {}  # stores grabbed values
 				for attr in _attr:
@@ -247,7 +247,7 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 	with open(estimating_log, 'r+b') as log:
 		_wb = openpyxl.load_workbook(log, guess_types=True)
 		_old_ws = _wb.get_active_sheet()
-		_old_ws.title = 'old-' + _old_ws.title
+		_old_ws.title += 'old-'
 		_new_ws = _wb.create_sheet(0, 'Estimating Log')
 
 		_num = 0   # counter when iterating through old worksheet rows
@@ -267,7 +267,7 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 			if dim.width:
 				_new_ws.column_dimensions[col].width = dim.width
 		_wb.remove_sheet(_old_ws)
-		return (_wb, _return)
+		return _wb, _return
 
 def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 	#TODO: check for rebid

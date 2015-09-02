@@ -166,7 +166,7 @@ class EstimatingJob(Job):
 			_need = 'Need quotes from %d vendors' % _quotes_needed
 		else:
 			_need = 'No quotes needed'
-		return (_status, _need)
+		return _status, _need
 
 
 	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], add_to_log=True):

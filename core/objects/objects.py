@@ -1,5 +1,4 @@
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 today = datetime.today
 now = datetime.now

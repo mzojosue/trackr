@@ -1,5 +1,4 @@
 import unittest
-import os.path as path
 
 import core
 

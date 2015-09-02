@@ -1,16 +1,19 @@
-from trackr import *
 from random import sample
 from datetime import datetime
+
+from trackr import *
+
 
 now = datetime.now
 
 amt = 5
 
+
 def dummy_env(update=False):
 	# create 10 dummy estimate jobs and create one rebid
 	for i in xrange(amt):
 		print 'creating mock bid #%d' % i
-		bid = core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'] )
+		bid = core.EstimatingJob('test_bid_job_%d' % i, scope=['M', 'E', 'I'])
 		for z in bid.scope:
 			core.EstimatingQuote(bid, 'test vendor', z, i, 'test.file')
 		bid.add_sub(now(), 'test gc', 'ASAP', scope=['M', 'E'])
@@ -20,7 +23,7 @@ def dummy_env(update=False):
 		print "creating mock AwardedJob %d" % i
 		_job = core.AwardedJob(i, 'test_job')
 
-	# create 10 dummy material lists for each jobs
+		# create 10 dummy material lists for each jobs
 		for z in xrange(amt):
 			print "creating mock material list (%d) for %s" % (z, _job)
 			_list = core.MaterialList(_job, items={'1', 'test item'})
@@ -35,6 +38,7 @@ def dummy_env(update=False):
 			quote = sample(z.quotes.values(), 1)[0]
 			mat_list = quote.mat_list
 			core.PO(i, mat_list=mat_list, quote=quote, update=update)
+
 
 def test_po_log():
 	# TODO: implement page creation test
