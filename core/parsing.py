@@ -13,25 +13,6 @@ from log import logger
 from core.scheduler import scheduler
 
 
-def ensure_write(f, *args, **kwargs):
-	def schedule_job():
-		# five_min = 60 * 5
-		five_min = 30
-		td = timedelta(0, five_min)
-		sched = datetime.now() + td
-		scheduler.add_job(f, 'date', run_date=sched, args=args, kwargs=kwargs)
-		print "Scheduling '%s' for %s" % (f.__name__, sched)
-		logger.warning('Operation (\'%s\') failed. Scheduling for %s' % (f.__name__, sched))
-		return False
-
-	def try_write(*args, **kwargs):
-		try:
-			return f(*args, **kwargs)
-		except OSError:
-			return schedule_job()
-	return try_write
-
-
 def check_po_log(po_log=environment.get_po_log):
 	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
 	md5 = hashlib.md5()
@@ -45,13 +26,12 @@ def check_po_log(po_log=environment.get_po_log):
 			return False
 		return True
 
-
 def import_job_info(jobInfo):
 	return NotImplemented
 
 
 
-# Estimating Log Functions #
+# Estimating Log Methods #
 
 def check_estimating_log(estimating_log=environment.get_estimating_log):
 	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
@@ -279,7 +259,6 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 				_new_ws.cell(row=_num, column=_col, value=i.value)
 				_new_ws.cell(row=_num, column=_col).style = i.style
 			if _num == _row:
-				# TODO: insert blank row and save _num to return
 				_new_ws.append([''])
 				_num += 1
 				_return = _num
@@ -290,8 +269,6 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 		_wb.remove_sheet(_old_ws)
 		return (_wb, _return)
 
-
-@ensure_write
 def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 	#TODO: check for rebid
 	if type(obj) is int:
@@ -339,15 +316,23 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 		for attr in _attr:
 			if attr:  # Do not write to first 2 columns ('number', '_name') and 'method' column
 				_col = _attr.index(attr) + 1
-				# TODO: change date format
-				ws.cell(row=_row_int, column=_col).value = str(obj.bids[sub_hash][attr])
+
+				_content = obj.bids[sub_hash][attr]
+
+				# format content for Excel sheet
+				if attr in ('date_received',
+							'bid_date'):  # format datetime content
+					_content = _content.strftime(format='%m.%d.%y')
+				elif attr is 'scope':     # separate scope list into string
+					_content = ', '.join(_content)
+
+				ws.cell(row=_row_int, column=_col).value = _content
 				# TODO: style element according to bid status
 
 		# TODO: confirm update
 
 		wb.save(estimating_log)
 		return True
-
 
 def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environment.get_estimating_log, save=True):
 	"""
@@ -491,7 +476,6 @@ def import_po_log(create=False, po_log=environment.get_po_log):
 				_po = objects.PO(_job, _mat_list, __date_issued, _quote, desc=__comment, po_num=_po_num, po_pre=_pre, update=False)
 			del __po, __vend, __price, __date_issued, __mat_list_val, __quote_val, __comment
 
-
 def find_job_in_log(obj, po_log=environment.get_po_log):
 	"""
 	Finds and returns the sheet title for the passed job object in the given po log
@@ -515,8 +499,6 @@ def find_job_in_log(obj, po_log=environment.get_po_log):
 	except KeyError:
 		return False
 
-
-@ensure_write
 def add_job_to_log(obj, po_log=environment.get_po_log, save=True):
 	"""
 	Adds a spreadsheet page to the passed log file to log POs for the given jobs
@@ -547,7 +529,6 @@ def add_job_to_log(obj, po_log=environment.get_po_log, save=True):
 			log.save(po_log)
 		return find_job_in_log(obj, log)
 
-
 def dump_pos_from_log(job, po_log=environment.get_po_log):
 	if type(job) is int:
 		# TODO: implement dumping POs from CompletedJob object instead of just AwardedJob
@@ -571,7 +552,6 @@ def dump_pos_from_log(job, po_log=environment.get_po_log):
 		_num += 2    # offset for header rows
 		yield (_num), _row
 
-
 def find_po_in_log(obj, po_log=environment.get_po_log):
 	"""
 	Finds and returns spreadsheet page, and row number which corresponds to the given PO object passed
@@ -589,8 +569,6 @@ def find_po_in_log(obj, po_log=environment.get_po_log):
 				_po_row = _num
 				return _sheet.title, _po_row
 
-
-@ensure_write
 def add_po_to_log(obj, po_log=environment.get_po_log, save=True):
 	if hasattr(po_log, 'get_sheet_by_name'):
 		log = po_log
@@ -637,8 +615,6 @@ def add_po_to_log(obj, po_log=environment.get_po_log, save=True):
 			print "Successfully saved %s to PO log" % obj
 	return find_po_in_log(obj, po_log)
 
-
-@ensure_write
 def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_log, save=True):
 	"""
 	:param po_log: po_log file object to write to
@@ -678,7 +654,6 @@ def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_
 
 		return True
 
-
 def get_po_attr(obj, attr, po_log=environment.get_po_log):
 	# TODO: optimize this bs initialization
 	_attr = {'number': 'A', 'vend': 'B', 'price': 'C', 'date_sent': 'D', 'date_expected': 'E',
@@ -696,7 +671,6 @@ def get_po_attr(obj, attr, po_log=environment.get_po_log):
 		val = _sheet[cell].value
 
 		return val
-
 
 def set_log_style(po_log=environment.get_po_log):
 	log = openpyxl.load_workbook(po_log)
