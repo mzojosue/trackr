@@ -1,6 +1,7 @@
 import pymongo
 from mongodict import *
 
+from environment import *
 from objects import *
 from parsing import *
 from log import logger
@@ -9,6 +10,36 @@ from log import logger
 """
 Database initialization functions should go here
 """
+
+
+def import_po_log(log=environment.get_po_log):
+	_obj_content = parse_po_log(log)  # creates generator from Excel Workbook
+
+	for _row in _obj_content:
+		_job = AwardedJob(*_row['job'])
+		_mat_list = MaterialList(_job, **_row['mat_list'])
+		_list_quote = MaterialListQuote(_mat_list, **_row['list_quote'])
+		_po = PO(_job, _mat_list, quote=_list_quote, **_row['po'])
+
+		_mat_list.sent_out = True
+		if _mat_list.age > 5:
+			_mat_list.delivered = True
+
+
+def import_estimating_log(log=environment.get_estimating_log):
+	_row_content = parse_est_log(log)  # creates generator from Excel Workbook
+
+	for _type, obj in _row_content:
+		if _type == 'bid':
+			# create top-level bid object
+			EstimatingJob(**obj)
+		elif _type == 'sub_bid':
+			_bid_num = obj[1]
+			obj = obj[0]
+			_bid = EstimatingJob.find(_bid_num)
+
+			_bid.add_sub(add_to_log=False, **obj)
+	return True
 
 
 def disconnect_db():
@@ -109,7 +140,7 @@ def reset_db(db='trackr_db', log=environment.get_po_log):
 
 	if True: #not check_po_log():
 		clear_db()
-		import_po_log(True, log)
+		import_po_log(log)
 	else:
 		init_db()
 

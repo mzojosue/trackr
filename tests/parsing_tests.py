@@ -1,6 +1,7 @@
 import unittest
 
 import core
+from core.parsing.po_log import *
 
 
 class TestPOLogParsing(unittest.TestCase):
@@ -20,25 +21,25 @@ class TestPOLogParsing(unittest.TestCase):
 
 	def testAddJob(self):
 		""" Tests core.add_job_to_log by using Workbook.get_sheet_names() """
-		core.add_job_to_log(self.job, po_log=self.log, save=False)
+		add_job_to_log(self.job, po_log=self.log, save=False)
 
 		_sheets = self.log.get_sheet_names()
 		self.assertIn(self.job.sheet_name, _sheets)
 
 	def testFindJob(self):
 		""" Tests core.find_job_in_log by comparing Worksheet.title and AwardedJob.sheet_name """
-		core.add_job_to_log(self.job, po_log=self.log, save=False)
+		add_job_to_log(self.job, po_log=self.log, save=False)
 
-		_sheet = core.find_job_in_log(self.job, self.log)[0]
+		_sheet = find_job_in_log(self.job, self.log)[0]
 		_sheet_name = _sheet.title
 
 		self.assertEqual(_sheet_name, self.job.sheet_name, 'Function did not return correct object.')
 
 	def testAddPO(self):
 		""" Tests core.add_po_to_log by manually verifying POs """
-		core.add_job_to_log(self.job, po_log=self.log, save=False)
+		add_job_to_log(self.job, po_log=self.log, save=False)
 
-		_sheet, _row = core.add_po_to_log(obj=self.po, po_log=self.log, save=False)
+		_sheet, _row = add_po_to_log(obj=self.po, po_log=self.log, save=False)
 		_sheet = self.log.get_sheet_by_name(_sheet)
 
 		_po_cell = 'A%d' % _row
@@ -47,9 +48,9 @@ class TestPOLogParsing(unittest.TestCase):
 
 	def testFindPO(self):
 		""" Tests core.find_po_in_log by manually verifying POs """
-		core.add_job_to_log(self.job, po_log=self.log, save=False)
+		add_job_to_log(self.job, po_log=self.log, save=False)
 
-		_sheet, _row = core.add_po_to_log(obj=self.po, po_log=self.log, save=False)
+		_sheet, _row = add_po_to_log(obj=self.po, po_log=self.log, save=False)
 		_sheet = self.log.get_sheet_by_name(_sheet)
 
 		_po_cell = 'A%d' % _row
@@ -57,11 +58,11 @@ class TestPOLogParsing(unittest.TestCase):
 		self.assertEqual(self.po.name, _po_cell, "Function did not return correct object")
 
 	def testUpdatePO(self):
-		core.add_job_to_log(self.job, po_log=self.log, save=False)
-		core.add_po_to_log(obj=self.po, po_log=self.log, save=False)
+		add_job_to_log(self.job, po_log=self.log, save=False)
+		add_po_to_log(obj=self.po, po_log=self.log, save=False)
 
-		core.update_po_in_log(self.po, 'price', 999, self.log, save=False)
-		val = core.get_po_attr(self.po, 'price', self.log)
+		update_po_in_log(self.po, 'price', 999, self.log, save=False)
+		val = get_po_attr(self.po, 'price', self.log)
 		val = float(val)
 		self.assertEqual(999, val, 'Function did not update correct cell')
 

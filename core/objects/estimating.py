@@ -1,11 +1,14 @@
 from operator import itemgetter
+import os
 from datetime import datetime
 
 today = datetime.today
+now = datetime.now
 
 # Import parent classes and methods for estimating objects
-import core as env
-from objects import *
+import core.environment as env
+
+from core.parsing import *
 from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
 
@@ -71,7 +74,7 @@ class EstimatingJob(Job):
 		self.load_info()
 		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope, add_to_log=False)  # self.init_struct occurs here
 		if add_to_log:
-			env.add_bid_to_log(self)
+			add_bid_to_log(self)
 
 	@property
 	def name(self):
@@ -191,7 +194,7 @@ class EstimatingJob(Job):
 		self.update()
 		self.init_struct()  # rebuild directory structure to implement new scope and for good measure
 		if add_to_log:
-			env.add_sub_bid_to_log(self, _bid_hash)
+			add_sub_bid_to_log(self, _bid_hash)
 
 	def del_sub(self, bid_hash):
 		"""
@@ -241,7 +244,7 @@ class EstimatingJob(Job):
 				self.completed = today()
 				del self.db[self.number]
 				#TODO: update sent_out data cell in Estimating Log and style row
-				env.update_bid_in_log(self, 'complete', self.completed.date())
+				update_bid_in_log(self, 'complete', self.completed.date())
 				return True
 
 	def cancel_bid(self):
@@ -251,7 +254,7 @@ class EstimatingJob(Job):
 				self.completed = "No bid"
 				del EstimatingJob.db[self.number]
 				#TODO: update sent_out data cell in Estimating Log and style row
-				env.update_bid_in_log(self, 'complete', "No bid")
+				update_bid_in_log(self, 'complete', "No bid")
 				return True
 
 	def delete_bid(self):

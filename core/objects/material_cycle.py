@@ -1,7 +1,8 @@
 import traceback
+import os
 
 from objects import *
-from core.parsing import add_po_to_log, update_po_in_log
+from core.parsing.po_log import add_po_to_log, update_po_in_log
 from core.log import logger
 from core.scheduler import scheduler
 
