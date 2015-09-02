@@ -24,12 +24,12 @@
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
-      {{ bid }}
+      {{ bid }}&nbsp;
 			{% if bid.completed %}
 				{% if bid.completed == "No bid" %}
-					<span class="label label-danger">No bid</span>
+					<span class="btn btn-danger disabled">No bid</span>
 				{% else %}
-					<span class="label label-success" >Bid sent
+					<span class="btn btn-success disabled" >Bid sent
 						{% if hasattr(bid.completed, 'date') %}
 							{{ bid.completed.date() }}
 						{% endif %}
@@ -65,24 +65,24 @@
         {% else %}
           <span class="label label-warning">
         {% endif %}
-            {{ bid.quote_status[1] }}
-          </span>&nbsp;
+	      {{ bid.quote_status[1] }}
+        </span>&nbsp;
       {% endif %}
-	  <span class="label label-default">
-		Bidding to {{ bid.bid_count }} GC's
+		  <span class="label label-default">
+				Bidding to {{ bid.bid_count }} GC's
       </span>
     </h3>
 		<div class="row">
 
       <div class="col-xs-4">
-	      {% if bid.quotes %}
+	      {% if bid.has_quotes %}
 		      {% for scope in bid.quotes %}
 		        <div class="panel panel-default">
 		          <div class="panel-heading">
 		            Scope: <strong>{{ scope }}</strong>
 		          </div>
 			        <ul class="list-group">
-		            {% for i in bid.quotes[scope].values() %}
+		            {% for i in bid.quotes[scope] %}
 									<li class="list-group-item">
 										{{ i }}&nbsp;
 										{% if i.doc %}
@@ -103,30 +103,58 @@
       </div>
 
 			<div class="col-xs-4 pull-right">
-				{% for b in bid.bids.values() %}
-					<div class="panel panel-primary">
-						<div class="panel-heading">
-							Bid to
-							<strong>{{ b.gc }}</strong>
-              <a href="{{ url_for('award_bid', bid_num=bid.number, bid_hash=b.bid_hash) }}">
-                <span class="badge pull-right award-button">
-                  Award &nbsp;
-                  <span class="glyphicon glyphicon-ok"></span>
-                </span>
-              </a>
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<div class="btn-group pull-right sub-bid-btn" role="group">
+							<a href="javascript:" onclick="unlock_sub_bids_for_editing()" class="btn btn-sm btn-warning">
+								<span class="glyphicon glyphicon-pencil"></span>&nbsp;
+								Edit    <!-- TODO:add hover effects to show text -->
+							</a>
+							<!-- TODO:add upload/update button when edit was clicked -->
+							{{ estimating.sub_bid_modal(bid) }}
+							<!-- TODO:add hover effects to button -->
 						</div>
-						<div class="panel-body">
-							<p>GC Contact: {{ b.gc_contact }}</p>
-							<p>Date Recvd: {% if b.date_received %}{{ b.date_received.date() }}{% else %}None{% endif %}</p>
-							<span class="lead">
-								<span class="label label-info">
-									Due Date: {{ b.bid_date }}
-								</span>
-							</span>
-						</div>
+						Sub bids:
 					</div>
-				{% endfor %}
-				{{ estimating.sub_bid_modal(bid) }}
+					<div class="list-group">
+						{% for b in bid.bids.values() %}
+						<form action="{{ url_for('update_sub_bid', bid_num=bid.number, sub_hash=b.bid_hash) }}" method="post" id="{{ b.bid_hash }}-form"></form>
+						<div class="list-group-item">
+								<h4>
+									To <strong>{{ b.gc }}</strong>
+								</h4>
+								<p>GC Contact: {{ b.gc_contact }}</p>
+								<p>Date Recvd: {% if hasattr(g.date_received, 'date') %}{{ b.date_received.date() }}{% else %}{{ b.date_received }}{% endif %}</p>
+								<div class="form-group">
+									<label for="{{ b.bid_hash }}-date" class="control-label">
+										Date Due:
+									</label>
+									<a href="{{ url_for('award_bid', bid_num=bid.number, bid_hash=b.bid_hash) }}" style="margin-top: -5px !important;" class="pull-right">
+		                <span class="btn btn-success btn-sm award-button">
+		                  Award &nbsp;
+		                  <span class="glyphicon glyphicon-ok"></span>
+		                </span>
+									</a>
+                                    <div class="date-input" style="display: none;">
+                                      <input type="date" class="form-control" form="{{ b.bid_hash }}-form" onchange="this.form.submit()"
+                                             name="bid_date" id="{{ b.bid_hash }}-date"
+                                             value="{% if hasattr(b.bid_date, 'date') %}{{ b.bid_date.date() }}{% endif %}">
+                                    </div>
+									<span class="lead due-date-label">
+										<span class="label label-info">
+											{% if hasattr(b.bid_date, 'date') %}
+												{{ b.bid_date.date() }}
+											{% else %}
+												{{ b.bid_date }}
+											{% endif %}
+										</span>
+									</span>
+
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				</div>
 			</div>
 
 		</div>

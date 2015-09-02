@@ -196,7 +196,7 @@ class Job(object):
 
 	_yaml_filename = '.job_info.yaml'
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay',
-	              'rate', 'scope', 'bids', 'completed', 'materials']
+	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
 	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False, completed=False):
@@ -206,13 +206,11 @@ class Job(object):
 		self.address = address
 		self.gc = gc
 		self.gc_contact = gc_contact
-		try:					# validate scope argument and then add to self
-			self.scope = []
-			for i in scope:
-				if i in Job.valid_scope:
+		self.scope = []
+		if scope:
+			for i in scope:  # validate scope items before appending to list
+				if i in Job.valid_scope and len(i) == 1:
 					self.scope.append(i)
-		except TypeError:
-			self.scope = scope
 
 		self.desc = desc
 		if rate is 'a':
@@ -225,7 +223,6 @@ class Job(object):
 		self.documents = {}
 
 		self.completed = completed
-		self.update()
 
 	@property
 	def name(self):
@@ -244,7 +241,7 @@ class Job(object):
 
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
-		if _caller is not '__init__':
+		if _caller is not '__init__' and _caller is not 'load_info':
 			self.dump_info()
 			self.update()
 		return _return
@@ -258,7 +255,7 @@ class Job(object):
 				self.completed_db[self.number] = self
 			else:
 				self.db[self.number] = self
-		# self.dump_info()
+			self.dump_info()
 
 	def load_info(self):
 		_data_file = os.path.join(self.path, self._yaml_filename)
@@ -269,7 +266,7 @@ class Job(object):
 				try:
 					_val = _data[i]
 					# load values from .yaml file to self
-					self.__setattr__(i, _val)
+					super(Job, self).__setattr__(i, _val)
 				except (KeyError, AttributeError):
 					continue
 		except IOError:

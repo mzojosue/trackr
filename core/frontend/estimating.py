@@ -70,7 +70,12 @@ def delete_bid(bid_num):
 	:param bid_num: Bid object to delete
 	:return: Redirects page to `request.referrer`
 	"""
-	return NotImplemented
+	auth = check_login()  # verify that user has admin privileges
+	if auth is not True:
+		return auth
+	_bid = EstimatingJob.find(bid_num)
+	if _bid.del_bid():
+		return redirect(url_for('current_bids'))
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def create_sub_bid(bid_num):
@@ -81,40 +86,53 @@ def create_sub_bid(bid_num):
 	_gc = request.form['gcName']
 	_gc_contact = request.form['gcContact']
 	try:
-		_bidDate = datetime(*request.form['bidDate'])
-	except:
+		_bidDate = datetime.strptime(request.form['bidDate'], '%Y-%m-%d')
+	except ValueError:
 		_bidDate = None
-		print _bidDate
 
 
 	_scope = []
 	__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']
 	for i in __scope:
 		try:
-			if bool(request.form[i]):
-				__s = str(i[0])
-				__s = __s.upper()
-				_scope.append(__s)
+			if bool(request.form[i]):    # see if form with same id label returns bool
+				__s = str(i[0]).upper()
+				_scope.append(__s)       # append first letter to scope
 		except:
 			continue
 
-	_bid.add_bid(datetime.now(), _gc, _bidDate, _gc_contact, _scope)
+	_bid.add_sub(datetime.now(), _gc, _bidDate, _gc_contact, _scope)
 	return redirect(url_for('bid_overview', bid_num=_bid.number))
 
 
 # Sub Bid Functions #
 
-@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/delete')
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/delete')
 def delete_sub_bid(bid_num, sub_hash):
 	return NotImplemented
 
-@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/cancel')
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/cancel')
 def cancel_sub_bid(bid_num, sub_hash):
 	return NotImplemented
 
-@app.route('/esimating/bid/<int:bid_num>/sub/<sub_hash>/award')
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/award')
 def award_sub_bid(bid_num, sub_hash):
 	return NotImplemented
+
+@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/update', methods=['POST'])
+def update_sub_bid(bid_num, sub_hash):
+	#TODO:add more attributes to update
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+	bid = EstimatingJob.find(bid_num)
+	sub = int(sub_hash)
+
+	_val = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
+	bid.bids[sub]['bid_date'] = _val
+	bid.update()
+	return redirect(request.referrer)
+
 
 
 # Bid Quote Functions #

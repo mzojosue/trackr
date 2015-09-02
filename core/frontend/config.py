@@ -2,6 +2,8 @@ from flask import *
 from core.objects import *
 from core.sorting import *
 from werkzeug import secure_filename
+from os import path
+import datetime, time
 
 # Flask environment
 TEMPLATE_FOLDER = "../../templates"
@@ -22,6 +24,8 @@ app.jinja_env.globals['Delivery'] = Delivery
 app.jinja_env.globals['get_job_num'] = get_job_num
 app.jinja_env.globals['today'] = today
 app.jinja_env.globals['hasattr'] = hasattr
+app.jinja_env.globals['getmtime'] = path.getmtime
+app.jinja_env.globals['time'] = time
 
 def allowed_file(filename):
 	return '.' in filename and \

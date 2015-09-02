@@ -1,14 +1,13 @@
-import core as env
-from objects import *
-from job import AwardedJob, get_job_num
 from operator import itemgetter
 from datetime import datetime
 
 today = datetime.today
 
-# Import parent classes for estimating objects
-from job import Job
+# Import parent classes and methods for estimating objects
+import core as env
+from objects import *
 from material_cycle import Quote
+from job import AwardedJob, get_job_num, Job
 
 
 class EstimatingJob(Job):
@@ -45,7 +44,7 @@ class EstimatingJob(Job):
 		super(EstimatingJob, self).__init__(name, date_received=date_received, alt_name=alt_name,
 		                                    address=address, scope=scope, desc=desc, rate=rate,
 		                                    tax_exempt=tax_exempt, certified_pay=certified_pay, completed=completed)
-		self.quotes = {}
+		self._quotes = {}
 
 		# TODO: implement document/drawing storage
 		self.docs = {}
@@ -55,9 +54,8 @@ class EstimatingJob(Job):
 
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
-			self.quotes[i] = {}
+			self._quotes[i] = {}
 		self.bids = {}  # Stores previous bids. Stores self as first bid
-		self.add_bid(date_received, gc, date_end, gc_contact)
 
 		# False if jobs is not rebid. Rebid is defined by a bid that is shares the same name but differs in due date
 		# Variable is pointed to object that is being rebid
@@ -71,6 +69,7 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.load_info()
+		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope, add_to_log=False)  # self.init_struct occurs here
 		if add_to_log:
 			env.add_bid_to_log(self)
 
@@ -82,7 +81,11 @@ class EstimatingJob(Job):
 	@property
 	def bid_date(self):
 		""" finds and returns most recently due bid date """
-		return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
+		try:
+			return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
+		except TypeError:  # occurs when at least one date is 'ASAP'
+			return today()
+
 
 	@property
 	def countdown(self):
@@ -117,8 +120,15 @@ class EstimatingJob(Job):
 		"""
 		_gc = []
 		for i in self.bids.itervalues():
-			_gc.append(i['gc'])
+			_gc.append(str(i['gc']))
 		return _gc
+
+	@property
+	def list_gc(self):
+		_GCs = []
+		for i in self.bids.itervalues():
+			_GCs.append(i['gc'])
+		return _GCs
 
 	@property
 	def path(self):
@@ -132,6 +142,7 @@ class EstimatingJob(Job):
 		:return: current number of bids
 		"""
 		return len(self.bids)
+
 
 	@property
 	def quote_count(self):
@@ -158,7 +169,7 @@ class EstimatingJob(Job):
 		return (_status, _need)
 
 
-	def add_bid(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[]):
+	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], add_to_log=True):
 		"""
 		:param date_received: date that bid request was received/uploaded
 		:param gc: string or object of GC
@@ -169,28 +180,40 @@ class EstimatingJob(Job):
 		if not bid_date: bid_date = 'ASAP'
 		_bid_hash = abs(hash(str(gc).lower()))
 		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
-		        'scope': scope}
+				'scope': scope}
 		self.bids[_bid_hash] = _bid
-		for i in scope:
-			if i not in self.scope:
-				self.scope.append(i)
-				self.quotes[i] = {}
-		self.update()
+		if scope:
+			for i in scope:
+				if i not in self.scope and i in self.valid_scope:
+					self.scope.append(i)
+					self._quotes[i] = {}
 
-		# TODO:prevent directory structure from being created twice
-		# rebuild directory structure to implement new scope and for good measure
-		self.init_struct()
+		self.update()
+		self.init_struct()  # rebuild directory structure to implement new scope and for good measure
+		if add_to_log:
+			env.add_sub_bid_to_log(self, _bid_hash)
+
+	def del_sub(self, bid_hash):
+		"""
+		Deletes the specified sub bid based on bid hash
+		:param bid_hash: Bid hash to delete
+		:return: Returns True if operation successful
+		"""
+		del self.bids[bid_hash]
+		self.update()
+		return True
 
 	def add_quote(self, quote_obj, category):
 		if category in self.scope:
-			self.quotes[category][quote_obj.hash] = quote_obj
+			self._quotes[category][quote_obj.hash] = quote_obj
 			self.update()
 
-	def del_bid(self, bid_hash=None):
-		if bid_hash:
-			del self.bids[bid_hash]
-		elif hasattr(self, 'db'):
-			del self.db[self.number]
+	def del_bid(self):
+		"""
+		Deletes self from database. Should only be shown to users with admin privileges
+		:return: True if operation successful
+		"""
+		del self.db[self.number]
 		del self
 		return True
 
@@ -274,10 +297,11 @@ class EstimatingJob(Job):
 		# create folders for holding quotes
 		print "Creating sub folders for quotes"
 		for _scope in self.scope:
-			try:
-				os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
-			except OSError:
-				print "...Directory for [%s] quotes already exist" % _scope
+			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
+				try:
+					os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
+				except OSError:
+					print "...Directory for [%s] quotes already exist" % _scope
 		print "...operation successful"
 
 		print "Folder directory for %s created\n" % self.name
@@ -292,6 +316,22 @@ class EstimatingJob(Job):
 		if os.path.isdir(_takeoff_dir):
 			_takeoffs = os.listdir(_takeoff_dir)
 			return bool(len(_takeoffs))
+
+	@property
+	def has_quotes(self):
+		return NotImplemented
+
+	@property
+	def quotes(self):
+		_dir = os.path.join(env.env_root, self.sub_path, 'Quotes')
+		_return = {}
+		if os.path.isdir(_dir):
+			_scope_folders = os.listdir(_dir)
+			for i in _scope_folders:
+				_scope = os.path.join(_dir, i)
+				if os.path.isdir(_scope):
+					_return[i] = os.listdir(_scope)
+		return _return
 
 	@staticmethod
 	def find(num):

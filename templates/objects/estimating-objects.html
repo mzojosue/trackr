@@ -44,7 +44,7 @@ range{# templates/objects/estimating-objects.html #}
                   ('bid_documents', 'Documents'),
                   ('bid_drawings', 'Drawings')] %}
 
-	<div class="col-sm-3 col-md-2 sidebar">
+	<div class="col-sm-3 col-md-2 sidebar bid-sidebar">
     <ul class="nav nav-sidebar">
       {% for _link in links %}
         {% if _link[0] == active_link %}
@@ -64,6 +64,10 @@ range{# templates/objects/estimating-objects.html #}
         </li>
       {% endfor %}
 		</ul>
+		<a href="{{ url_for('delete_bid', bid_num=bid.number) }}" id="delete-bid" class="btn btn-danger">
+			<span class="glyphicon glyphicon-trash"></span>&nbsp;
+			Delete Bid
+		</a>
 	</div><!-- /.sidebar -->
 
 {% endmacro %}
@@ -131,11 +135,6 @@ range{# templates/objects/estimating-objects.html #}
 
 {% macro sub_bid_modal(bid=False) %}
 
-	<!-- Button trigger modal -->
-	<button type="button" class="btn btn-warning pull-right" data-toggle="modal" data-target="#subBidModal">
-		New Sub Bid
-	</button>
-
 	<!-- Modal -->
 	<div class="modal fade" id="subBidModal" tabindex="-1" role="dialog" aria-labelledby="subBidModalLabel" aria-hidden="true">
 	  <div class="modal-dialog">
@@ -176,8 +175,8 @@ range{# templates/objects/estimating-objects.html #}
 		          </div><!-- /#scopeArea -->
 						</div><!-- /.form-group -->
 						<div class="form-group">
-							<label class="control-label" for="dateDue">Bid Due Date:</label>
-							<input type="date" name="dateDue" id="dateDue" class="form-control">
+							<label class="control-label" for="bidDate">Bid Due Date:</label>
+							<input type="date" name="bidDate" id="bidDate" class="form-control">
 						</div>
 					</form>
 	      </div>
@@ -190,5 +189,11 @@ range{# templates/objects/estimating-objects.html #}
 	    </div>
 	  </div>
 	</div>
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-warning btn-sm pull-right" data-toggle="modal" data-target="#subBidModal">
+		<span class="glyphicon glyphicon-plus"></span>&nbsp;
+		New
+	</button>
 
 {% endmacro %}

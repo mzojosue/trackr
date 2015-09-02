@@ -133,13 +133,19 @@ function unlock_table_for_editing() {
   }
 }
 
-function update_po_attr(job_number, po_num, attr) {
-  po_num = po_num.toString();  // Prevents integer from being changed.
-  var url = '/j/' + job_number + '/po/' + po_num + '/update/' + attr;
-  var elementId = attr + 'Update-' + po_num;
-  var inputElement = document.getElementById(elementId);
-  inputElement.setAttribute('form', 'quoteUpdate');
-  var updateForm = document.getElementById('quoteUpdate');
-  updateForm.setAttribute('action', url);
-  updateForm.submit();
+//function update_po_attr(job_number, po_num, attr)
+
+function unlock_sub_bids_for_editing() {
+
+  // Hide all labels
+  var dateLabels = document.getElementsByClassName('due-date-label');
+  for (var i=0; i < dateLabels.length; i++) {
+    dateLabels[i].style.display = 'none';
+  }
+
+  // Show all input elements
+  var dateInputs = document.getElementsByClassName('date-input');
+  for (var i=0; i < dateInputs.length; i++) {
+    dateInputs[i].style.display = 'block';
+  }
 }
