@@ -124,7 +124,7 @@
 									To <strong>{{ b.gc }}</strong>
 								</h4>
 								<p>GC Contact: {{ b.gc_contact }}</p>
-								<p>Date Recvd: {% if b.date_received %}{{ b.date_received.date() }}{% else %}None{% endif %}</p>
+								<p>Date Recvd: {% if hasattr(g.date_received, 'date') %}{{ b.date_received.date() }}{% else %}{{ b.date_received }}{% endif %}</p>
 								<div class="form-group">
 									<label for="{{ b.bid_hash }}-date" class="control-label">
 										Date Due:
