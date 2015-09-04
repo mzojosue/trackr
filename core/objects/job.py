@@ -221,7 +221,7 @@ class Job(object):
 		self.tax_exempt = tax_exempt
 		self.certified_pay = certified_pay
 
-		self.documents = {}
+		self._documents = {}
 
 		self.completed = completed
 
@@ -229,6 +229,8 @@ class Job(object):
 	def name(self):
 		if hasattr(self, 'number'):
 			return '-'.join([str(self.number), str(self._name)])
+		else:
+			return str('_name')
 
 	@property
 	def alt_name(self):
@@ -236,6 +238,67 @@ class Job(object):
 			return self._alt_name
 		else:
 			return self.name
+
+	@property
+	def drawings(self):
+		""" Iterates through contents of Drawings folder and returns filenames, paths, and last modified times
+		:return:
+		"""
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Drawings')
+			if os.path.isdir(_dir):
+				_dwgs = os.listdir(_dir)
+				_return = {}
+				for dwg in _dwgs:
+					_path = os.path.join(_dir, dwg)
+					_mod_time = os.stat(_path)
+					# TODO: process dwg type
+					_return[dwg] = [_path, _mod_time]
+				return _return
+
+	@property
+	def documents(self):
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Documents')
+			if os.path.isdir(_dir):
+				_docs = os.listdir(_dir)
+				_return = {}
+				for doc in _docs:
+					_path = os.path.join(_dir, doc)
+					_mod_time = os.stat(_path)
+					# TODO: process doc type
+					_return[doc] = [_path, _mod_time]
+				return _return
+
+	@property
+	def has_drawings(self):
+		""" Checks to see if self has any drawing documents
+		:return: Returns boolean if self has files in Documents folder
+		"""
+		_dwgs = self.drawings
+		return bool(len(_dwgs))
+
+	@property
+	def has_documents(self):
+		""" Checks to see if self has any documents
+		:return: Returns boolean if self has files in Documents folder
+		"""
+		if hasattr(self, 'sub_path'):
+			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
+			if os.path.isdir(_dir):
+				_documents = os.listdir(_dir)
+				return bool(len(_documents))
+
+	@property
+	def has_addendums(self):
+		""" Checks to see if self has any Addendum documents
+		:return: Returns boolean if self has files in Documents folder
+		"""
+		if hasattr(self, 'sub_path'):
+			_dir = os.path.join(env.env_root, self.sub_path, 'Addendums')
+			if os.path.isdir(_dir):
+				_addendums = os.listdir(_dir)
+				return bool(len(_addendums))
 
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)
@@ -254,24 +317,31 @@ class Job(object):
 		if hasattr(self, 'number'):
 			if self.completed and hasattr(self, 'completed_db'):
 				self.completed_db[self.number] = self
-			else:
+			elif hasattr(self, 'db'):
 				self.db[self.number] = self
 			self.dump_info()
+		else:
+			return False
 
 	def load_info(self):
-		_data_file = os.path.join(self.path, self._yaml_filename)
-		try:
-			_data = open(_data_file, 'r')
-			_data = yaml.load(_data)
-			for i in self._yaml_attr:
-				try:
-					_val = _data[i]
-					# load values from .yaml file to self
-					super(Job, self).__setattr__(i, _val)
-				except (KeyError, AttributeError):
-					continue
-		except IOError:
-			self.dump_info()
+		if hasattr(self, 'path'):
+			_data_file = os.path.join(self.path, self._yaml_filename)
+			try:
+				_data = open(_data_file, 'r')
+				_data = yaml.load(_data)
+				for i in self._yaml_attr:
+					try:
+						_val = _data[i]
+						# load values from .yaml file to self
+						super(Job, self).__setattr__(i, _val)
+					except (KeyError, AttributeError):
+						continue
+				return True
+			except IOError:
+				return self.dump_info()  # None is returned if directory doesn't exist
+		else:
+			return False
+
 
 	def dump_info(self):
 		# dump values from self to .yaml file
@@ -290,54 +360,11 @@ class Job(object):
 				_data_file = open(_filename, 'w')
 				yaml.dump(_data, _data_file, default_flow_style=False)
 				_data_file.close()
+				return True
 			except IOError:
 				# project directory doesn't exist
 				return None
 
-
-	@property
-	def drawings(self):
-		if hasattr(self, 'path'):
-			_dir = os.path.join(self.path, 'Drawings')
-			if os.path.isdir(_dir):
-				_dwgs = os.listdir(_dir)
-				_return = {}
-				for dwg in _dwgs:
-					_path = os.path.join(_dir, dwg)
-					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[dwg] = [_path, _mod_time]
-				return _return
-
-	@property
-	def has_drawings(self):
-		""" Checks to see if self has any takeoff documents
-		:return: Returns boolean if self has files in Takeoff folder
-		"""
-		_dwgs = self.drawings
-		return bool(len(_dwgs))
-
-	@property
-	def has_documents(self):
-		""" Checks to see if self has any takeoff documents
-		:return: Returns boolean if self has files in Takeoff folder
-		"""
-		if hasattr(self, 'sub_path'):
-			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
-			if os.path.isdir(_dir):
-				_documents = os.listdir(_dir)
-				return bool(len(_documents))
-
-	@property
-	def has_addendums(self):
-		""" Checks to see if self has any takeoff documents
-		:return: Returns boolean if self has files in Takeoff folder
-		"""
-		if hasattr(self, 'sub_path'):
-			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
-			if os.path.isdir(_dir):
-				_addendums = os.listdir(_dir)
-				return bool(len(_addendums))
 
 
 class AwardedJob(Job):

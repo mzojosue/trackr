@@ -76,7 +76,7 @@ def delete_bid(bid_num):
 	if auth is not True:
 		return auth
 	_bid = EstimatingJob.find(bid_num)
-	if _bid.del_bid():
+	if _bid.delete_bid():
 		return redirect(url_for('current_bids'))
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])

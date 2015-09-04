@@ -3,6 +3,63 @@ import unittest
 import core
 
 
+class TestJob(unittest.TestCase):
+	def setUp(self):
+		self.job = core.Job('test_job')
+
+	def testName(self):
+		""" Tests name property with and without number attribute
+		:return:
+		"""
+		return NotImplemented
+
+	def testAltName(self):
+		""" Tests alt_name property
+		:return:
+		"""
+		return NotImplemented
+
+	def testDrawings(self):
+		""" Tests drawings property by creating empty files and parsing shell output
+		:return:
+		"""
+		return NotImplemented
+
+	def testHasDrawings(self):
+		""" Tests has_drawings property by parsing shell output
+		:return:
+		"""
+		return NotImplemented
+
+	def testHasDocuments(self):
+		""" Tests has_documents property by parsing shell output
+		:return:
+		"""
+		return NotImplemented
+
+	def testHasAddendums(self):
+		""" Checks to see if self has any takeoff
+		:return:
+		"""
+
+	def testUpdate(self):
+		""" Tests update function with and without 'number' and 'db' atrributes
+		:return:
+		"""
+		return NotImplemented
+
+	def testLoadInfo(self):
+		""" Tests load_info method with/without 'path' and with/without the directory existing
+		:return:
+		"""
+		return NotImplemented
+
+	def testDumpInfo(self):
+		""" Tests dump_info method with/without 'path' and with/without the directory existing
+		:return:
+		"""
+
+
 class TestAwardedJob(unittest.TestCase):
 	def setUp(self):
 		num = core.get_job_num()
@@ -54,5 +111,5 @@ class TestAwardedJob(unittest.TestCase):
 		return None
 
 
-suite=unittest.TestLoader().loadTestsFromTestCase(TestAwardedJob)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestAwardedJob)
 unittest.TextTestRunner(verbosity=2).run(suite)

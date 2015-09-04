@@ -8,7 +8,7 @@ now = datetime.now
 # Import parent classes and methods for estimating objects
 import core.environment as env
 
-from core.parsing import *
+from core.parsing.bid_log import *
 from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
 
@@ -17,8 +17,8 @@ class EstimatingJob(Job):
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
-	             address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
-	             tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False, add_to_log=True):
+				 address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
+				 tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False, add_to_log=True):
 		"""
 		:param name: The desired name for the bid
 		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
@@ -45,8 +45,8 @@ class EstimatingJob(Job):
 		self.hash = abs(hash(''.join([str(now()), os.urandom(4)])))
 
 		super(EstimatingJob, self).__init__(name, date_received=date_received, alt_name=alt_name,
-		                                    address=address, scope=scope, desc=desc, rate=rate,
-		                                    tax_exempt=tax_exempt, certified_pay=certified_pay, completed=completed)
+											address=address, scope=scope, desc=desc, rate=rate,
+											tax_exempt=tax_exempt, certified_pay=certified_pay, completed=completed)
 		self._quotes = {}
 
 		# TODO: implement document/drawing storage
@@ -82,13 +82,22 @@ class EstimatingJob(Job):
 			return 'E%d-%s' % (self.number, self._name)
 
 	@property
+	def has_takeoff(self):
+		""" Checks to see if self has any takeoff documents
+		:return: Returns boolean if self has files in Takeoff folder
+		"""
+		_takeoff_dir = os.path.join(env.env_root, self.sub_path, 'Takeoffs')
+		if os.path.isdir(_takeoff_dir):
+			_takeoffs = os.listdir(_takeoff_dir)
+			return bool(len(_takeoffs))
+
+	@property
 	def bid_date(self):
 		""" finds and returns most recently due bid date """
 		try:
 			return sorted(self.bids.values(), key=itemgetter('bid_date'))[0]['bid_date']
 		except TypeError:  # occurs when at least one date is 'ASAP'
 			return today()
-
 
 	@property
 	def countdown(self):
@@ -117,6 +126,13 @@ class EstimatingJob(Job):
 			return 0
 
 	@property
+	def bid_count(self):
+		"""
+		:return: current number of bids
+		"""
+		return len(self.bids)
+
+	@property
 	def bidding_to(self):
 		"""
 		:return: tuple of GC names that object is being bid to
@@ -127,28 +143,63 @@ class EstimatingJob(Job):
 		return _gc
 
 	@property
-	def list_gc(self):
-		_GCs = []
-		for i in self.bids.itervalues():
-			_GCs.append(i['gc'])
-		return _GCs
-
-	@property
 	def path(self):
 		""" Return absolute sub path using global project path and AwardedJob.sub_path """
 		_path = os.path.join(env.env_root, self.sub_path)
 		return _path
 
-	@property
-	def bid_count(self):
-		"""
-		:return: current number of bids
-		"""
-		return len(self.bids)
 
+	# Quote Functions
+
+	def init_struct(self):
+		# create initial bid directory
+		try:
+			print "Creating directory for bid path..."
+			os.mkdir(os.path.join(env.env_root, self.sub_path))
+			print "...operation successful"
+		except OSError:
+			print "...Bid directory already exists"
+
+		# create bid sub folders
+		try:
+			print "Creating bid sub folders..."
+			_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Takeoffs')
+			for _folder in _folders:
+				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
+			print "...operation successful"
+		except OSError:
+			print "...Bid sub directories already exist"
+
+		# create folders for holding quotes
+		print "Creating sub folders for quotes"
+		for _scope in self.scope:
+			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
+				try:
+					os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
+				except OSError:
+					print "...Directory for [%s] quotes already exist" % _scope
+		print "...operation successful"
+
+		print "Folder directory for %s created\n" % self.name
+		return True
+
+	@property
+	def quotes(self):
+		_dir = os.path.join(env.env_root, self.sub_path, 'Quotes')
+		_return = {}
+		if os.path.isdir(_dir):
+			_scope_folders = os.listdir(_dir)
+			for i in _scope_folders:
+				_scope = os.path.join(_dir, i)
+				if os.path.isdir(_scope):
+					_return[i] = os.listdir(_scope)
+		return _return
 
 	@property
 	def quote_count(self):
+		""" Iterates self.quotes and counts the number of quotes in each scope
+		:return: int reflecting the amount of quotes stored
+		"""
 		count = 0
 		for i in self.quotes.values():
 			count += len(i)
@@ -171,6 +222,18 @@ class EstimatingJob(Job):
 			_need = 'No quotes needed'
 		return _status, _need
 
+	def add_quote(self, quote_obj, category):
+		if category in self.scope:
+			self._quotes[category][quote_obj.hash] = quote_obj
+			self.update()
+
+	def del_quote(self, quote_hash, category):
+		if category in self.scope:
+			del self.quotes[category][quote_hash]
+			self.update()
+
+
+	# Sub Bid Methods #
 
 	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], add_to_log=True):
 		"""
@@ -206,36 +269,8 @@ class EstimatingJob(Job):
 		self.update()
 		return True
 
-	def add_quote(self, quote_obj, category):
-		if category in self.scope:
-			self._quotes[category][quote_obj.hash] = quote_obj
-			self.update()
 
-	def del_bid(self):
-		"""
-		Deletes self from database. Should only be shown to users with admin privileges
-		:return: True if operation successful
-		"""
-		del self.db[self.number]
-		del self
-		return True
-
-	def del_quote(self, quote_hash, category):
-		if category in self.scope:
-			del self.quotes[category][quote_hash]
-			self.update()
-
-
-	def find_rebid(self):
-		"""
-		:return: bid jobs object if there is a bid that has the same name. Else function returns false.
-		"""
-		if hasattr(self, 'db'):
-			for i in self.db.values():
-				if i._name == self._name:
-					return i
-			return False
-
+	# Top-level Bid Functions #
 
 	def complete_bid(self):
 		if hasattr(self, 'db') and hasattr(self, 'completed_db'):
@@ -257,84 +292,28 @@ class EstimatingJob(Job):
 				update_bid_in_log(self, 'complete', "No bid")
 				return True
 
-	def delete_bid(self):
+	def delete_bid(self, remove=False):
 		try:
 			if hasattr(self, 'db'):
 				del self.db[self.number]
 		except KeyError:
 			if hasattr(self, 'completed_db'):
 				del self.completed_db[self.number]
-		# TODO: delete row(s) from Estimating Log
+		del self
+
+		if remove:
+			# TODO: delete row(s) from Estimating Log
+			pass
 		return True
 
 	def award_bid(self, bid_hash):
 		""" Function that creates an AwardedJob object based on EstimatingJob object and selected gc. This function is run through the webApp and is bound to a specific bid/gc
-		:param gc: string object representing GC that bid was sent to"""
+		:param gc: string object representing GC that bid was sent to """
 		bid = self.bids[bid_hash]
 		if not self.completed:
 			self.complete_bid()
 		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid['gc'],
-			gc_contact=bid['gc_contact'], scope=self.scope, desc=self.desc, rate=self.rate)
-
-
-
-	def init_struct(self):
-		# create initial bid directory
-		try:
-			print "Creating directory for bid path..."
-			os.mkdir(os.path.join(env.env_root, self.sub_path))
-			print "...operation successful"
-		except OSError:
-			print "...Bid directory already exists"
-
-		# create bid sub folders
-		try:
-			print "Creating bid sub folders..."
-			_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Takeoffs')
-			for _folder in _folders:
-				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
-			print "...operation successful"
-		except OSError:
-			print "...Bid sub directories already exist"
-
-		# create folders for holding quotes
-		print "Creating sub folders for quotes"
-		for _scope in self.scope:
-			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
-				try:
-					os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
-				except OSError:
-					print "...Directory for [%s] quotes already exist" % _scope
-		print "...operation successful"
-
-		print "Folder directory for %s created\n" % self.name
-		return True
-
-	@property
-	def has_takeoff(self):
-		""" Checks to see if self has any takeoff documents
-		:return: Returns boolean if self has files in Takeoff folder
-		"""
-		_takeoff_dir = os.path.join(env.env_root, self.sub_path, 'Takeoffs')
-		if os.path.isdir(_takeoff_dir):
-			_takeoffs = os.listdir(_takeoff_dir)
-			return bool(len(_takeoffs))
-
-	@property
-	def has_quotes(self):
-		return NotImplemented
-
-	@property
-	def quotes(self):
-		_dir = os.path.join(env.env_root, self.sub_path, 'Quotes')
-		_return = {}
-		if os.path.isdir(_dir):
-			_scope_folders = os.listdir(_dir)
-			for i in _scope_folders:
-				_scope = os.path.join(_dir, i)
-				if os.path.isdir(_scope):
-					_return[i] = os.listdir(_scope)
-		return _return
+						  gc_contact=bid['gc_contact'], scope=self.scope, desc=self.desc, rate=self.rate)
 
 	@staticmethod
 	def find(num):
@@ -344,6 +323,16 @@ class EstimatingJob(Job):
 			except KeyError:
 				return EstimatingJob.completed_db[num]
 
+	def find_rebid(self):
+		"""
+		:return: bid jobs object if there is a bid that has the same name. Else function returns false.
+		"""
+		# TODO: implement a deep search (eg: address attribute, desc attribute, 'st'/'ave' in name, etc)
+		if hasattr(self, 'db'):
+			for i in self.db.values():
+				if i._name == self._name:
+					return i
+			return False
 
 	@staticmethod
 	def get_bid_num():
@@ -366,6 +355,7 @@ class EstimatingJob(Job):
 
 
 class EstimatingQuote(Quote):
+
 	def __init__(self, bid, vend, category, price=0.0, doc=None):
 		super(EstimatingQuote, self).__init__(vend, price, doc)
 		self.bid = bid
