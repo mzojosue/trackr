@@ -18,7 +18,7 @@ class TestJob(unittest.TestCase):
 			os.mkdir(_dir)  # create sandbox directory
 		except OSError:
 			pass
-		os.chdir(_dir)
+		os.chdir(_dir)  # enter sandbox directory
 
 	def tearDown(self):
 		if os.path.isdir('../../tests'):  # checks if in tests/.job_sandbox
@@ -67,7 +67,7 @@ class TestJob(unittest.TestCase):
 			os.chdir(_dir)
 			self.assertEqual(self.job.addendums, {})  # test with directory, without files
 
-			_adds = ['add1, add2, add3']
+			_adds = ['add1', 'add2', 'add3']
 			for fname in _adds:
 				_fobj = open(fname, 'w')
 				_fobj.close()
@@ -87,7 +87,7 @@ class TestJob(unittest.TestCase):
 			os.chdir(_dir)
 			self.assertEqual(self.job.drawings, {})  # test with directory, without files
 
-			_dwgs = ['dwg1, dwg2, dwg3']
+			_dwgs = ['dwg1', 'dwg2', 'dwg3']
 			for fname in _dwgs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
@@ -107,7 +107,7 @@ class TestJob(unittest.TestCase):
 			os.chdir(_dir)
 			self.assertEqual(self.job.documents, {})  # test with directory, without files
 
-			_docs = ['doc1, doc2, doc3']
+			_docs = ['doc1', 'doc2', 'doc3']
 			for fname in _docs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
@@ -127,7 +127,7 @@ class TestJob(unittest.TestCase):
 			os.chdir(_dir)
 			self.assertEqual(self.job.has_drawings, False)  # with directory, without files
 
-			_dwgs = ['dwg1, dwg2, dwg3']
+			_dwgs = ['dwg1', 'dwg2', 'dwg3']
 			for fname in _dwgs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
@@ -147,7 +147,7 @@ class TestJob(unittest.TestCase):
 			os.chdir(_dir)
 			self.assertEqual(self.job.has_documents, False)  # with directory, without files
 
-			_docs = ['doc1, doc2, doc3']
+			_docs = ['doc1', 'doc2', 'doc3']
 			for fname in _docs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
@@ -167,7 +167,7 @@ class TestJob(unittest.TestCase):
 			os.chdir(_dir)
 			self.assertEqual(self.job.has_addendums, False)  # with directory, without files
 
-			_adds = ['add1, add2, add3']
+			_adds = ['add1', 'add2', 'add3']
 			for fname in _adds:
 				_fobj = open(fname, 'w')
 				_fobj.close()
@@ -175,10 +175,17 @@ class TestJob(unittest.TestCase):
 			os.chdir('..')
 
 	def testUpdate(self):
-		""" Tests update function with and without 'number' and 'db' atrributes
+		""" Tests update function with and without 'number' and 'db' atrributes.
 		:return:
 		"""
-		return NotImplemented
+		self.assertEqual(self.job.update(), False)  # without number attribute
+
+		_num = 24
+		self.job.number = _num
+		self.assertEqual(self.job.update(), 'DB_ERROR')  # without db attributes
+
+		self.job.db = {}
+		self.assertEqual(self.job.db.keys()[0], _num)  # ensure that update was called on __setattr__ previous line
 
 	def testLoadInfo(self):
 		""" Tests load_info method with/without 'path' and with/without the directory existing

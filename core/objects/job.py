@@ -328,7 +328,7 @@ class Job(object):
 		""" Checks to see if self has any Addendum documents
 		:return: Returns boolean if self has files in Documents folder
 		"""
-		_adds = self.documents
+		_adds = self.addendums
 		return bool(len(_adds))
 
 	def __setattr__(self, key, value):
@@ -350,6 +350,8 @@ class Job(object):
 				self.completed_db[self.number] = self
 			elif hasattr(self, 'db'):
 				self.db[self.number] = self
+			else:                  # no db attribute
+				return 'DB_ERROR'  # for debugging
 			self.dump_info()
 		else:
 			return False
@@ -369,32 +371,31 @@ class Job(object):
 						continue
 				return True
 			except IOError:
-				return self.dump_info()  # None is returned if directory doesn't exist
-		else:
+				return self.dump_info()
+		else:  # path attribute doesn't exist
 			return False
 
 
 	def dump_info(self):
 		# dump values from self to .yaml file
-		_data = {}
-		for i in self._yaml_attr:
-			try:
-				_val = self.__getattribute__(i)
-				if _val:
-					_data[i] = _val
-			except AttributeError:
-				continue
 
 		if hasattr(self, 'path'):
+			_data = {}
+			for i in self._yaml_attr:
+				try:
+					_val = self.__getattribute__(i)
+					if _val:
+						_data[i] = _val
+				except AttributeError:
+					continue
 			try:
 				_filename = os.path.join(self.path, self._yaml_filename)
 				_data_file = open(_filename, 'w')
 				yaml.dump(_data, _data_file, default_flow_style=False)
 				_data_file.close()
 				return True
-			except IOError:
-				# project directory doesn't exist
-				return None
+			except IOError:  # project directory doesn't exist
+				return False
 
 
 
