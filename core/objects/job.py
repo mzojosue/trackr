@@ -230,18 +230,45 @@ class Job(object):
 		if hasattr(self, 'number'):
 			return '-'.join([str(self.number), str(self._name)])
 		else:
-			return str('_name')
+			return str(self._name)
 
 	@property
 	def alt_name(self):
-		if hasattr(self, '_alt_name'):
+		if hasattr(self, '_alt_name') and self._alt_name:
 			return self._alt_name
 		else:
 			return self.name
 
+	@alt_name.setter
+	def alt_name(self, value):
+		self._alt_name = str(value)
+
+
+	@property
+	def addendums(self):
+		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
+		:return:
+		"""
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Addendums')
+			if os.path.isdir(_dir):
+				_adds = os.listdir(_dir)
+				_return = {}
+				for add in _adds:
+					_path = os.path.join(_dir, add)
+					_mod_time = os.stat(_path)
+					# TODO: process dwg type
+					_return[add] = [_path, _mod_time]
+				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
+
 	@property
 	def drawings(self):
-		""" Iterates through contents of Drawings folder and returns filenames, paths, and last modified times
+		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
 		:return:
 		"""
 		if hasattr(self, 'path'):
@@ -255,6 +282,11 @@ class Job(object):
 					# TODO: process dwg type
 					_return[dwg] = [_path, _mod_time]
 				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
 
 	@property
 	def documents(self):
@@ -269,6 +301,11 @@ class Job(object):
 					# TODO: process doc type
 					_return[doc] = [_path, _mod_time]
 				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
 
 	@property
 	def has_drawings(self):
@@ -283,22 +320,16 @@ class Job(object):
 		""" Checks to see if self has any documents
 		:return: Returns boolean if self has files in Documents folder
 		"""
-		if hasattr(self, 'sub_path'):
-			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
-			if os.path.isdir(_dir):
-				_documents = os.listdir(_dir)
-				return bool(len(_documents))
+		_docs = self.documents
+		return bool(len(_docs))
 
 	@property
 	def has_addendums(self):
 		""" Checks to see if self has any Addendum documents
 		:return: Returns boolean if self has files in Documents folder
 		"""
-		if hasattr(self, 'sub_path'):
-			_dir = os.path.join(env.env_root, self.sub_path, 'Addendums')
-			if os.path.isdir(_dir):
-				_addendums = os.listdir(_dir)
-				return bool(len(_addendums))
+		_adds = self.documents
+		return bool(len(_adds))
 
 	def __setattr__(self, key, value):
 		_return = super(Job, self).__setattr__(key, value)
