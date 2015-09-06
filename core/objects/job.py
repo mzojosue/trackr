@@ -351,7 +351,7 @@ class Job(object):
 			elif hasattr(self, 'db'):
 				self.db[self.number] = self
 			else:                  # no db attribute
-				return 'DB_ERROR'  # for debugging
+				return 'DB_ERROR'  # returned for debugging
 			self.dump_info()
 		else:
 			return False
@@ -395,7 +395,11 @@ class Job(object):
 				_data_file.close()
 				return True
 			except IOError:  # project directory doesn't exist
+				# TODO: log error
 				return False
+		else:  # path attribute doesn't exist
+			# TODO: log error
+			return False
 
 
 

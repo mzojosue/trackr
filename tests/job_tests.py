@@ -191,12 +191,31 @@ class TestJob(unittest.TestCase):
 		""" Tests load_info method with/without 'path' and with/without the directory existing
 		:return:
 		"""
-		return NotImplemented
+
+		self.assertEqual(self.job.load_info(), False)  # without path attribute
+
+		_dir = os.path.join(os.getcwd(), 'tmp')
+		self.job.path = _dir
+		self.assertEqual(self.job.load_info(), False)  # with path, directory doesn't exist
+
+		os.mkdir(_dir)
+		self.assertEqual(self.job.load_info(), True)   # dump_info is called
+		#TODO: create new YAML file with arbitrary values
 
 	def testDumpInfo(self):
 		""" Tests dump_info method with/without 'path' and with/without the directory existing
 		:return:
 		"""
+		self.assertEqual(self.job.dump_info(), False)  # without path attribute
+
+		_dir = os.path.join(os.getcwd(), 'tmp')
+		self.job.path = _dir
+		self.assertEqual(self.job.dump_info(), False)  # with path, directory doesn't exist
+
+		os.mkdir(_dir)
+		self.assertEqual(self.job.dump_info(), True)
+
+		# TODO: validate YAML file
 
 
 class TestAwardedJob(unittest.TestCase):
