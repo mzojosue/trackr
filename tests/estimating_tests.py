@@ -1,11 +1,37 @@
 import unittest
+import os
+import shutil
+from datetime import datetime
+
+today = datetime.today
 
 import core
 
 
 class TestEstimatingJob(unittest.TestCase):
 	def setUp(self):
-		return None
+		self.name = 'test_bid'
+		self.bid = core.EstimatingJob(self.name, add_to_log=False, struct=False)
+
+		if os.path.isdir('tests'):
+			_dir = 'tests/.bid_sandbox'
+		else:
+			_dir = '.bid_sandbox'
+		try:
+			os.mkdir(_dir)  # create sandbox directory
+		except OSError:
+			pass
+		os.chdir(_dir)  # enter sandbox directory
+
+	def tearDown(self):
+		if os.path.isdir('../../tests'):  # checks if in tests/.job_sandbox
+			_escape = '../..'  # escape tests/.job_sandbox
+			_delete = 'tests/.bid_sandbox'
+		else:
+			_escape = '..'
+			_delete = '.bid_sandbox'
+		os.chdir(_escape)
+		shutil.rmtree(_delete)
 
 	def testInit(self):
 		""" Tests all attributes creating during initialization
@@ -13,11 +39,35 @@ class TestEstimatingJob(unittest.TestCase):
 		"""
 		return NotImplemented
 
-	def testBidDate(self):
-		""" Tests the EstimatingJob.bid_date property
+	def testHasTakeoff(self):
+		""" Tests has_takeoff property by parsing shell output
 		:return:
 		"""
-		return NotImplemented
+		self.assertEqual(self.bid.has_takeoff, False)  # without directory
+
+		self.bid._path = os.getcwd()
+		if os.path.isdir('../.bid_sandbox'):  # checks for sandbox
+			_dir = 'Takeoffs'
+			os.mkdir(_dir)
+			os.chdir(_dir)
+			self.assertEqual(self.bid.has_takeoff, False)  # with directory, without files
+
+			_reports = ['report1', 'report2', 'report3']
+			for fname in _reports:
+				_fobj = open(fname, 'w')
+				_fobj.close()
+			self.assertEqual(self.bid.has_takeoff, True)  # with files
+			os.chdir('..')  # leave Takeoffs
+
+	def testBidDate(self):
+		""" Tests the EstimatingJob.bid_date property with and without a bid_date attribute
+		:return:
+		"""
+		self.assertEqual(self.bid.bid_date, 'ASAP')  # bid_date is 'ASAP'
+
+		_date = datetime(2025, 1, 1)
+		self.bid.bids.values()[0]['bid_date'] = _date
+		self.assertEqual(self.bid.bid_date.date(), _date.date())  # bid_date is _date
 
 	def testCountdown(self):
 		""" Tests the result of EstimatingJob.countdown
@@ -126,3 +176,7 @@ class TestEstimatingJob(unittest.TestCase):
 		:return:
 		"""
 		return NotImplemented
+
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestEstimatingJob)
+unittest.TextTestRunner(verbosity=2).run(suite)
