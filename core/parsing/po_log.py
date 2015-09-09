@@ -20,6 +20,9 @@ def parse_po_log(po_log=environment.get_po_log):
 		_sheet = log.get_sheet_by_name(log.get_sheet_names()[_sheetNum])
 		logger.debug('Working on worksheet "%s"' % _sheet.title)
 
+		_job = [i for i in parse("{}-{}", _sheet.title)]
+		yield 'job', _job
+
 		for _row in _sheet.rows:
 			__po = _row[0].value
 			logger.debug('Processing row "%s"' % __po)
@@ -76,8 +79,6 @@ def parse_po_log(po_log=environment.get_po_log):
 			_return = {}  # Dict to create objects from
 
 			# Job attribute values
-			_job = [i for i in parse("{}-{}", _sheet.title)]
-			_return['job'] = _job
 
 			# MaterialList attribute values
 			if '\\' in __mat_list_val:
@@ -100,7 +101,7 @@ def parse_po_log(po_log=environment.get_po_log):
 			_po = {'date_issued': __date_issued, 'desc':__comment, 'po_num': _po_num, 'update': False}
 			_return['po'] = _po
 
-			yield _return
+			yield 'po', _return
 
 
 def find_job_in_log(obj, po_log=environment.get_po_log):

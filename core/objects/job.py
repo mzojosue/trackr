@@ -191,12 +191,12 @@ class Worker(object):
 		return None
 
 
-class Job(object):
-
+class Job(yaml.YAMLObject):
+	yaml_tag = u'!Job'
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install')
 
 	_yaml_filename = '.job_info.yaml'
-	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay',
+	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
 	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
@@ -337,7 +337,6 @@ class Job(object):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__' and _caller is not 'load_info':
-			self.dump_info()
 			self.update()
 		return _return
 
@@ -352,60 +351,29 @@ class Job(object):
 				self.db[self.number] = self
 			else:                  # no db attribute
 				return 'DB_ERROR'  # returned for debugging
-			self.dump_info()
+			if not hasattr(self, '_lock'):  # ensures that file is not written multiple times during import
+				self.dump_all()  # save to global yaml storage
 		else:
 			return False
 
-	def load_info(self):
-		if hasattr(self, 'path'):
-			_data_file = os.path.join(self.path, self._yaml_filename)
-			try:
-				_data = open(_data_file, 'r')
-				_data = yaml.load(_data)
-				for i in self._yaml_attr:
-					try:
-						_val = _data[i]
-						# load values from .yaml file to self
-						super(Job, self).__setattr__(i, _val)
-					except (KeyError, AttributeError):
-						continue
-				return True
-			except IOError:
-				return self.dump_info()
-		else:  # path attribute doesn't exist
-			return False
+	def dump_all(self):
+		_jobs = {}
+		if hasattr(self, 'completed_db'):
+			for num, obj in self.completed_db.items():
+				_jobs[num] = obj
+		if hasattr(self, 'db'):
+			for num, obj in self.db.items():
+				_jobs[num] = obj
 
-
-	def dump_info(self):
-		# dump values from self to .yaml file
-
-		if hasattr(self, 'path'):
-			_data = {}
-			for i in self._yaml_attr:
-				try:
-					_val = self.__getattribute__(i)
-					if _val:
-						_data[i] = _val
-				except AttributeError:
-					continue
-			try:
-				_filename = os.path.join(self.path, self._yaml_filename)
-				_data_file = open(_filename, 'w')
-				yaml.dump(_data, _data_file, default_flow_style=False)
-				_data_file.close()
-				return True
-			except IOError:  # project directory doesn't exist
-				# TODO: log error
-				return False
-		else:  # path attribute doesn't exist
-			# TODO: log error
-			return False
+		if hasattr(self, 'default_sub_dir'):
+			_filename = os.path.join(env.env_root, self.default_sub_dir, 'db_storage.yaml')
+			stream = file(_filename, 'w')
+			yaml.dump(_jobs, stream)
 
 
 
 class AwardedJob(Job):
-
-	Job._yaml_attr.append('po_pre')
+	yaml_tag = u'!AwardedJob'
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
@@ -460,7 +428,6 @@ class AwardedJob(Job):
 		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 		if init_struct:
 			self.init_struct()
-		self.load_info()
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
 

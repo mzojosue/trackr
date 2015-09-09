@@ -14,6 +14,7 @@ from job import AwardedJob, get_job_num, Job
 
 
 class EstimatingJob(Job):
+	yaml_tag = u'!EstimatingJob'
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
@@ -70,8 +71,6 @@ class EstimatingJob(Job):
 
 		# TODO: implement grouping system
 		self.group = group
-
-		self.load_info()
 
 		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope, struct=struct, add_to_log=False)
 		if add_to_log:
