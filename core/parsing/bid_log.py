@@ -2,13 +2,31 @@ from datetime import datetime
 import hashlib
 import os
 import unicodedata
-import openpyxl
 from parse import parse
+
+from openpyxl.reader.excel import load_workbook
+from openpyxl.workbook import Workbook
+from openpyxl.styles import PatternFill, Border, Side, Font, colors
 
 from core import environment
 from core.log import logger
 
 today = datetime.today
+
+
+# Row Color Styling
+submitted_bid = PatternFill(fill_type='solid', start_color=colors.YELLOW, end_color=colors.YELLOW)
+cancelled_bid = PatternFill(fill_type='solid', start_color=colors.RED, end_color=colors.RED)
+
+# Font Styling
+base_font = Font(name="Calibri Light", size=12, color=colors.BLACK)
+bold_font = base_font.copy(bold=True)
+
+borders = Border(left   = Side(border_style=None, color='BBFFFFFF'),  # light gray border
+				 right  = Side(border_style=None, color='BBFFFFFF'),
+				 top    = Side(border_style=None, color='BBFFFFFF'),
+				 bottom = Side(border_style=None, color='BBFFFFFF'))
+
 
 def check_estimating_log(estimating_log=environment.get_estimating_log):
 	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
@@ -25,7 +43,7 @@ def check_estimating_log(estimating_log=environment.get_estimating_log):
 
 
 def parse_est_log(estimating_log=environment.get_estimating_log):
-	log = openpyxl.load_workbook(estimating_log, read_only=True)
+	log = load_workbook(estimating_log, read_only=True)
 	_sheet = log.get_active_sheet()
 	logger.debug('Opening Estimating Log')
 
@@ -177,7 +195,7 @@ def parse_est_log(estimating_log=environment.get_estimating_log):
 
 
 def dump_bids_from_log(estimating_log=environment.get_estimating_log):
-	log = openpyxl.load_workbook(estimating_log, read_only=True)
+	log = load_workbook(estimating_log, read_only=True)
 	_sheet = log.get_active_sheet()
 
 	# calculate dimensions to iterate over
@@ -229,24 +247,30 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 	"""
 	_row = find_bid_in_log(obj, estimating_log=estimating_log)  # desired row to insert after
 	with open(estimating_log, 'r+b') as log:
-		_wb = openpyxl.load_workbook(log, guess_types=True)
+		_wb = load_workbook(log, guess_types=True)
 		_old_ws = _wb.get_active_sheet()
 		_old_ws.title += 'old-'
 		_new_ws = _wb.create_sheet(0, 'Estimating Log')
 
 		_num = 0   # counter when iterating through old worksheet rows
 		_return = None  # row number to return
+		_new_ws._styles = _old_ws._styles
 		for row in _old_ws.rows:
 			_num += 1
 			for i in row:
 				_col = ord(i.column) - 64  # offset from ASCII char value
-				_new_ws.cell(row=_num, column=_col, value=i.value)
-				_new_ws.cell(row=_num, column=_col).style = i.style
+				if _col <= 9:  # check to see that column has value
+					_new_cell = _new_ws.cell(row=_num, column=_col)
+					_new_cell.value = i.value
+					_new_cell.style = i.style
+					if i.font.bold:
+						_new_cell.font = bold_font
+					else:
+						_new_cell.font = base_font
 			if _num == _row:
-				_new_ws.append([''])
+				_new_ws.append(['' for i in range(0, 9)])
 				_num += 1
 				_return = _num
-		_new_ws._styles = _old_ws._styles
 		for col, dim in _old_ws.column_dimensions.items():
 			if dim.width:
 				_new_ws.column_dimensions[col].width = dim.width
@@ -256,7 +280,7 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 
 def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 	#TODO: check for rebid
-	log = openpyxl.load_workbook(estimating_log)
+	log = load_workbook(estimating_log)
 
 	_sheet = log.get_active_sheet()
 	_nrow = len(_sheet.rows) + 1
@@ -306,17 +330,24 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 				# format content for Excel sheet
 				if attr in ('date_received',
 							'bid_date'):  # format datetime content
-					_content = _content.strftime(format='%m.%d.%y')
-				elif attr is 'scope':     # separate scope list into string
+					try:
+						_content = _content.strftime(format='%m.%d.%y')
+					except AttributeError:
+						pass
+					if attr == 'bid_date':
+						ws.cell(row=_row_int, column=_col).value = _content
+						ws.cell(row=_row_int, column=_col).font = bold_font
+						continue  # continue onto next attribute
+
+				elif attr == 'scope':     # separate scope list into string
 					_content = ', '.join(_content)
 
 				ws.cell(row=_row_int, column=_col).value = _content
-				# TODO: style element according to bid status
-
-		# TODO: confirm update
+				ws.cell(row=_row_int, column=_col).font = base_font
+				# TODO: style row according to bid status
 
 		wb.save(estimating_log)
-		return True
+		return find_bid_in_log(obj, sub_hash, estimating_log)
 
 
 def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environment.get_estimating_log, save=True):
@@ -333,13 +364,9 @@ def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environmen
 			log = estimating_log
 		else:
 			try:
-				_est_log = os.path.split(estimating_log)
-				_est_log = os.path.join(_est_log[0], '_%s' % _est_log[1])
-				#os.rename(estimating_log, _est_log)
-				#log = openpyxl.load_workbook(_est_log, guess_types=True)
-				log = openpyxl.load_workbook(estimating_log, guess_types=True)
+				log = load_workbook(estimating_log, guess_types=True)
 			except IOError:
-				print "'%s' is not a valid file path. Cannot update PO log." % estimating_log
+				print "Cannot open PO log with path '%s'" % estimating_log
 				return False
 
 		# Assume that the active sheet is the one that we need

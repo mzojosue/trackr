@@ -263,7 +263,8 @@ class EstimatingJob(Job):
 		if struct:
 			self.init_struct()  # rebuild directory structure to implement new scope and for good measure
 		if add_to_log:
-			add_sub_bid_to_log(self, _bid_hash)
+			return add_sub_bid_to_log(self, _bid_hash)
+		return True
 
 	def del_sub(self, bid_hash):
 		"""
