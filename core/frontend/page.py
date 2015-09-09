@@ -1,6 +1,7 @@
 import json
 
 from config import *
+from core.sorting import sort_jobs
 
 
 @app.route('/upload/<filename>')

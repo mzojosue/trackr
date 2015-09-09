@@ -322,7 +322,7 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 
 		_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact' , None, 'scope')
 		for attr in _attr:
-			if attr:  # Do not write to first 2 columns ('number', '_name') and 'method' column
+			if attr:  # Do not write to first 2 columns ('number', '_name'), and 'completed' and 'method' columns
 				_col = _attr.index(attr) + 1
 
 				_content = obj.bids[sub_hash][attr]
