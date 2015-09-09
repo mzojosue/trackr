@@ -83,7 +83,7 @@ def parse_po_log(po_log=environment.get_po_log):
 			# MaterialList attribute values
 			if '\\' in __mat_list_val:
 				__mat_list_val = str(__mat_list_val).replace('\\', '/')
-				_mat_list = {'doc': os.path.split(__mat_list_val), 'date_sent': __date_issued, 'task': False}  # store material list values
+				_mat_list = {'doc': os.path.split(__mat_list_val)[1], 'date_sent': __date_issued, 'task': False}  # store material list values
 
 			else:
 				_mat_list = {'items': __mat_list_val, 'date_sent': __date_issued, 'task': False}
@@ -91,7 +91,7 @@ def parse_po_log(po_log=environment.get_po_log):
 
 			# MaterialListQuote attribute values minus MaterialList object
 			if '\\' in __quote_val:
-				_quote = {'price': __price, 'vend': __vend, 'date_uploaded': __date_issued, 'doc': os.path.split(__quote_val)}
+				_quote = {'price': __price, 'vend': __vend, 'date_uploaded': __date_issued, 'doc': os.path.split(__quote_val)[1]}
 			else:
 				_quote = {'price': __price, 'vend': __vend, 'date_uploaded': __date_issued}
 			_return['list_quote'] = _quote

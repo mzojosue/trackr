@@ -101,13 +101,8 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		if type(self._doc) is tuple:
-			_path = os.path.join(self.job.path, self._doc[0])
-			return _path, self._doc[1]
-		elif type(self._doc) is str:
-			_path = os.path.join(self.job.path, 'Materials')
-			return _path, self._doc
-		return False
+		_path = os.path.join(self.job.path, 'Materials')
+		return _path, self._doc
 
 	def update(self):
 		if hasattr(self, 'db') and hasattr(self, 'hash'):
