@@ -75,31 +75,29 @@
 		<div class="row">
 
       <div class="col-xs-4">
-	      {% if bid.has_quotes %}
-		      {% for scope in bid.quotes %}
-		        <div class="panel panel-default">
-		          <div class="panel-heading">
-		            Scope: <strong>{{ scope }}</strong>
-		          </div>
-			        <ul class="list-group">
-		            {% for i in bid.quotes[scope] %}
-									<li class="list-group-item">
-										{{ i }}&nbsp;
-										{% if i.doc %}
-											<a href="{{ url_for('bid_quote', bid_num=bid.number, scope=scope, q_hash=i.hash) }}" target="_blank">
-												<span class="glyphicon glyphicon-paperclip"></span>
-											</a>
-										{% endif %}
-									</li>
-			          {% else %}
-			            <li class="list-group-item">No quotes uploaded</li>
-			          {% endfor %}
-		          </ul>
-		        </div>
-		      {% endfor %}
+	      {% for scope in bid.quotes %}
+	        <div class="panel panel-default">
+	          <div class="panel-heading">
+	            Scope: <strong>{{ scope }}</strong>
+	          </div>
+		        <ul class="list-group">
+	            {% for i in bid.quotes[scope] %}
+								<li class="list-group-item">
+									{{ i }}&nbsp;
+									{% if i.doc %}
+										<a href="{{ url_for('bid_quote', bid_num=bid.number, scope=scope, q_hash=i.hash) }}" target="_blank">
+											<span class="glyphicon glyphicon-paperclip"></span>
+										</a>
+									{% endif %}
+								</li>
+		          {% else %}
+		            <li class="list-group-item">No quotes uploaded</li>
+		          {% endfor %}
+	          </ul>
+	        </div>
+	      {% endfor %}
 
-	        {{ estimating.quote_modal(bid) }}
-	      {% endif %}
+        {{ estimating.quote_modal(bid) }}
       </div>
 
 			<div class="col-xs-4 pull-right">
