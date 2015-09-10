@@ -1,7 +1,10 @@
 import traceback
 import os
+from datetime import datetime
 
-from objects import *
+today = datetime.today
+now = datetime.now
+
 from core.parsing.po_log import add_po_to_log, update_po_in_log
 from core.log import logger
 from core.scheduler import scheduler
@@ -26,7 +29,10 @@ class MaterialList(object):
 		:param task: Boolean. If True, SHOULD create a Todo object linked to self
 		:return: None
 		"""
-		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+		if doc:
+			self.hash = abs(hash(str(doc)))  # hash attribute is derived from document title
+		else:
+			self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 
 		self.job = job
 		self.items = items
@@ -42,7 +48,7 @@ class MaterialList(object):
 
 		self.job.add_mat_list(self)
 
-		self.quotes = {}
+		self._quotes = {}
 		self.tasks = {}
 		self.rentals = {}
 		self.fulfilled = False  # True once list has been purchased
@@ -112,7 +118,7 @@ class MaterialList(object):
 		return None
 
 	def add_quote(self, quote_obj):
-		self.quotes[quote_obj.hash] = quote_obj
+		self._quotes[quote_obj.hash] = quote_obj
 		self.sent_out = True
 		self.update()
 		return None
@@ -139,7 +145,7 @@ class MaterialList(object):
 		return NotImplemented
 
 	def del_quote(self, quote_obj):
-		del self.quotes[quote_obj.hash]
+		del self._quotes[quote_obj.hash]
 		self.update()
 		return None
 
@@ -203,12 +209,9 @@ class Quote(object):
 
 	@property
 	def doc(self):
-		if type(self._doc) is tuple:
-			_path = os.path.join(self.job.path, self._doc[0])
-			return _path, self._doc[1]
-		elif type(self._doc) is str:
-			return self.path, self._doc
-		return False
+		if hasattr(self, 'job'):
+			_path = os.path.join(self.job.path, 'Quotes')
+			return _path, self._doc
 
 	def __repr__(self):
 		return "Quote from %s" % self.vend

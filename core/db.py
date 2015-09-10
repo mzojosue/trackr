@@ -20,6 +20,7 @@ def import_po_log(log=environment.get_po_log):
 		for _dump in yaml.load_all(_stream):
 			for num, obj in _dump.items():
 				AwardedJob.db[num] = obj
+				obj.init_struct()  # insure directory structure is created
 				# TODO: sort between completed and active jobs
 
 	else:  # default to parsing Excel workbook
@@ -54,7 +55,7 @@ def import_estimating_log(log=environment.get_estimating_log):
 					EstimatingJob.db[num] = obj
 				else:
 					EstimatingJob.completed_db[num] = obj
-				# TODO: sort between completed and active jobs
+				obj.init_struct()  # insure directory structure is created
 
 	else:  # default to parsing Excel workbook
 		print "Parsing Estimating Log"
@@ -165,8 +166,6 @@ def clear_db(db='trackr_db'):
 
 def reset_db(db='trackr_db'):
 	_cwd = os.getcwd()
-
-	print "Beginning to reset database..."
 
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)

@@ -2,7 +2,7 @@ import yaml
 import os
 
 from timesheet import *
-from objects import *
+from material_cycle import MaterialList
 import core.environment as env
 import core.log as log
 
@@ -243,6 +243,13 @@ class Job(yaml.YAMLObject):
 	def alt_name(self, value):
 		self._alt_name = str(value)
 
+	@property
+	def sub_path(self):
+		"""
+		:return: Relative directory path with respective documents and files
+		"""
+		if hasattr(self, 'default_sub_dir'):
+			return os.path.join(self.default_sub_dir, self.name)
 
 	@property
 	def addendums(self):
@@ -417,19 +424,43 @@ class AwardedJob(Job):
 		self._PO = 0    # stores most recent PO suffix number
 		self.POs = {}   # stores PO strings as keys
 		self.workers = {}
-		self.materials = {}
-		self.quotes = {}
+		self._materials = {}
+		self._quotes = {}
 		self.deliveries = {}
 		self.tasks = {}
 		# AwardedJob.timesheets.key is datetime.datetime object for the week-ending
 		# AwardedJob.timesheets.value is [ 'pathname/to/timesheet', { worker.hash: (worker, hours) } ]
 		self.timesheets = {}
 
-		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 		if init_struct:
 			self.init_struct()
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
+
+	@property
+	def materials(self):
+		""" Iterates through contents of 'Materials' folder and returns file names.
+		Creates MaterialList objects for all files that aren't owned by an object.
+		:return:
+		"""
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_mats = os.listdir(_dir)
+				for mat in _mats:
+					_hash = abs(hash(str(mat)))
+					if _hash not in self._materials:
+						# TODO: log new MaterialList
+						self._materials[_hash] = MaterialList(self, doc=mat)
+			else:
+				# TODO: log directory error
+				pass
+		return self._materials
+
+	@property
+	def quotes(self):
+		return self._quotes
+
 
 	@property
 	def sheet_name(self):
@@ -529,7 +560,7 @@ class AwardedJob(Job):
 		:return: Integer of material lists that have not been purchased.
 		"""
 		open_lists = 0
-		for mlist in self.materials.itervalues():
+		for mlist in self._materials.itervalues():
 			if not mlist.fulfilled:
 				open_lists += 1
 		return open_lists
@@ -551,10 +582,10 @@ class AwardedJob(Job):
 		:param mlist_obj: material list object to add to self
 		:return: None
 		"""
-		if not mlist_obj.hash in self.materials:
+		if not mlist_obj.hash in self._materials:
 			log.logger.info('Added material list %s (%s) to %s' % (mlist_obj.hash, mlist_obj.items, self.name))
 
-		self.materials[mlist_obj.hash] = mlist_obj
+		self._materials[mlist_obj.hash] = mlist_obj
 		self.update()
 
 
@@ -565,8 +596,8 @@ class AwardedJob(Job):
 		:return: None
 		"""
 		_mat_list = quote_obj.mat_list.hash
-		self.quotes[quote_obj.hash] = quote_obj
-		self.materials[_mat_list].add_quote(quote_obj)
+		self._quotes[quote_obj.hash] = quote_obj
+		self._materials[_mat_list].add_quote(quote_obj)
 		self.update()
 
 		log.logger.info('Added quote object from "%s" to "%s" material list for %s' % (quote_obj.vend, _mat_list, self.name))
@@ -592,8 +623,8 @@ class AwardedJob(Job):
 			log.logger.info('Awarded %s to %s for %s' % (po_obj.name, po_obj.vend, self.name))
 		self.POs[po_obj.number] = po_obj
 		_mat_list = po_obj.mat_list.hash
-		self.materials[_mat_list].po = po_obj
-		self.materials[_mat_list].fulfilled = True
+		self._materials[_mat_list].po = po_obj
+		self._materials[_mat_list].fulfilled = True
 		self.update()
 
 
@@ -610,18 +641,18 @@ class AwardedJob(Job):
 
 	def del_material_list(self, mlist_hash, delete=False):
 		"""
-		Deletes material list object from self.materials
-		:param mlist_hash: hash to delete from self.materials
+		Deletes material list object from self._materials
+		:param mlist_hash: hash to delete from self._materials
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
 		for i in self.POs.values():
 			if i.mat_list.hash == mlist_hash:
 				del self.POs[i.number]
-		for i in self.quotes.values():
+		for i in self._quotes.values():
 			if i.mat_list.hash == mlist_hash:
-				del self.quotes[i.hash]
-		del self.materials[mlist_hash]
+				del self._quotes[i.hash]
+		del self._materials[mlist_hash]
 
 		if delete:
 			# TODO:delete document in filesystem
@@ -633,18 +664,18 @@ class AwardedJob(Job):
 
 	def del_quote(self, quote_hash, delete=False):
 		"""
-		Deletes quote object from self.quotes
-		:param quote_hash: hash to delete from self.quotes
+		Deletes quote object from self._quotes
+		:param quote_hash: hash to delete from self._quotes
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
-		for i in self.materials.values():
-			if quote_hash in i.quotes.keys():
-				del i.quotes[quote_hash]
+		for i in self._materials.values():
+			if quote_hash in i._quotes.keys():
+				del i._quotes[quote_hash]
 		for i in self.POs.values():
 			if i.quote.hash == quote_hash:
 				del self.POs[i.number]
-		del self.quotes[quote_hash]
+		del self._quotes[quote_hash]
 
 		if delete:
 			# TODO:delete document in filesystem

@@ -54,8 +54,6 @@ class EstimatingJob(Job):
 		self.docs = {}
 		self.takeoff = {}  # stores dict of takeoff document paths stored as PDF. dict key is the md5 hash of file
 
-		self.sub_path = os.path.join(self.default_sub_dir, self.name)
-
 		for i in self.scope:
 			# create sub-dictionaries for storing quotes by category/trade
 			self._quotes[i] = {}
@@ -144,7 +142,7 @@ class EstimatingJob(Job):
 
 	@property
 	def path(self):
-		""" Return absolute sub path using global project path and AwardedJob.sub_path """
+		""" Return absolute sub path using program path and AwardedJob.sub_path """
 		if hasattr(self, '_path') and self._path:
 			return self._path
 		else:
