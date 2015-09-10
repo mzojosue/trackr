@@ -2,7 +2,7 @@ import yaml
 import os
 
 from timesheet import *
-from material_cycle import MaterialList
+from material_cycle import MaterialList, Quote
 import core.environment as env
 import core.log as log
 
@@ -458,7 +458,38 @@ class AwardedJob(Job):
 		return self._materials
 
 	@property
+	def unlinked_quotes(self):
+		if hasattr(self, 'path'):
+			_return = []
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_doc_hashes = []
+				for q in self._quotes.values():
+					_doc_hashes.append(q.doc[1])
+
+				_quotes = os.listdir(_dir)
+				for q_doc in _quotes:
+					_hash = abs(hash(str(q_doc)))
+					if _hash not in _doc_hashes:
+						_return.append(q_doc)
+			return _return
+	@property
 	def quotes(self):
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_doc_hashes = []
+				for q in self._quotes.values():
+					_doc_hashes.append(q.doc[1])
+
+				_quotes = os.listdir(_dir)
+				for q_doc in _quotes:
+					_hash = abs(hash(str(q_doc)))
+					if _hash not in _doc_hashes:
+						self._quotes[_hash] = Quote(vend=None, doc=q_doc)
+			else:
+				# TODO: log directory error
+				pass
 		return self._quotes
 
 

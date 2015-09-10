@@ -264,6 +264,13 @@ class MaterialListQuote(Quote):
 				self.mat_list.add_quote(self)
 		return None
 
+	@classmethod
+	def upgrade_from_quote():
+		""" Creates MaterialListQuote from Quote object
+		:return:
+		"""
+		return NotImplemented
+
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
