@@ -29,11 +29,6 @@ class MaterialList(object):
 		:param task: Boolean. If True, SHOULD create a Todo object linked to self
 		:return: None
 		"""
-		if doc:
-			self.hash = abs(hash(str(doc)))  # hash attribute is derived from document title
-		else:
-			self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
-
 		self.job = job
 		self.items = items
 		self._doc = doc
@@ -91,6 +86,14 @@ class MaterialList(object):
 			return 0
 
 	@property
+	def hash(self):
+		if hasattr(self, 'doc'):
+			return abs(hash(str(self.doc)))  # hash attribute is derived from document title
+		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
+			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+		return self._hash
+
+	@property
 	def age(self):
 		"""
 		Used for highlighting unfulfilled material lists when displayed in a table.
@@ -107,8 +110,11 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		_path = os.path.join(self.job.path, 'Materials')
-		return _path, self._doc
+		if hasattr(self, '_doc'):
+			_path = os.path.join(self.job.path, 'Materials')
+			return _path, self._doc
+		else:
+			return False
 
 	def update(self):
 		if hasattr(self, 'db') and hasattr(self, 'hash'):
@@ -117,9 +123,27 @@ class MaterialList(object):
 				self.job.add_mat_list(self)
 		return None
 
+	def upgrade_quote(self, quote, **kwargs):
+		""" Creates a MaterialListQuote belonging to self from `quote`
+		:quote: Quote object to convert
+		:**kwargs: Arguments to be passed to MaterialListQuote.__init__
+		:return:
+		"""
+		if type(quote) == Quote:
+			# TODO: verify that quote.doc document file still exists
+			q_obj = MaterialListQuote(self, doc=quote.doc, **kwargs)
+			return q_obj
+		else:
+			raise TypeError
+
 	def add_quote(self, quote_obj):
 		self._quotes[quote_obj.hash] = quote_obj
 		self.sent_out = True
+		self.update()
+		return None
+
+	def del_quote(self, quote_obj):
+		del self._quotes[quote_obj.hash]
 		self.update()
 		return None
 
@@ -130,8 +154,16 @@ class MaterialList(object):
 		self.update()
 		return None
 
+	def del_po(self, po_obj):
+		return NotImplemented
+
 	def add_task(self, task_obj=None):
 		self.tasks[task_obj.hash] = task_obj
+		self.update()
+		return None
+
+	def del_task(self, task_hash):
+		del self.tasks[task_hash]
 		self.update()
 		return None
 
@@ -143,16 +175,6 @@ class MaterialList(object):
 	def add_rental(self, obj):
 		# return unique object id
 		return NotImplemented
-
-	def del_quote(self, quote_obj):
-		del self._quotes[quote_obj.hash]
-		self.update()
-		return None
-
-	def del_task(self, task_hash):
-		del self.tasks[task_hash]
-		self.update()
-		return None
 
 	def issue_po(self, quote_obj, user=None):
 		quote_obj.awarded = True
@@ -192,7 +214,6 @@ class MaterialList(object):
 
 class Quote(object):
 	def __init__(self, vend, price=0.0, date_uploaded=None, doc=None):
-		self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		self.vend = vend
 		try:
 			self._price = float(price)
@@ -208,10 +229,23 @@ class Quote(object):
 		self.awarded = False
 
 	@property
+	def hash(self):
+		if hasattr(self, 'doc'):
+			return abs(hash(str(self.doc)))  # hash attribute is derived from document title
+		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
+			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+		return self._hash
+
+
+	@property
 	def doc(self):
-		if hasattr(self, 'job'):
+		if hasattr(self, 'job') and self._doc:
 			_path = os.path.join(self.job.path, 'Quotes')
 			return _path, self._doc
+		elif self._doc:  # self has no path
+			return True
+		else:
+			return False
 
 	def __repr__(self):
 		return "Quote from %s" % self.vend
@@ -263,13 +297,6 @@ class MaterialListQuote(Quote):
 			if hasattr(self, 'mat_list'):
 				self.mat_list.add_quote(self)
 		return None
-
-	@classmethod
-	def upgrade_from_quote():
-		""" Creates MaterialListQuote from Quote object
-		:return:
-		"""
-		return NotImplemented
 
 
 class PO(object):

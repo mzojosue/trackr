@@ -458,22 +458,6 @@ class AwardedJob(Job):
 		return self._materials
 
 	@property
-	def unlinked_quotes(self):
-		if hasattr(self, 'path'):
-			_return = []
-			_dir = os.path.join(self.path, 'Materials')
-			if os.path.isdir(_dir):
-				_doc_hashes = []
-				for q in self._quotes.values():
-					_doc_hashes.append(q.doc[1])
-
-				_quotes = os.listdir(_dir)
-				for q_doc in _quotes:
-					_hash = abs(hash(str(q_doc)))
-					if _hash not in _doc_hashes:
-						_return.append(q_doc)
-			return _return
-	@property
 	def quotes(self):
 		if hasattr(self, 'path'):
 			_dir = os.path.join(self.path, 'Materials')
@@ -491,6 +475,27 @@ class AwardedJob(Job):
 				# TODO: log directory error
 				pass
 		return self._quotes
+
+	@property
+	def unlinked_quotes(self):
+		""" Returns recently object quotes objects that aren't linked to material lists
+		:return:
+		"""
+		if hasattr(self, 'path'):
+			_return = []
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_doc_hashes = []
+				for key, quote in self._quotes.values():  # enumerate all document hashes
+					if quote.doc:
+						_doc_hashes.append(key)
+
+				_quotes = os.listdir(_dir)
+				for q_doc in _quotes:
+					_hash = abs(hash(str(q_doc)))
+					if _hash not in _doc_hashes:
+						_return.append(q_doc)
+			return _return
 
 
 	@property
@@ -534,7 +539,7 @@ class AwardedJob(Job):
 		:return: returns the formatted value of the next available PO for considering it being given to a vendor
 		"""
 		_po = self._PO
-		_po = '%03d' % _po        # add padding to PO #
+		_po = '%03d' % _po        # add padding to PO number
 		return '-'.join([self.name, _po])
 
 	def init_struct(self):
@@ -590,10 +595,10 @@ class AwardedJob(Job):
 		Returns 0 if jobs has no open material lists
 		:return: Integer of material lists that have not been purchased.
 		"""
-		open_lists = 0
+		open_lists = []
 		for mlist in self._materials.itervalues():
 			if not mlist.fulfilled:
-				open_lists += 1
+				open_lists.append(mlist)
 		return open_lists
 
 	def add_task(self, task_obj):

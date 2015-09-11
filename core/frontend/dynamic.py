@@ -44,7 +44,7 @@ def job_with_open_list():
 	if hasattr(AwardedJob, 'db'):
 		_return.append('<option>Please select a jobs</option>')
 		for job in AwardedJob.db.itervalues():
-			_open = job.has_open_lists
+			_open = len(job.has_open_lists)
 			if _open:
 				_opt = '<option value="%s">%s  (%d open lists)</option>' % (job.number, job, _open)
 				_return.append(_opt)
