@@ -14,7 +14,7 @@ def all_jobs():
 
 
 @app.route('/j/<int:job_num>')
-def job_overview(job_num=None):
+def job_overview(job_num):
 	"""
 	Renders overview template which displays active objects and general information such as jobs address
 	:param job_num: specifies jobs number
@@ -31,7 +31,7 @@ def job_overview(job_num=None):
 
 
 @app.route('/j/<int:job_num>/analytics')
-def job_analytics(job_num=None):
+def job_analytics(job_num):
 	"""
 	Displays statistics such as estimated jobs cost and labor averages.
 	:param job_num: specifies jobs number
@@ -134,7 +134,7 @@ def job_deliveries(job_num=None):
 
 @app.route('/j/<int:job_num>/purchases')
 @app.route('/j/<int:job_num>/purchases/sort/<sort_by>')
-def job_pos(job_num=None, sort_by=None):
+def job_pos(job_num, sort_by=None):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
@@ -149,7 +149,7 @@ def job_pos(job_num=None, sort_by=None):
 
 
 @app.route('/j/<int:job_num>/rentals')
-def job_rentals(job_num=None):
+def job_rentals(job_num):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
@@ -174,15 +174,13 @@ def create_job():
 		_job_type = str(request.form['jobType'])
 		_job_address = str(request.form['jobAddress'])
 		_contract_amt = float(request.form['contractAmt'])
-		try:
-			request.form['taxExempt']
+		if 'taxExempt' in request.form:
 			_tax_exempt = True
-		except KeyError:
+		else:
 			_tax_exempt = False
-		try:
-			request.form['certifiedPayroll']
+		if 'certifiedPayroll' in request.form:
 			_certified_pay = True
-		except KeyError:
+		else:
 			_certified_pay = False
 		_gc = str(request.form['gc'])
 		_gc_contact = str(request.form['gcContact'])

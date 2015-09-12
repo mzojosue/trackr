@@ -1,14 +1,79 @@
 import pymongo
 from mongodict import *
 
+from core.scheduler import scheduler
+from environment import *
 from objects import *
 from parsing import *
 from log import logger
-from os import remove
+
 
 """
 Database initialization functions should go here
 """
+
+
+def import_po_log(log=environment.get_po_log):
+	_file = os.path.join(env_root, AwardedJob.default_sub_dir, 'db_storage.yaml')
+	if os.path.isfile(_file):  # check to see if YAML global storage was created
+		_stream = file(_file, 'r')
+		for _dump in yaml.load_all(_stream):
+			for num, obj in _dump.items():
+				AwardedJob.db[num] = obj
+				obj.init_struct()  # insure directory structure is created
+				# TODO: sort between completed and active jobs
+
+	else:  # default to parsing Excel workbook
+		_obj_content = parse_po_log(log)  # creates generator from Excel Workbook
+
+		AwardedJob._lock = True  # set lock on object to restrict yaml overwriting
+		for _type, _content in _obj_content:
+			if _type == 'job':
+				_job = AwardedJob(*_content)
+			elif _type == 'po':
+				_mat_list = MaterialList(_job, **_content['mat_list'])
+				_list_quote = MaterialListQuote(_mat_list, **_content['list_quote'])
+				_po = PO(_job, _mat_list, quote=_list_quote, **_content['po'])
+
+				_mat_list.sent_out = True
+				if _mat_list.age > 5:
+					_mat_list.delivered = True
+
+		del AwardedJob._lock
+		AwardedJob.db.values()[0].dump_all()
+
+
+def import_estimating_log(log=environment.get_estimating_log):
+	EstimatingJob._lock = True  # set lock on object to restrict yaml overwriting
+
+	_file = os.path.join(env_root, EstimatingJob.default_sub_dir, 'db_storage.yaml')
+	if os.path.isfile(_file):  # check to see if YAML global storage was created
+		_stream = file(_file, 'r')
+		for _dump in yaml.load_all(_stream):
+			for num, obj in _dump.items():
+				if not obj.completed:
+					EstimatingJob.db[num] = obj
+				else:
+					EstimatingJob.completed_db[num] = obj
+				obj.init_struct()  # insure directory structure is created
+
+	else:  # default to parsing Excel workbook
+		print "Parsing Estimating Log"
+		_row_content = parse_est_log(log)  # creates generator from Excel Workbook
+
+		for _type, obj in _row_content:
+			if _type == 'bid':
+				# create top-level bid object
+				EstimatingJob(**obj)
+			elif _type == 'sub_bid':
+				_bid_num = obj[1]
+				obj = obj[0]
+				_bid = EstimatingJob.find(_bid_num)
+
+				_bid.add_sub(add_to_log=False, **obj)
+
+	del EstimatingJob._lock
+	return EstimatingJob.db.values()[0].dump_all()
 
 
 def disconnect_db():
@@ -99,23 +164,23 @@ def clear_db(db='trackr_db'):
 	return True
 
 
-def reset_db(db='trackr_db', log=environment.get_po_log):
+def reset_db(db='trackr_db'):
 	_cwd = os.getcwd()
-
-	print "Beginning to reset database..."
 
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
+	clear_db()
+	User.load_users()
 	if True: #not check_po_log():
-		clear_db()
-		import_po_log(True, log)
-	else:
-		init_db()
+		#scheduler.add_job(import_estimating_log)
+		#scheduler.add_job(import_po_log)
+		#scheduler.start()
+		import_estimating_log()
+		import_po_log()
 
 	Worker.load_workers()
-	User.load_users()
-	os.chdir(_cwd)
+	os.chdir(_cwd)  # Ensure that directories haven't been changed
 
 	print "Database was successfully reset"
 	logger.info("Database was successfully reset")

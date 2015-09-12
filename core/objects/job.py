@@ -1,7 +1,8 @@
 import yaml
+import os
 
 from timesheet import *
-from objects import *
+from material_cycle import MaterialList, Quote
 import core.environment as env
 import core.log as log
 
@@ -190,12 +191,12 @@ class Worker(object):
 		return None
 
 
-class Job(object):
-
+class Job(yaml.YAMLObject):
+	yaml_tag = u'!Job'
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install')
 
 	_yaml_filename = '.job_info.yaml'
-	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'tax_exempt', 'certified_pay',
+	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
 	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
@@ -220,7 +221,7 @@ class Job(object):
 		self.tax_exempt = tax_exempt
 		self.certified_pay = certified_pay
 
-		self.documents = {}
+		self._documents = {}
 
 		self.completed = completed
 
@@ -228,74 +229,55 @@ class Job(object):
 	def name(self):
 		if hasattr(self, 'number'):
 			return '-'.join([str(self.number), str(self._name)])
+		else:
+			return str(self._name)
 
 	@property
 	def alt_name(self):
-		if hasattr(self, '_alt_name'):
+		if hasattr(self, '_alt_name') and self._alt_name:
 			return self._alt_name
 		else:
 			return self.name
 
-	def __setattr__(self, key, value):
-		_return = super(Job, self).__setattr__(key, value)
+	@alt_name.setter
+	def alt_name(self, value):
+		self._alt_name = str(value)
 
-		# do not update yaml file or call self.update() if self is still initializing
-		_caller = traceback.extract_stack(None, 2)[0][2]
-		if _caller is not '__init__' and _caller is not 'load_info':
-			self.dump_info()
-			self.update()
-		return _return
+	@property
+	def sub_path(self):
+		"""
+		:return: Relative directory path with respective documents and files
+		"""
+		if hasattr(self, 'default_sub_dir'):
+			return os.path.join(self.default_sub_dir, self.name)
 
-	def __repr__(self):
-		return self.name
-
-	def update(self):
-		if hasattr(self, 'number'):
-			if self.completed and hasattr(self, 'completed_db'):
-				self.completed_db[self.number] = self
-			else:
-				self.db[self.number] = self
-			self.dump_info()
-
-	def load_info(self):
-		_data_file = os.path.join(self.path, self._yaml_filename)
-		try:
-			_data = open(_data_file, 'r')
-			_data = yaml.load(_data)
-			for i in self._yaml_attr:
-				try:
-					_val = _data[i]
-					# load values from .yaml file to self
-					super(Job, self).__setattr__(i, _val)
-				except (KeyError, AttributeError):
-					continue
-		except IOError:
-			self.dump_info()
-
-	def dump_info(self):
-		# dump values from self to .yaml file
-		_data = {}
-		for i in self._yaml_attr:
-			try:
-				_val = self.__getattribute__(i)
-				if _val:
-					_data[i] = _val
-			except AttributeError:
-				continue
-
+	@property
+	def addendums(self):
+		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
+		:return:
+		"""
 		if hasattr(self, 'path'):
-			try:
-				_filename = os.path.join(self.path, self._yaml_filename)
-				_data_file = open(_filename, 'w')
-				yaml.dump(_data, _data_file, default_flow_style=False)
-				_data_file.close()
-			except IOError:
-				# project directory doesn't exist
-				return None
-
+			_dir = os.path.join(self.path, 'Addendums')
+			if os.path.isdir(_dir):
+				_adds = os.listdir(_dir)
+				_return = {}
+				for add in _adds:
+					_path = os.path.join(_dir, add)
+					_mod_time = os.stat(_path)
+					# TODO: process dwg type
+					_return[add] = [_path, _mod_time]
+				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
 
 	@property
 	def drawings(self):
+		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
+		:return:
+		"""
 		if hasattr(self, 'path'):
 			_dir = os.path.join(self.path, 'Drawings')
 			if os.path.isdir(_dir):
@@ -307,41 +289,98 @@ class Job(object):
 					# TODO: process dwg type
 					_return[dwg] = [_path, _mod_time]
 				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
+
+	@property
+	def documents(self):
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Documents')
+			if os.path.isdir(_dir):
+				_docs = os.listdir(_dir)
+				_return = {}
+				for doc in _docs:
+					_path = os.path.join(_dir, doc)
+					_mod_time = os.stat(_path)
+					# TODO: process doc type
+					_return[doc] = [_path, _mod_time]
+				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
 
 	@property
 	def has_drawings(self):
-		""" Checks to see if self has any takeoff documents
-		:return: Returns boolean if self has files in Takeoff folder
+		""" Checks to see if self has any drawing documents
+		:return: Returns boolean if self has files in Documents folder
 		"""
 		_dwgs = self.drawings
 		return bool(len(_dwgs))
 
 	@property
 	def has_documents(self):
-		""" Checks to see if self has any takeoff documents
-		:return: Returns boolean if self has files in Takeoff folder
+		""" Checks to see if self has any documents
+		:return: Returns boolean if self has files in Documents folder
 		"""
-		if hasattr(self, 'sub_path'):
-			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
-			if os.path.isdir(_dir):
-				_documents = os.listdir(_dir)
-				return bool(len(_documents))
+		_docs = self.documents
+		return bool(len(_docs))
 
 	@property
 	def has_addendums(self):
-		""" Checks to see if self has any takeoff documents
-		:return: Returns boolean if self has files in Takeoff folder
+		""" Checks to see if self has any Addendum documents
+		:return: Returns boolean if self has files in Documents folder
 		"""
-		if hasattr(self, 'sub_path'):
-			_dir = os.path.join(env.env_root, self.sub_path, 'Documents')
-			if os.path.isdir(_dir):
-				_addendums = os.listdir(_dir)
-				return bool(len(_addendums))
+		_adds = self.addendums
+		return bool(len(_adds))
+
+	def __setattr__(self, key, value):
+		_return = super(Job, self).__setattr__(key, value)
+
+		# do not update yaml file or call self.update() if self is still initializing
+		_caller = traceback.extract_stack(None, 2)[0][2]
+		if _caller is not '__init__' and _caller is not 'load_info':
+			self.update()
+		return _return
+
+	def __repr__(self):
+		return self.name
+
+	def update(self):
+		if hasattr(self, 'number'):
+			if self.completed and hasattr(self, 'completed_db'):
+				self.completed_db[self.number] = self
+			elif hasattr(self, 'db'):
+				self.db[self.number] = self
+			else:                  # no db attribute
+				return 'DB_ERROR'  # returned for debugging
+			if not hasattr(self, '_lock'):  # ensures that file is not written multiple times during import
+				self.dump_all()  # save to global yaml storage
+		else:
+			return False
+
+	def dump_all(self):
+		_jobs = {}
+		if hasattr(self, 'completed_db'):
+			for num, obj in self.completed_db.items():
+				_jobs[num] = obj
+		if hasattr(self, 'db'):
+			for num, obj in self.db.items():
+				_jobs[num] = obj
+
+		if hasattr(self, 'default_sub_dir'):
+			_filename = os.path.join(env.env_root, self.default_sub_dir, 'db_storage.yaml')
+			stream = file(_filename, 'w')
+			yaml.dump(_jobs, stream)
+
 
 
 class AwardedJob(Job):
-
-	Job._yaml_attr.append('po_pre')
+	yaml_tag = u'!AwardedJob'
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
@@ -385,20 +424,79 @@ class AwardedJob(Job):
 		self._PO = 0    # stores most recent PO suffix number
 		self.POs = {}   # stores PO strings as keys
 		self.workers = {}
-		self.materials = {}
-		self.quotes = {}
+		self._materials = {}
+		self._quotes = {}
 		self.deliveries = {}
 		self.tasks = {}
 		# AwardedJob.timesheets.key is datetime.datetime object for the week-ending
 		# AwardedJob.timesheets.value is [ 'pathname/to/timesheet', { worker.hash: (worker, hours) } ]
 		self.timesheets = {}
 
-		self.sub_path = os.path.join(self.default_sub_dir, self.name)
 		if init_struct:
 			self.init_struct()
-		self.load_info()
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
+
+	@property
+	def materials(self):
+		""" Iterates through contents of 'Materials' folder and returns file names.
+		Creates MaterialList objects for all files that aren't owned by an object.
+		:return:
+		"""
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_mats = os.listdir(_dir)
+				for mat in _mats:
+					_hash = abs(hash(str(mat)))
+					if _hash not in self._materials:
+						# TODO: log new MaterialList
+						self._materials[_hash] = MaterialList(self, doc=mat)
+			else:
+				# TODO: log directory error
+				pass
+		return self._materials
+
+	@property
+	def quotes(self):
+		if hasattr(self, 'path'):
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_doc_hashes = []
+				for q in self._quotes.values():
+					_doc_hashes.append(q.doc[1])
+
+				_quotes = os.listdir(_dir)
+				for q_doc in _quotes:
+					_hash = abs(hash(str(q_doc)))
+					if _hash not in _doc_hashes:
+						self._quotes[_hash] = Quote(vend=None, doc=q_doc)
+			else:
+				# TODO: log directory error
+				pass
+		return self._quotes
+
+	@property
+	def unlinked_quotes(self):
+		""" Returns recently object quotes objects that aren't linked to material lists
+		:return:
+		"""
+		if hasattr(self, 'path'):
+			_return = []
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_doc_hashes = []
+				for key, quote in self._quotes.values():  # enumerate all document hashes
+					if quote.doc:
+						_doc_hashes.append(key)
+
+				_quotes = os.listdir(_dir)
+				for q_doc in _quotes:
+					_hash = abs(hash(str(q_doc)))
+					if _hash not in _doc_hashes:
+						_return.append(q_doc)
+			return _return
+
 
 	@property
 	def sheet_name(self):
@@ -441,7 +539,7 @@ class AwardedJob(Job):
 		:return: returns the formatted value of the next available PO for considering it being given to a vendor
 		"""
 		_po = self._PO
-		_po = '%03d' % _po        # add padding to PO #
+		_po = '%03d' % _po        # add padding to PO number
 		return '-'.join([self.name, _po])
 
 	def init_struct(self):
@@ -497,10 +595,10 @@ class AwardedJob(Job):
 		Returns 0 if jobs has no open material lists
 		:return: Integer of material lists that have not been purchased.
 		"""
-		open_lists = 0
-		for mlist in self.materials.itervalues():
+		open_lists = []
+		for mlist in self._materials.itervalues():
 			if not mlist.fulfilled:
-				open_lists += 1
+				open_lists.append(mlist)
 		return open_lists
 
 	def add_task(self, task_obj):
@@ -520,10 +618,10 @@ class AwardedJob(Job):
 		:param mlist_obj: material list object to add to self
 		:return: None
 		"""
-		if not mlist_obj.hash in self.materials:
+		if not mlist_obj.hash in self._materials:
 			log.logger.info('Added material list %s (%s) to %s' % (mlist_obj.hash, mlist_obj.items, self.name))
 
-		self.materials[mlist_obj.hash] = mlist_obj
+		self._materials[mlist_obj.hash] = mlist_obj
 		self.update()
 
 
@@ -534,8 +632,8 @@ class AwardedJob(Job):
 		:return: None
 		"""
 		_mat_list = quote_obj.mat_list.hash
-		self.quotes[quote_obj.hash] = quote_obj
-		self.materials[_mat_list].add_quote(quote_obj)
+		self._quotes[quote_obj.hash] = quote_obj
+		self._materials[_mat_list].add_quote(quote_obj)
 		self.update()
 
 		log.logger.info('Added quote object from "%s" to "%s" material list for %s' % (quote_obj.vend, _mat_list, self.name))
@@ -561,8 +659,8 @@ class AwardedJob(Job):
 			log.logger.info('Awarded %s to %s for %s' % (po_obj.name, po_obj.vend, self.name))
 		self.POs[po_obj.number] = po_obj
 		_mat_list = po_obj.mat_list.hash
-		self.materials[_mat_list].po = po_obj
-		self.materials[_mat_list].fulfilled = True
+		self._materials[_mat_list].po = po_obj
+		self._materials[_mat_list].fulfilled = True
 		self.update()
 
 
@@ -579,18 +677,18 @@ class AwardedJob(Job):
 
 	def del_material_list(self, mlist_hash, delete=False):
 		"""
-		Deletes material list object from self.materials
-		:param mlist_hash: hash to delete from self.materials
+		Deletes material list object from self._materials
+		:param mlist_hash: hash to delete from self._materials
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
 		for i in self.POs.values():
 			if i.mat_list.hash == mlist_hash:
 				del self.POs[i.number]
-		for i in self.quotes.values():
+		for i in self._quotes.values():
 			if i.mat_list.hash == mlist_hash:
-				del self.quotes[i.hash]
-		del self.materials[mlist_hash]
+				del self._quotes[i.hash]
+		del self._materials[mlist_hash]
 
 		if delete:
 			# TODO:delete document in filesystem
@@ -602,18 +700,18 @@ class AwardedJob(Job):
 
 	def del_quote(self, quote_hash, delete=False):
 		"""
-		Deletes quote object from self.quotes
-		:param quote_hash: hash to delete from self.quotes
+		Deletes quote object from self._quotes
+		:param quote_hash: hash to delete from self._quotes
 		:param delete: if True is passed, then the document is deleted from the filesystem
 		:return: None
 		"""
-		for i in self.materials.values():
-			if quote_hash in i.quotes.keys():
-				del i.quotes[quote_hash]
+		for i in self._materials.values():
+			if quote_hash in i._quotes.keys():
+				del i._quotes[quote_hash]
 		for i in self.POs.values():
 			if i.quote.hash == quote_hash:
 				del self.POs[i.number]
-		del self.quotes[quote_hash]
+		del self._quotes[quote_hash]
 
 		if delete:
 			# TODO:delete document in filesystem

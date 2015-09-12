@@ -1,7 +1,7 @@
-from objects import *
-
 import traceback
 from datetime import timedelta
+
+from objects import *
 
 
 class Timesheet(object):
