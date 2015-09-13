@@ -1,4 +1,5 @@
 from datetime import datetime
+from flask import send_from_directory
 
 from config import *
 
@@ -206,15 +207,19 @@ def add_quote_doc(job_num, m_hash, q_hash):
 	_job = AwardedJob.find(job_num)
 	_mlist = _job.materials[m_hash]
 	_quote = _mlist.quotes[q_hash]
-	_doc = request.files['fileUpload']
-	if _doc and allowed_file(_doc.filename):
-		filename = secure_filename(_doc.filename)
+	_file = request.files['fileUpload']
+	if _file and allowed_file(_file.filename):
+		filename = secure_filename(_file.filename)
 		_path = os.path.join(_mlist.job.path, 'Quotes', filename)
-		_doc.save(_path)
+		_file.save(_path)
 		_quote._doc = filename
+
+		_mlist.del_quote(q_hash)
+		_mlist.add_quote(_quote)  # update quote hash
+		_job.update()
 		print "Saved document %s for %s" % (_quote.doc, _quote.job)
 	else:
-		print "%s not saved" % _doc
+		print "%s not saved" % _file
 	return redirect(url_for('material_list', job_num=_job.number, m_hash=_mlist.hash))
 
 @app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
@@ -233,3 +238,14 @@ def update_po_attr(job_num, po_num, attr):
 	log.logger.info("Updated %s for %s to %s" % (attr, _po, _value))
 	return redirect(request.referrer)
 
+
+@app.route('/j/<int:job_num>/materials/<int:m_hash>/qoutes/<int:q_hash>')
+def material_quote_doc(job_num, m_hash, q_hash):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+	_job = AwardedJob.find(job_num)
+	_m_list = _job.materials[m_hash]
+	_doc = _m_list.quotes[q_hash]
+	if _doc.doc:
+		return send_from_directory(*_doc.doc)

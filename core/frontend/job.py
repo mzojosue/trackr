@@ -29,6 +29,16 @@ def job_overview(job_num):
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
+@app.route('/j/<int:job_num>/info')
+def job_info(job_num):
+	auth = check_login()
+	if auth is not True:
+		return auth
+	try:
+		_job = AwardedJob.find(job_num)
+		return render_template('jobs/job_info.html', job=_job)
+	except KeyError:
+		return "Error: AwardedJob does not exist"
 
 @app.route('/j/<int:job_num>/analytics')
 def job_analytics(job_num):
@@ -39,18 +49,13 @@ def job_analytics(job_num):
 	return abort(404)
 
 
-@app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')
-def job_material_doc(doc_hash, job_num=None):
+def job_material_doc(job_num, doc_hash):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
-	if not job_num:
-		_doc = MaterialList.db[int(doc_hash)]
-		_job = _doc.job
-	else:
-		_job = AwardedJob.find(job_num)
-		_doc = _job.materials[int(doc_hash)]
+	_job = AwardedJob.find(job_num)
+	_doc = _job.materials[int(doc_hash)]
 
 	if type(_doc.doc) is tuple:
 		return send_from_directory(*_doc.doc)
@@ -67,21 +72,6 @@ def delete_material_doc(doc_hash, job_num=None):
 	return redirect(request.referrer)
 
 
-@app.route('/quote/<doc_hash>')
-@app.route('/j/<int:job_num>/qoutes/<doc_hash>')
-def job_quote_doc(doc_hash, job_num=None):
-	auth = check_login()
-	if auth is not True:
-		return auth  # redirects to login
-	if not job_num:
-		_doc = MaterialList.db[int(doc_hash)]
-		_job = _doc.job
-	else:
-		_job = AwardedJob.find(job_num)
-		_doc = _job.quotes[int(doc_hash)]
-		print _doc._doc
-		if type(_doc.doc) is tuple:
-			return send_from_directory(*_doc.doc)
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/update', methods=['POST'])
 def update_job_quote(job_num, doc_hash):
