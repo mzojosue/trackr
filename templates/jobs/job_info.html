@@ -26,11 +26,11 @@
     {{ job.name }}
     <small>
       Info
-      <a href="javascript:" id="unlockBtn" class="btn btn-default btn-sm"
-         onclick="unlock_job_for_editing('{{ job.number }}');">
-        Unlock for Editing
-      </a>
     </small>
+    <a href="javascript:" id="unlockBtn" class="btn btn-default btn-sm"
+       onclick="unlock_job_for_editing('{{ job.number }}');">
+      Unlock for Editing
+    </a>
   </h1>
   <form id="jobInfo" name="jobInfo" method="post"
         action="{{ url_for('update_job_info', job_num=job.number) }}">
