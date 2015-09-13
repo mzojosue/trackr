@@ -29,6 +29,16 @@ def job_overview(job_num):
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
+@app.route('/j/<int:job_num>/info')
+def job_info(job_num):
+	auth = check_login()
+	if auth is not True:
+		return auth
+	try:
+		_job = AwardedJob.find(job_num)
+		return render_template('jobs/job_info.html', job=_job)
+	except KeyError:
+		return "Error: AwardedJob does not exist"
 
 @app.route('/j/<int:job_num>/analytics')
 def job_analytics(job_num):
