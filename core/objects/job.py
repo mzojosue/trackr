@@ -427,7 +427,7 @@ class AwardedJob(Job):
 		self.POs = {}   # stores PO strings as keys
 		self.workers = {}
 		self._materials = {}
-		self._quotes = {}
+		self._quotes = {}   # stores unlinked Quote objects
 		self.deliveries = {}
 		self.tasks = {}
 		# AwardedJob.timesheets.key is datetime.datetime object for the week-ending
@@ -461,43 +461,41 @@ class AwardedJob(Job):
 
 	@property
 	def quotes(self):
-		if hasattr(self, 'path'):
-			_dir = os.path.join(self.path, 'Materials')
-			if os.path.isdir(_dir):
-				_doc_hashes = []
-				for q in self._quotes.values():
-					_doc_hashes.append(q.doc[1])
+		""" Aggregates unlinked Quote objects and material list quotes via self._quotes and self.materials[].quotes.
+		Function calls unlinked_quotes to ensure that self._quotes is updated.
+		:return: self._quotes and material list quotes
+		"""
+		_dir = os.path.join(self.path, 'Quotes')
+		q_doc_len = len(os.listdir(_dir))
+		if not hasattr(self, 'q_doc_len') or self.q_doc_len != q_doc_len:
+			self.q_doc_len = q_doc_len
+			self.unlinked_quotes
 
-				_quotes = os.listdir(_dir)
-				for q_doc in _quotes:
-					_hash = abs(hash(str(q_doc)))
-					if _hash not in _doc_hashes:
-						self._quotes[_hash] = Quote(vend=None, doc=q_doc)
-			else:
-				# TODO: log directory error
-				pass
-		return self._quotes
+		_return = {}
+		for _mlist in self.materials.itervalues():
+			_return.update(_mlist.quotes)
+		_return.update(self._quotes)  # Assume that _quotes is up to date
+		return _return
 
 	@property
 	def unlinked_quotes(self):
-		""" Returns recently object quotes objects that aren't linked to material lists
-		:return:
+		""" Grabs and returns unlinked quotes which have been added to the Quotes directory
+		:return: self._quotes
 		"""
 		if hasattr(self, 'path'):
-			_return = []
-			_dir = os.path.join(self.path, 'Materials')
+			_dir = os.path.join(self.path, 'Quotes')
 			if os.path.isdir(_dir):
-				_doc_hashes = []
-				for key, quote in self._quotes.values():  # enumerate all document hashes
-					if quote.doc:
-						_doc_hashes.append(key)
-
 				_quotes = os.listdir(_dir)
 				for q_doc in _quotes:
 					_hash = abs(hash(str(q_doc)))
-					if _hash not in _doc_hashes:
-						_return.append(q_doc)
-			return _return
+					if _hash not in self.quotes.keys() and not _hash in self._quotes.keys():
+						_obj = Quote(vend=None, doc=q_doc)
+						_obj._path = self.path
+						self._quotes[_hash] = _obj
+			else:
+				# log directory error
+				pass
+		return self._quotes
 
 
 	@property
@@ -634,7 +632,6 @@ class AwardedJob(Job):
 		:return: None
 		"""
 		_mat_list = quote_obj.mat_list.hash
-		self._quotes[quote_obj.hash] = quote_obj
 		self._materials[_mat_list].add_quote(quote_obj)
 		self.update()
 
@@ -708,12 +705,11 @@ class AwardedJob(Job):
 		:return: None
 		"""
 		for i in self._materials.values():
-			if quote_hash in i._quotes.keys():
-				del i._quotes[quote_hash]
+			if quote_hash in i.quotes.keys():
+				del i.quotes[quote_hash]
 		for i in self.POs.values():
 			if i.quote.hash == quote_hash:
 				del self.POs[i.number]
-		del self._quotes[quote_hash]
 
 		if delete:
 			# TODO:delete document in filesystem
