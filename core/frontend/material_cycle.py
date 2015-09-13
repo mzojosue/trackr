@@ -58,8 +58,8 @@ def job_materials(job_num=None):
 		return redirect(request.referrer)
 
 
-@app.route('/material/<int:m_hash>/')
-def material_list(m_hash):
+@app.route('/j/<int:job_num>/material/<int:m_hash>/')
+def material_list(job_num, m_hash):
 	"""
 	Renders material list page
 	:param m_hash: hash attribute of material list object to display
@@ -69,15 +69,15 @@ def material_list(m_hash):
 	if auth is not True:
 		return auth  # redirects to login
 	try:
-		_list = MaterialList.db[int(m_hash)]
-		_job = _list.job
+		_job = AwardedJob.find(job_num)
+		_list = _job.materials[m_hash]
 		return render_template('material_list.html', job=_job, mlist=_list)
 	except KeyError:
 		return "Material List doesn't exist..."
 
 
-@app.route('/material/<int:m_hash>/update', methods=['POST'])
-def update_material_list(m_hash):
+@app.route('/j/<int:job_num>/material/<int:m_hash>/update', methods=['POST'])
+def update_material_list(job_num, m_hash):
 	"""
 	Updates material list using http post methods
 	:param m_hash: Material list hash to update
@@ -86,8 +86,8 @@ def update_material_list(m_hash):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
-	_list = MaterialList.db[int(m_hash)]
-	_job = _list.job
+	_job = AwardedJob.find(job_num)
+	_list = _job.materials[m_hash]
 	if 'sentOut' in request.form:
 		_list.sent_out = True
 		_list.update()
@@ -198,12 +198,13 @@ def quote():
 		flash('Quote successfully uploaded.', 'success')
 		return redirect(url_for('material_list', m_hash=_list.hash))
 
-@app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
-def add_quote_doc(m_hash, q_hash):
+@app.route('/j/<int:job_num>/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
+def add_quote_doc(job_num, m_hash, q_hash):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
-	_mlist = MaterialList.db[m_hash]
+	_job = AwardedJob.find(job_num)
+	_mlist = _job.materials[m_hash]
 	_quote = _mlist.quotes[q_hash]
 	_doc = request.files['fileUpload']
 	if _doc and allowed_file(_doc.filename):
@@ -214,7 +215,7 @@ def add_quote_doc(m_hash, q_hash):
 		print "Saved document %s for %s" % (_quote.doc, _quote.job)
 	else:
 		print "%s not saved" % _doc
-	return redirect(url_for('material_list', m_hash=_mlist.hash))
+	return redirect(url_for('material_list', job_num=_job.number, m_hash=_mlist.hash))
 
 @app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
 def update_po_attr(job_num, po_num, attr):

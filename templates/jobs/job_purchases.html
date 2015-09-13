@@ -83,7 +83,7 @@
                 </td>
                 <td>
                     <!-- TODO:create link to material list -->
-                    <a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">
+                    <a href="{{ url_for('material_list', job_num=job.number, m_hash=i.mat_list.hash) }}">
                         {{ i.mat_list }}
                     </a>
                 </td>
