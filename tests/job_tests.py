@@ -31,7 +31,7 @@ class TestJob(unittest.TestCase):
 		os.chdir(_escape)
 		shutil.rmtree(_delete)
 
-	def testName(self):
+	def test_name(self):
 		""" Tests name property with and without number attribute
 		:return:
 		"""
@@ -43,7 +43,7 @@ class TestJob(unittest.TestCase):
 		self.job.number = _num
 		self.assertEqual(self.job.name, '%s-%s' % (_num, self.name))
 
-	def testAltName(self):
+	def test_alt_name(self):
 		""" Tests alt_name property
 		:return:
 		"""
@@ -55,7 +55,7 @@ class TestJob(unittest.TestCase):
 		self.job.alt_name = _alt
 		self.assertEqual(self.job.alt_name, _alt)
 
-	def testAddendums(self):
+	def test_addendums(self):
 		""" Tests drawings property by creating empty files
 		:return:
 		"""
@@ -75,7 +75,7 @@ class TestJob(unittest.TestCase):
 			self.assertEqual(self.job.addendums.keys().sort(), _adds.sort())  # check returned keys against created files
 			os.chdir('..')
 
-	def testDrawings(self):
+	def test_drawings(self):
 		""" Tests drawings property by creating empty files
 		:return:
 		"""
@@ -95,7 +95,7 @@ class TestJob(unittest.TestCase):
 			self.assertEqual(self.job.drawings.keys().sort(), _dwgs.sort())  # check returned keys against created files
 			os.chdir('..')
 
-	def testDocuments(self):
+	def test_documents(self):
 		""" Tests drawings property by creating empty files
 		:return:
 		"""
@@ -115,7 +115,7 @@ class TestJob(unittest.TestCase):
 			self.assertEqual(self.job.documents.keys().sort(), _docs.sort())  # check returned keys against created files
 			os.chdir('..')
 
-	def testHasDrawings(self):
+	def test_has_drawings(self):
 		""" Tests has_drawings property by parsing shell output
 		:return:
 		"""
@@ -135,7 +135,7 @@ class TestJob(unittest.TestCase):
 			self.assertEqual(self.job.has_drawings, True)  # with files
 			os.chdir('..')
 
-	def testHasDocuments(self):
+	def test_has_documents(self):
 		""" Tests has_documents property by parsing shell output
 		:return:
 		"""
@@ -155,7 +155,7 @@ class TestJob(unittest.TestCase):
 			self.assertEqual(self.job.has_documents, True)  # with files
 			os.chdir('..')
 
-	def testHasAddendums(self):
+	def test_has_addendums(self):
 		""" Checks to see if self has any takeoff
 		:return:
 		"""
@@ -175,7 +175,7 @@ class TestJob(unittest.TestCase):
 			self.assertEqual(self.job.has_addendums, True)  # with files
 			os.chdir('..')
 
-	def testUpdate(self):
+	def test_update(self):
 		""" Tests update function with and without 'number' and 'db' atrributes.
 		:return:
 		"""
@@ -190,6 +190,7 @@ class TestJob(unittest.TestCase):
 
 class TestAwardedJob(unittest.TestCase):
 	def setUp(self):
+		core.disconnect_db()
 		num = core.get_job_num()
 		job = core.AwardedJob(num, 'test_job', init_struct=False)
 		self.object = job

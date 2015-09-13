@@ -194,6 +194,7 @@ class EstimatingJob(Job):
 				_scope = os.path.join(_dir, i)
 				if os.path.isdir(_scope):
 					_return[i] = os.listdir(_scope)
+		# TODO: join files in Quotes directory with self._quotes
 		return _return
 
 	@property
