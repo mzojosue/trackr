@@ -29,6 +29,11 @@ class MaterialList(object):
 		:param task: Boolean. If True, SHOULD create a Todo object linked to self
 		:return: None
 		"""
+		if doc:
+			self.hash = abs(hash(str(doc)))  # hash attribute is derived from document title
+		else:     # create _hash attribute if it doesn't exist
+			self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+
 		self.job = job
 		self.items = items
 		self._doc = doc
@@ -56,6 +61,7 @@ class MaterialList(object):
 		self.po = None
 
 		self.update()
+
 
 	def __setattr__(self, key, value):
 		# do not update yaml file or call self.update() if self is still initializing
@@ -86,14 +92,6 @@ class MaterialList(object):
 			return 0
 
 	@property
-	def hash(self):
-		if hasattr(self, 'doc'):
-			return abs(hash(str(self.doc)))  # hash attribute is derived from document title
-		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
-			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
-		return self._hash
-
-	@property
 	def age(self):
 		"""
 		Used for highlighting unfulfilled material lists when displayed in a table.
@@ -110,7 +108,7 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		if hasattr(self, '_doc'):
+		if hasattr(self, '_doc') and self._doc:
 			_path = os.path.join(self.job.path, 'Materials')
 			return _path, self._doc
 		else:

@@ -40,7 +40,7 @@ def import_po_log(log=environment.get_po_log):
 					_mat_list.delivered = True
 
 		del AwardedJob._lock
-		AwardedJob.db.values()[0].dump_all()
+		AwardedJob.db.values()[0].dump_all()  # create yaml database
 
 
 def import_estimating_log(log=environment.get_estimating_log):
