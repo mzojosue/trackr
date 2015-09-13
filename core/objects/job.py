@@ -193,9 +193,9 @@ class Worker(object):
 
 class Job(yaml.YAMLObject):
 	yaml_tag = u'!Job'
+	yaml_filename = 'db_storage.yaml'
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install')
 
-	_yaml_filename = '.job_info.yaml'
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
 	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
 
@@ -364,6 +364,8 @@ class Job(yaml.YAMLObject):
 			return False
 
 	def dump_all(self):
+		if hasattr(self, '_dump_lock') and self._dump_lock:
+			return None  # attribute to prevent object storage for testing purposes
 		_jobs = {}
 		if hasattr(self, 'completed_db'):
 			for num, obj in self.completed_db.items():
@@ -373,7 +375,7 @@ class Job(yaml.YAMLObject):
 				_jobs[num] = obj
 
 		if hasattr(self, 'default_sub_dir'):
-			_filename = os.path.join(env.env_root, self.default_sub_dir, 'db_storage.yaml')
+			_filename = os.path.join(env.env_root, self.default_sub_dir, self.yaml_filename)
 			stream = file(_filename, 'w')
 			yaml.dump(_jobs, stream)
 
