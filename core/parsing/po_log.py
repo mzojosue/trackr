@@ -20,7 +20,7 @@ def parse_po_log(po_log=environment.get_po_log):
 		_sheet = log.get_sheet_by_name(log.get_sheet_names()[_sheetNum])
 		logger.debug('Working on worksheet "%s"' % _sheet.title)
 
-		_job = [i for i in parse("{}-{}", _sheet.title)]
+		_job = [i for i in parse("{} - {}", _sheet.title)]
 		yield 'job', _job
 
 		for _row in _sheet.rows:
