@@ -49,7 +49,7 @@ def import_po_log(log=environment.get_po_log):
 
 	del AwardedJob._lock
 	_elapsedTime = time.time() - _startTime
-	print "Finished importing Jobs and POs from %s. Operation took %s seconds.\n" % (_method, _elapsedTime)
+	print "Finished importing Jobs and POs from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
 
 def import_estimating_log(log=environment.get_estimating_log):
@@ -87,7 +87,7 @@ def import_estimating_log(log=environment.get_estimating_log):
 
 	del EstimatingJob._lock
 	_elapsedTime = time.time() - _startTime
-	print "Finished EstimatingJob import from %s. Operation took %s seconds.\n" % (_method, _elapsedTime)
+	print "Finished EstimatingJob import from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
 
 def disconnect_db():
@@ -131,8 +131,7 @@ def init_db(db='trackr_db'):
 		AwardedJob.db = MongoDict(database=db, collection='jobs')
 		AwardedJob.completed_db = MongoDict(database=db, collection='completed_jobs')
 
-		# Material Cycle DBs
-		MaterialList.db = MongoDict(database=db, collection='materials')
+		# Material Cycle DB
 		Delivery.db = MongoDict(database=db, collection='deliveries')
 
 		# _Todo DBs
@@ -184,7 +183,7 @@ def reset_db(db='trackr_db'):
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
-	init_db()
+	clear_db()
 	User.load_users()
 	if True: #not check_po_log():
 		#scheduler.add_job(import_estimating_log)
@@ -196,7 +195,7 @@ def reset_db(db='trackr_db'):
 	Worker.load_workers()
 	os.chdir(_cwd)  # Ensure that directories haven't been changed
 
-	print "Database was successfully reset"
+	print "Database was successfully reset\n"
 	logger.info("Database was successfully reset")
 
 	return True

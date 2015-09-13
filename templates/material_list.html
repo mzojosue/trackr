@@ -65,7 +65,7 @@
       {% if not mlist.sent_out %}
         <div class="well col-xs-4 widgetWell">
           <!-- TODO:convert form/checkbox to http link -->
-          <form class="form-inline" action="{{ url_for('update_material_list', m_hash=mlist.hash) }}" method="post">
+          <form class="form-inline" action="{{ url_for('update_material_list', job_num=job.number, m_hash=mlist.hash) }}" method="post">
             <div class="checkbox">
               <label>
                 <input type="checkbox" name="sentOut" value="True" {% if mlist.sent_out %} checked {% endif %}>
@@ -117,7 +117,7 @@
 				</tr>
 				{% for i in mlist.quotes.itervalues() %}
 				<!-- TODO:style rows based on age -->
-					<tr class="{% if i.awarded %}success{% endif %}">
+					<tr {% if i.awarded %}class="success"{% endif %}>
 						<td id="{{ i.hash }}">
 							{% if not i.awarded %}
 								{% if not mlist.fulfilled %}
@@ -145,7 +145,7 @@
               {% else %}
                 <a href="javascript:" class="fileSelect">
                   <span class="glyphicon glyphicon-open"></span>
-                  <input type="file" id="fileUpload-{{ i.hash }}" name="fileUpload" onchange="update_quote_doc({{ mlist.hash }}, {{ i.hash }});" multiple>
+                  <input type="file" id="fileUpload-{{ i.hash }}" name="fileUpload" onchange="add_quote_doc({{ job.num }}, {{ mlist.hash }}, {{ i.hash }});" multiple>
                 </a>
 							{% endif %}
 						</td>

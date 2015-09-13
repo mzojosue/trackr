@@ -175,7 +175,7 @@
                 <li class="list-group-item">
               {% endif %}
                 <!-- TODO:set link to deliveries page -->
-                <a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">
+                <a href="{{ url_for('material_list', job_num=job.number, m_hash=i.mat_list.hash) }}">
                   From {{ i.vend }} expected <span class="label label-info">{{ i.expected.date() }}</span>
                 </a>
               </li>
@@ -194,7 +194,7 @@
                 <li class="list-group-item">
               {% endif %}
                 <!-- TODO:set link to deliveries page -->
-                <a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">Delivery from {{ i.vend }}, expected <span class="label label-info">{{ i.expected.date() }}</span> for {{ i.job }}</a>
+                <a href="{{ url_for('material_list', job_num=job.number, m_hash=i.mat_list.hash) }}">Delivery from {{ i.vend }}, expected <span class="label label-info">{{ i.expected.date() }}</span> for {{ i.job }}</a>
               </li>
             {% else %}
               <li class="list-group-item">

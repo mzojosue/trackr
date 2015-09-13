@@ -48,7 +48,7 @@ class MaterialList(object):
 
 		self.job.add_mat_list(self)
 
-		self._quotes = {}
+		self.quotes = {}
 		self.tasks = {}
 		self.rentals = {}
 		self.fulfilled = False  # True once list has been purchased
@@ -116,7 +116,6 @@ class MaterialList(object):
 
 	def update(self):
 		if hasattr(self, 'db') and hasattr(self, 'hash'):
-			self.db[self.hash] = self
 			if hasattr(self, 'job'):
 				self.job.add_mat_list(self)
 		return None
@@ -135,13 +134,13 @@ class MaterialList(object):
 			raise TypeError
 
 	def add_quote(self, quote_obj):
-		self._quotes[quote_obj.hash] = quote_obj
+		self.quotes[quote_obj.hash] = quote_obj
 		self.sent_out = True
 		self.update()
 		return None
 
 	def del_quote(self, quote_obj):
-		del self._quotes[quote_obj.hash]
+		del self.quotes[quote_obj.hash]
 		self.update()
 		return None
 
@@ -203,11 +202,6 @@ class MaterialList(object):
 				# Error should be raised since we are deleting an iterable
 				pass
 		return None
-
-	@staticmethod
-	def find(mlist_hash):
-		if hasattr(MaterialList, 'db'):
-			return MaterialList.db[int(mlist_hash)]
 
 
 class Quote(object):
