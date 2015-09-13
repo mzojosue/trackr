@@ -100,7 +100,7 @@
                     {% endif %}
                     {% if i.po and i.po.quote.doc %}
                     <a target="_blank"
-                       href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.po.quote.hash) }}">
+                       href="{{ url_for('material_quote_doc', job_num=job.number, m_hash=i.hash, q_hash=i.po.quote.hash) }}">
                         &nbsp;<span class="glyphicon glyphicon-duplicate"></span>
                     </a>
                     {% endif %}

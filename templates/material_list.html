@@ -102,13 +102,13 @@
 						<td>
 							{{ i.hash }}
 							{% if i.doc %}
-								<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.hash) }}">
+								<a target="_blank" href="{{ url_for('material_quote_doc', job_num=job.number, m_hash=mlist.hash, q_hash=i.hash) }}">
 									<span class="glyphicon glyphicon-paperclip"></span>
 								</a>
               {% else %}
                 <a href="javascript:" class="fileSelect">
                   <span class="glyphicon glyphicon-open"></span>
-                  <input type="file" id="fileUpload-{{ i.hash }}" name="fileUpload" onchange="add_quote_doc({{ job.num }}, {{ mlist.hash }}, {{ i.hash }});" multiple>
+                  <input type="file" id="fileUpload-{{ i.hash }}" name="fileUpload" onchange="add_quote_doc({{ job.number }}, {{ mlist.hash }}, {{ i.hash }});" multiple>
                 </a>
 							{% endif %}
 						</td>
