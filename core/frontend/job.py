@@ -49,18 +49,13 @@ def job_analytics(job_num):
 	return abort(404)
 
 
-@app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')
-def job_material_doc(doc_hash, job_num=None):
+def job_material_doc(job_num, doc_hash):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
-	if not job_num:
-		_doc = MaterialList.db[int(doc_hash)]
-		_job = _doc.job
-	else:
-		_job = AwardedJob.find(job_num)
-		_doc = _job.materials[int(doc_hash)]
+	_job = AwardedJob.find(job_num)
+	_doc = _job.materials[int(doc_hash)]
 
 	if type(_doc.doc) is tuple:
 		return send_from_directory(*_doc.doc)
