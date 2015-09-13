@@ -9,6 +9,7 @@ class TestJob(unittest.TestCase):
 	def setUp(self):
 		self.name = 'test_job'
 		self.job = core.Job(self.name)
+		self.job._dump_lock = True  # prevent object storage
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.job_sandbox'
@@ -186,37 +187,6 @@ class TestJob(unittest.TestCase):
 
 		self.job.db = {}
 		self.assertEqual(self.job.db.keys()[0], _num)  # ensure that update was called on __setattr__ previous line
-
-	def testLoadInfo(self):
-		""" Tests load_info method with/without 'path' and with/without the directory existing
-		:return:
-		"""
-
-		self.assertEqual(self.job.load_info(), False)  # without path attribute
-
-		_dir = os.path.join(os.getcwd(), 'tmp')
-		self.job.path = _dir
-		self.assertEqual(self.job.load_info(), False)  # with path, directory doesn't exist
-
-		os.mkdir(_dir)
-		self.assertEqual(self.job.load_info(), True)   # dump_info is called
-		#TODO: create new YAML file with arbitrary values
-
-	def testDumpInfo(self):
-		""" Tests dump_info method with/without 'path' and with/without the directory existing
-		:return:
-		"""
-		self.assertEqual(self.job.dump_info(), False)  # without path attribute
-
-		_dir = os.path.join(os.getcwd(), 'tmp')
-		self.job.path = _dir
-		self.assertEqual(self.job.dump_info(), False)  # with path, directory doesn't exist
-
-		os.mkdir(_dir)
-		self.assertEqual(self.job.dump_info(), True)
-
-		# TODO: validate YAML file
-
 
 class TestAwardedJob(unittest.TestCase):
 	def setUp(self):
