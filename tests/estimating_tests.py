@@ -34,7 +34,7 @@ class TestEstimatingJob(unittest.TestCase):
 		shutil.rmtree(_delete)
 
 	def testInit(self):
-		""" Tests all attributes creating during initialization
+		""" Tests all attributes creating during initialization as well as class attributes
 		:return:
 		"""
 		return NotImplemented

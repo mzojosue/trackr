@@ -67,7 +67,7 @@ def delete_material_doc(doc_hash, job_num=None):
 	if auth is not True:
 		return auth  # redirects to login
 	# TODO:delete document in filesystem
-	AwardedJob.db[job_num].del_material_list(doc_hash)
+	AwardedJob.db[job_num].del_mat_list(doc_hash)
 	del MaterialList.db[doc_hash]
 	return redirect(request.referrer)
 

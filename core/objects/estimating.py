@@ -141,16 +141,6 @@ class EstimatingJob(Job):
 			_gc.append(str(i['gc']))
 		return _gc
 
-	@property
-	def path(self):
-		""" Return absolute sub path using program path and AwardedJob.sub_path """
-		if hasattr(self, '_path') and self._path:
-			return self._path
-		else:
-			_path = os.path.join(env.env_root, self.sub_path)
-			return _path
-
-
 
 	# Quote Functions
 
