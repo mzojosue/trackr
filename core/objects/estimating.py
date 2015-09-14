@@ -15,7 +15,7 @@ from job import AwardedJob, get_job_num, Job
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
-	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
+	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs', 'Quotes')
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
@@ -159,11 +159,11 @@ class EstimatingJob(Job):
 				return False  # global path error
 
 		# create bid sub folders
-		try:
-			for _folder in self._dir_folders:
+		for _folder in self._dir_folders:
+			try:
 				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
-		except OSError:
-			pass  # assume project sub folders already exist
+			except OSError:
+				pass  # assume project sub folders already exist
 
 		# create folders for holding quotes
 		for _scope in self.scope:
