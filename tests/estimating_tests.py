@@ -12,6 +12,7 @@ class TestEstimatingJob(unittest.TestCase):
 	def setUp(self):
 		self.name = 'test_bid'
 		self.bid = core.EstimatingJob(self.name, add_to_log=False, struct=False)
+		core.EstimatingJob._dump_lock = True
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.bid_sandbox'

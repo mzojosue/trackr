@@ -86,7 +86,7 @@ class TestJob(unittest.TestCase):
 		core.disconnect_db()  # ensure database objects aren't interfered with
 		self.name = 'test_job'
 		self.job = core.Job(self.name)
-		self.job._dump_lock = True  # prevent object storage
+		core.Job._dump_lock = True  # prevent object storage
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.job_sandbox'
@@ -162,7 +162,8 @@ class TestJob(unittest.TestCase):
 			for fname in _adds:
 				_fobj = open(fname, 'w')
 				_fobj.close()
-			self.assertEqual(self.job.addendums.keys().sort(), _adds.sort())  # check returned keys against created files
+			self.assertEqual(self.job.addendums.keys().sort(),
+							 _adds.sort())  # check returned keys against created files
 			os.chdir('..')
 
 	def test_drawings(self):
@@ -200,7 +201,8 @@ class TestJob(unittest.TestCase):
 			for fname in _docs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
-			self.assertEqual(self.job.documents.keys().sort(), _docs.sort())  # check returned keys against created files
+			self.assertEqual(self.job.documents.keys().sort(),
+							 _docs.sort())  # check returned keys against created files
 			os.chdir('..')
 
 	def test_has_drawings(self):
@@ -284,7 +286,7 @@ class TestAwardedJob(unittest.TestCase):
 		num = core.get_job_num()
 		self.name = 'test_job'
 		self.object = core.AwardedJob(num, self.name, init_struct=False)
-		self.object._dump_lock = True  # prevent object storage
+		core.AwardedJob._dump_lock = True  # prevent object storage
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.job_sandbox'
@@ -364,8 +366,8 @@ class TestAwardedJob(unittest.TestCase):
 		_mat_list_obj = core.MaterialList(self.object)  # add_mat_list is called during MaterialList.update
 		_quote_obj = core.MaterialListQuote(_mat_list_obj, 'Test Vendor @ Test')
 
-		_quote_list = self.object.quotes.values()
-		self.assertIn(_quote_obj, _quote_list, 'Quote was not added to AwardedJob.quotes')
+		_quote_list = self.object.quotes.keys()
+		self.assertIn(_quote_obj.hash, _quote_list, 'Quote was not added to AwardedJob.quotes')
 
 	def test_del_quote(self):
 		""" Creates a MaterialList and Quote linked to self.object then calls del_quote.
@@ -375,8 +377,8 @@ class TestAwardedJob(unittest.TestCase):
 
 		# TODO: test filesystem delete function
 		self.object.del_quote(_quote_obj.hash, delete=False)
-		_quote_list = self.object.quotes.values()
-		self.assertNotIn(_quote_obj, _quote_list, 'Quote was not deleted from AwardedJob.quotes')
+		_quote_list = self.object.quotes.keys()
+		self.assertNotIn(_quote_obj.hash, _quote_list, 'Quote was not deleted from AwardedJob.quotes')
 
 
 	def test_add_po(self):

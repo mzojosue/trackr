@@ -65,7 +65,7 @@ class Worker(object):
 				self.prev_jobs.append(self.job.name)
 				del self.job.workers[self.hash]
 				self.job.update()
-				_num = self.job_num  # update _job_num attribute
+				self._job_num = self.job.number
 			self.update()
 		_return = super(Worker, self).__setattr__(key, value)
 		return _return
@@ -141,15 +141,15 @@ class Worker(object):
 		return True
 
 	@classmethod
-	def dump_info(self):
+	def dump_info(cls):
 		""" dump values from self to .yaml file """
-		_filename = os.path.join(env.env_root, self._yaml_filename)
+		_filename = os.path.join(env.env_root, cls._yaml_filename)
 
 		_dump = {}
 		if hasattr(Worker, 'db'):
 			for _work in Worker.db.itervalues():
 				_data = {}
-				for i in self._yaml_attr:
+				for i in cls._yaml_attr:
 					try:
 						_val = _work.__getattribute__(i)
 						_data[i] = _val
@@ -354,7 +354,7 @@ class Job(yaml.YAMLObject):
 				self.db[self.number] = self
 			else:                  # no db attribute
 				return 'DB_ERROR'  # returned for debugging
-			if not hasattr(self, '_lock'):  # ensures that file is not written multiple times during import
+			if not hasattr(self, '_dump_lock'):  # ensures that file is not written multiple times during import
 				self.dump_all()  # save to global yaml storage
 		else:
 			return False
@@ -381,9 +381,9 @@ class AwardedJob(Job):
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
-				 gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
-				 contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(),
-				 sheet_num=None, init_struct=True):
+				gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
+				contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(),
+				sheet_num=None, init_struct=True):
 		"""
 		:param job_num: desired jobs number
 		:param name: primary jobs name
