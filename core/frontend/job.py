@@ -14,7 +14,7 @@ def all_jobs():
 
 
 @app.route('/j/<int:job_num>')
-def job_overview(job_num=None):
+def job_overview(job_num):
 	"""
 	Renders overview template which displays active objects and general information such as jobs address
 	:param job_num: specifies jobs number
@@ -29,9 +29,19 @@ def job_overview(job_num=None):
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
+@app.route('/j/<int:job_num>/info')
+def job_info(job_num):
+	auth = check_login()
+	if auth is not True:
+		return auth
+	try:
+		_job = AwardedJob.find(job_num)
+		return render_template('jobs/job_info.html', job=_job)
+	except KeyError:
+		return "Error: AwardedJob does not exist"
 
 @app.route('/j/<int:job_num>/analytics')
-def job_analytics(job_num=None):
+def job_analytics(job_num):
 	"""
 	Displays statistics such as estimated jobs cost and labor averages.
 	:param job_num: specifies jobs number
@@ -39,18 +49,13 @@ def job_analytics(job_num=None):
 	return abort(404)
 
 
-@app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')
-def job_material_doc(doc_hash, job_num=None):
+def job_material_doc(job_num, doc_hash):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
-	if not job_num:
-		_doc = MaterialList.db[int(doc_hash)]
-		_job = _doc.job
-	else:
-		_job = AwardedJob.find(job_num)
-		_doc = _job.materials[int(doc_hash)]
+	_job = AwardedJob.find(job_num)
+	_doc = _job.materials[int(doc_hash)]
 
 	if type(_doc.doc) is tuple:
 		return send_from_directory(*_doc.doc)
@@ -62,26 +67,11 @@ def delete_material_doc(doc_hash, job_num=None):
 	if auth is not True:
 		return auth  # redirects to login
 	# TODO:delete document in filesystem
-	AwardedJob.db[job_num].del_material_list(doc_hash)
+	AwardedJob.db[job_num].del_mat_list(doc_hash)
 	del MaterialList.db[doc_hash]
 	return redirect(request.referrer)
 
 
-@app.route('/quote/<doc_hash>')
-@app.route('/j/<int:job_num>/qoutes/<doc_hash>')
-def job_quote_doc(doc_hash, job_num=None):
-	auth = check_login()
-	if auth is not True:
-		return auth  # redirects to login
-	if not job_num:
-		_doc = MaterialList.db[int(doc_hash)]
-		_job = _doc.job
-	else:
-		_job = AwardedJob.find(job_num)
-		_doc = _job.quotes[int(doc_hash)]
-		print _doc._doc
-		if type(_doc.doc) is tuple:
-			return send_from_directory(*_doc.doc)
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/update', methods=['POST'])
 def update_job_quote(job_num, doc_hash):
@@ -134,7 +124,7 @@ def job_deliveries(job_num=None):
 
 @app.route('/j/<int:job_num>/purchases')
 @app.route('/j/<int:job_num>/purchases/sort/<sort_by>')
-def job_pos(job_num=None, sort_by=None):
+def job_pos(job_num, sort_by=None):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
@@ -149,7 +139,7 @@ def job_pos(job_num=None, sort_by=None):
 
 
 @app.route('/j/<int:job_num>/rentals')
-def job_rentals(job_num=None):
+def job_rentals(job_num):
 	auth = check_login()
 	if auth is not True:
 		return auth  # redirects to login
@@ -174,15 +164,13 @@ def create_job():
 		_job_type = str(request.form['jobType'])
 		_job_address = str(request.form['jobAddress'])
 		_contract_amt = float(request.form['contractAmt'])
-		try:
-			request.form['taxExempt']
+		if 'taxExempt' in request.form:
 			_tax_exempt = True
-		except KeyError:
+		else:
 			_tax_exempt = False
-		try:
-			request.form['certifiedPayroll']
+		if 'certifiedPayroll' in request.form:
 			_certified_pay = True
-		except KeyError:
+		else:
 			_certified_pay = False
 		_gc = str(request.form['gc'])
 		_gc_contact = str(request.form['gcContact'])

@@ -1,5 +1,3 @@
-from objects import *
-
 class Todo(object):
 	""" Represents tasks to-do
 	:param

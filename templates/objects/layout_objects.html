@@ -40,6 +40,7 @@
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
   {% set links = [('job_overview', 'Overview', 'eye-open'),
+                  ('job_info', 'Info', 'info-sign'),
                   ('job_analytics', 'Analytics', 'stats'),
                   ('job_materials', 'Materials', 'wrench'),
                   ('job_deliveries', 'Devlieries', 'plane'),
@@ -77,7 +78,7 @@
                   ('estimating_home', 'Estimating', 'piggy-bank'),
                   ('all_jobs', 'Jobs'),
                   ('user_settings', 'Settings'),
-                  ('help', 'Help'),
+                  ('user_help', 'Help'),
                   ('logout', '', 'off')] %}
 
   {% for _link in links %}

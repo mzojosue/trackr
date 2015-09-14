@@ -1,0 +1,10 @@
+alt_name: E1-testJob
+bids:
+  87347554:
+    bid_date: ASAP
+    bid_hash: 87347554
+    date_received: 2015-09-07 23:33:55.937000
+    gc: null
+    gc_contact: null
+    scope: null
+rate: 100.84

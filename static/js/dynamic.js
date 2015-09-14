@@ -95,9 +95,9 @@ function unlock_job_for_editing(jobNum) {
     document.getElementById('jobHeader').appendChild(updateInfo);
 }
 
-function update_quote_doc(m_hash, q_hash) {
+function add_quote_doc(job_num, m_hash, q_hash) {
     // set form action
-    var url = '/material/' + m_hash + '/quote/' + q_hash + '/update/doc';
+    var url = '/j/' + job_num + '/material/' + m_hash + '/quote/' + q_hash + '/update/doc';
     var inputElement = document.getElementById('fileUpload-' + q_hash);
     inputElement.setAttribute('form', 'quoteUpdate');
     var fileForm = document.getElementById('quoteUpdate');

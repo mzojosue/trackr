@@ -1,5 +1,8 @@
-from config import *
 import json
+
+from config import *
+from core.sorting import sort_jobs
+
 
 @app.route('/upload/<filename>')
 def uploaded_file(filename):
@@ -177,8 +180,8 @@ def rental_log():
 def user_settings():
 	return abort(404)
 
-@app.route('/help')
-def help():
+@app.route('/user_help')
+def user_help():
 	return abort(404)
 
 @app.route('/flash/test')
