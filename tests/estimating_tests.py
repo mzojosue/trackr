@@ -10,6 +10,7 @@ import core
 
 class TestEstimatingJob(unittest.TestCase):
 	def setUp(self):
+		core.disconnect_db()  # ensure database objects aren't interfered with
 		self.name = 'test_bid'
 		self.bid = core.EstimatingJob(self.name, add_to_log=False, struct=False)
 		core.EstimatingJob._dump_lock = True
