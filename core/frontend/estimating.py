@@ -288,3 +288,13 @@ def bid_drawings(bid_num):
 			return render_template('estimating/bid_drawings.html', bid=_bid)
 		except KeyError:
 			return "Error: Bid does not exist."
+
+@app.route('/estimating/bid/<int:bid_num>/drawings/<dwg_name>')
+def bid_drawing_doc(bid_num, dwg_name):
+	auth = check_login()
+	if auth is not True:
+		return auth  # redirects to login
+	bid = EstimatingJob.find(bid_num)
+	_doc = bid.drawings[dwg_name]
+	if _doc:
+		return send_from_directory(*os.path.split(_doc[0]))

@@ -40,7 +40,11 @@
 				{% for dwg in bid.drawings %}
 					<tr>
 						<td>{{ bid.drawings.keys().index(dwg) + 1 }}</td>
-						<td>{{ dwg }}</td>
+						<td><a target="_blank"
+						       href="{{ url_for('bid_drawing_doc', bid_num=bid.number, dwg_name=dwg) }}">
+                  {{ dwg }}
+								</a>
+						</td>
 						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg][0]))) }}</td>
 						<td>Mech</td>
 					</tr>
