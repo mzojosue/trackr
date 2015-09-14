@@ -89,6 +89,7 @@ class EstimatingJob(Job):
 		if os.path.isdir(_takeoff_dir):
 			_takeoffs = os.listdir(_takeoff_dir)
 			return bool(len(_takeoffs))
+		else: return False
 
 	@property
 	def bid_date(self):
