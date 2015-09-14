@@ -14,7 +14,7 @@ class Worker(object):
 	B_RATE = 51.76
 
 	yaml_tag = u'!Worker'
-	_yaml_attr = ('date_created', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
+	_yaml_attr = ('date_created', '_job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
 	_yaml_filename = 'workers.yaml'
 
 	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today(), timesheets=[]):
@@ -31,6 +31,7 @@ class Worker(object):
 		self.hash = abs(hash(str(self.name) + str(date_created)))
 		self.date_created = date_created
 		self.job = job
+		self._job_num = self.job.number
 		self.prev_jobs = []
 		self.phone = str(phone)
 		self.email = str(email)
@@ -50,6 +51,7 @@ class Worker(object):
 
 	@property
 	def job_num(self):
+		self._job_num = self.job.number
 		return self.job.number
 
 	def __setattr__(self, key, value):
@@ -63,8 +65,8 @@ class Worker(object):
 				self.prev_jobs.append(self.job.name)
 				del self.job.workers[self.hash]
 				self.job.update()
-			else:
-				self.update()
+				_num = self.job_num  # update _job_num attribute
+			self.update()
 		_return = super(Worker, self).__setattr__(key, value)
 		return _return
 
@@ -100,23 +102,6 @@ class Worker(object):
 		else:
 			return Worker(name, job)
 
-	@staticmethod
-	def load_workers():
-		""" Loads users from campano/workers.yaml in root environment"""
-		fname = os.path.join(env.env_root, Worker._yaml_filename)
-		try:
-			with open(fname, 'r') as _file_dump:
-				_file_dump = yaml.load(_file_dump)
-				for _uname, _attr in _file_dump.iteritems():
-					_attr['name'] = _uname
-					_attr['job'] = AwardedJob.find(_attr['job_num'])
-					del _attr['job_num']
-					Worker(**_attr)
-			log.logger.info('Successfully imported users.yaml')
-		except IOError:
-			pass
-		return True
-
 	def add_labor(self, hours, date_worked=today(), week_end=None, job=None):
 		if job:
 			self.job = job
@@ -139,44 +124,42 @@ class Worker(object):
 			timesheet = Timesheet(self.job, week_end)
 		timesheet.add_labor(self, *work)
 
-	"""def load_info(self):
-		_data_file = os.path.join(self.path, self._yaml_filename)
+	@staticmethod
+	def load_workers():
+		""" Loads users from campano/workers.yaml in root environment"""
+		fname = os.path.join(env.env_root, Worker._yaml_filename)
 		try:
-			_data = open(_data_file, 'r')
-			_data = yaml.load(_data)
-			for i in self._yaml_attr:
-				try:
-					_val = _data[i]
-					# load values from .yaml file to self
-					self.__setattr__(i, _val)
-				except (KeyError, AttributeError):
-					continue
+			with open(fname, 'r') as _file_dump:
+				_file_dump = yaml.load(_file_dump)
+				for _name, _attr in _file_dump.iteritems():
+					_attr['job'] = AwardedJob.find(_attr['_job_num'])
+					del _attr['job_num']
+					Worker(**_attr)
+			log.logger.info('Successfully imported users.yaml')
 		except IOError:
-			self.dump_info()"""
+			return False
+		return True
 
+	@classmethod
 	def dump_info(self):
 		""" dump values from self to .yaml file """
 		_filename = os.path.join(env.env_root, self._yaml_filename)
-		try:
-			with open(_filename, 'r') as _data_file:
-				_dump = yaml.load(_data_file)
-				if self.name in _dump:
-					# TODO: update object instead of quitting
-					return True
-		except IOError:
-			pass
-		_data = {}
-		for i in self._yaml_attr:
-			try:
-				_val = self.__getattribute__(i)
-				_data[i] = _val
-			except AttributeError:
-				continue
-		_data = {self.name: _data}
 
-		with open(_filename, 'a') as _data_file:
-			yaml.dump(_data, _data_file, default_flow_style=False)
-			log.logger.info('Successfully added %s to Worker yaml storage' % self.name)
+		_dump = {}
+		if hasattr(Worker, 'db'):
+			for _work in Worker.db.itervalues():
+				_data = {}
+				for i in self._yaml_attr:
+					try:
+						_val = _work.__getattribute__(i)
+						_data[i] = _val
+					except AttributeError:
+						continue
+				_dump[_data['name']] = _data
+
+		with open(_filename, 'w') as _data_file:
+			# TODO: log file write
+			yaml.dump(_dump, _data_file, default_flow_style=False)
 
 	def update(self):
 		"""
@@ -187,7 +170,7 @@ class Worker(object):
 			Worker.db[self.hash] = self
 			if hasattr(self, 'job'):
 				self.job.add_worker(self)
-		self.dump_info()
+			self.dump_info()
 		return None
 
 

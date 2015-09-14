@@ -5,6 +5,82 @@ import shutil
 import core
 
 
+class TestWorker(unittest.TestCase):
+	def setUp(self):
+		core.disconnect_db()  # ensure database objects aren't interfered with
+		self.name = 'test worker'
+		self.job = core.AwardedJob(1, 'test_job')
+		self.object = core.Worker(self.name, self.job)
+
+		self.job._dump_lock = True  # prevent object storage
+
+		if os.path.isdir('tests'):
+			_dir = 'tests/.job_sandbox'
+		else:
+			_dir = '.job_sandbox'
+		try:
+			os.mkdir(_dir)  # create sandbox directory
+		except OSError:
+			pass
+		os.chdir(_dir)  # enter sandbox directory
+
+	def tearDown(self):
+		if os.path.isdir('../../tests'):  # checks if in tests/.job_sandbox
+			_escape = '../..'  # escape tests/.job_sandbox
+			_delete = 'tests/.job_sandbox'
+		else:
+			_escape = '..'
+			_delete = '.job_sandbox'
+		os.chdir(_escape)
+		shutil.rmtree(_delete)
+
+	def test_job_number(self):
+		""" Tests job_num property and ensures _job_num attribute is updated as well.
+		"""
+		return NotImplemented
+
+	def test___setattr__(self):
+		""" Tests __setattr__ method and ensures that prev_job attribute is populated.
+		"""
+		return NotImplemented
+
+	def test___repr__(self):
+		""" Tests __repr__ function against hardcoded values.
+		"""
+		return NotImplemented
+
+	def test_find(self):
+		""" Creates arbitrary Worker objects then tests Worker.find
+		"""
+		return NotImplemented
+
+	def test_get_set_or_create(self):
+		""" Tests get set or create method by attempting to get, set, and create objects.
+		"""
+		return NotImplemented
+
+	def add_labor(self):
+		""" Calls add_labor with hardcoded values. Tests date_worked, week_end, and job.
+		"""
+		return NotImplemented
+
+	def test_load_workers(self):
+		""" Clears object storage then calls load_workers. Tests with and without path existing.
+		"""
+		return NotImplemented
+
+	def test_dump_info(self):
+		""" Creates arbitrary Worker objects then verifies contents written to disk by dump_info.
+		Tests with/w/o db attribute.
+		"""
+		return NotImplemented
+
+	def test_update(self):
+		""" Tests update function with/w/o db and hash.
+		"""
+		return NotImplemented
+
+
 class TestJob(unittest.TestCase):
 	def setUp(self):
 		core.disconnect_db()  # ensure database objects aren't interfered with
@@ -200,6 +276,7 @@ class TestJob(unittest.TestCase):
 		""" Creates multiple job objects in virtual db.
 		Tests dump_all function with/without _dump_lock, completed_db, db, and default_sub_dir.
 		"""
+
 
 class TestAwardedJob(unittest.TestCase):
 	def setUp(self):
