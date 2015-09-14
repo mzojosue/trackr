@@ -99,3 +99,9 @@ class TestDeliveryMethods(unittest.TestCase):
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestMaterialListMethods)
 unittest.TextTestRunner(verbosity=2).run(suite)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestMaterialListQuoteMethods)
+unittest.TextTestRunner(verbosity=2).run(suite)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestPOMethods)
+unittest.TextTestRunner(verbosity=2).run(suite)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestDeliveryMethods)
+unittest.TextTestRunner(verbosity=2).run(suite)

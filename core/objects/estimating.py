@@ -15,6 +15,7 @@ from job import AwardedJob, get_job_num, Job
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
+	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
@@ -77,7 +78,7 @@ class EstimatingJob(Job):
 	@property
 	def name(self):
 		if hasattr(self, 'number'):
-			return 'E%d-%s' % (self.number, self._name)
+			return '%d - %s' % (self.number, self._name)
 
 	@property
 	def has_takeoff(self):
@@ -88,6 +89,7 @@ class EstimatingJob(Job):
 		if os.path.isdir(_takeoff_dir):
 			_takeoffs = os.listdir(_takeoff_dir)
 			return bool(len(_takeoffs))
+		else: return False
 
 	@property
 	def bid_date(self):
@@ -140,49 +142,37 @@ class EstimatingJob(Job):
 			_gc.append(str(i['gc']))
 		return _gc
 
-	@property
-	def path(self):
-		""" Return absolute sub path using program path and AwardedJob.sub_path """
-		if hasattr(self, '_path') and self._path:
-			return self._path
-		else:
-			_path = os.path.join(env.env_root, self.sub_path)
-			return _path
-
-
 
 	# Quote Functions
 
 	def init_struct(self):
+		""" Rebuilds directory structure based off self.path, EstimatingJob._dir_folders, and self.scope
+		:return: False if global path error. Otherwise returns True
+		"""
 		# create initial bid directory
 		try:
-			print "Creating directory for bid path..."
-			os.mkdir(os.path.join(env.env_root, self.sub_path))
-			print "...operation successful"
+			os.mkdir(self.path)
 		except OSError:
-			print "...Bid directory already exists"
+			if os.path.isdir(self.path):
+				pass  # top level directory already exists
+			else:
+				return False  # global path error
 
 		# create bid sub folders
 		try:
-			print "Creating bid sub folders..."
-			_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Takeoffs')
-			for _folder in _folders:
+			for _folder in self._dir_folders:
 				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
-			print "...operation successful"
 		except OSError:
-			print "...Bid sub directories already exist"
+			pass  # assume project sub folders already exist
 
 		# create folders for holding quotes
-		print "Creating sub folders for quotes"
 		for _scope in self.scope:
 			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
 				try:
 					os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
 				except OSError:
-					print "...Directory for [%s] quotes already exist" % _scope
-		print "...operation successful"
+					pass  # assume quote folders already exist
 
-		print "Folder directory for %s created\n" % self.name
 		return True
 
 	@property
@@ -195,6 +185,7 @@ class EstimatingJob(Job):
 				_scope = os.path.join(_dir, i)
 				if os.path.isdir(_scope):
 					_return[i] = os.listdir(_scope)
+		# TODO: join files in Quotes directory with self._quotes
 		return _return
 
 	@property
