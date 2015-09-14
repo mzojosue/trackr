@@ -15,7 +15,7 @@ from job import AwardedJob, get_job_num, Job
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
-	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Takeoffs')
+	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
@@ -78,7 +78,7 @@ class EstimatingJob(Job):
 	@property
 	def name(self):
 		if hasattr(self, 'number'):
-			return 'E%d-%s' % (self.number, self._name)
+			return '%d - %s' % (self.number, self._name)
 
 	@property
 	def has_takeoff(self):
