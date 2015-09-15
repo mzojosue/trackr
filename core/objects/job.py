@@ -373,6 +373,7 @@ class Job(yaml.YAMLObject):
 		if hasattr(self, 'default_sub_dir'):
 			_filename = os.path.join(env.env_root, self.default_sub_dir, self.yaml_filename)
 			stream = file(_filename, 'w')
+			print 'Saving %s' % _filename
 			yaml.dump(_jobs, stream)
 
 
