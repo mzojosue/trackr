@@ -11,11 +11,12 @@ import core.environment as env
 from core.parsing.bid_log import *
 from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
+from core.log import logger
 
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
-	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs', 'Quotes')
+	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
@@ -273,6 +274,8 @@ class EstimatingJob(Job):
 				self.completed_db[self.number] = self
 				self.completed = today()
 				del self.db[self.number]
+				logger.info('EstimatingJob %s was updated as complete!' % self.name)
+
 				#TODO: update sent_out data cell in Estimating Log and style row
 				update_bid_in_log(self, 'complete', self.completed.date())
 				return True
@@ -283,6 +286,8 @@ class EstimatingJob(Job):
 				self.completed_db[self.number] = self
 				self.completed = "No bid"
 				del EstimatingJob.db[self.number]
+				logger.info('Canceled EstimatingJob %s' % self.name)
+
 				#TODO: update sent_out data cell in Estimating Log and style row
 				update_bid_in_log(self, 'complete', "No bid")
 				return True
@@ -295,6 +300,7 @@ class EstimatingJob(Job):
 			if hasattr(self, 'completed_db'):
 				del self.completed_db[self.number]
 		del self
+		logger.info('Deleted EstimatingJob %s' % self.name)
 
 		if remove:
 			# TODO: delete row(s) from Estimating Log
@@ -307,6 +313,8 @@ class EstimatingJob(Job):
 		bid = self.bids[bid_hash]
 		if not self.completed:
 			self.complete_bid()
+		logger.info('Awarded EstimatingJob %s!' % self.name)
+
 		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid['gc'],
 						  gc_contact=bid['gc_contact'], scope=self.scope, desc=self.desc, rate=self.rate)
 

@@ -340,6 +340,7 @@ class Job(yaml.YAMLObject):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__' and _caller is not 'load_info':
+			log.logger.info('In %s, updated "%s" attribute to %s')
 			self.update()
 		return _return
 
