@@ -58,7 +58,7 @@ def check_login():
 	try:
 		if session['logged_in'] and session['hash_id']:
 			usr = User.find(session['hash_id'])
-			return True
+			return usr
 		return redirect(url_for('login'))
 	except KeyError:
 		return redirect(url_for('login'))
