@@ -1,6 +1,8 @@
 import time
+import subprocess
 import pymongo
 from mongodict import *
+from pymongo.errors import ConnectionFailure
 
 from core.scheduler import scheduler
 from environment import *
@@ -119,6 +121,19 @@ def disconnect_db():
 	User.db = {}
 
 
+def start_db():
+	""" Attempts to start MongoDB from hardcoded path. Passes db path, and 'quiet' arguments.
+	"""
+	try:
+		pymongo.MongoClient()
+		return True  # daemon already running
+	except ConnectionFailure:
+		try:
+			subprocess.Popen(['C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod', '--dbpath', 'C:\\data\\db', '--quiet'])
+			print "Successfully started MongoDB"
+		except OSError:
+			print "All attempts to start MongodDB failed"
+
 def init_db(db='trackr_db'):
 
 	print "Connecting objects to DB\n"
@@ -181,6 +196,7 @@ def reset_db(db='trackr_db'):
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
+	start_db()
 	clear_db()
 	User.load_users()
 	if True: #not check_po_log():
