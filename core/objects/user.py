@@ -17,7 +17,9 @@ class User(object):
 	_yaml_filename = 'users.yaml'
 	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created')
 
-	def __init__(self, name, username, email, passwd, salt=None, date_created=today()):
+	_user_roles = ('admin', 'estimator')
+
+	def __init__(self, name, username, email, passwd, role='admin', salt=None, date_created=today()):
 		self.name = name
 		self.username = username
 		self.email = email
@@ -28,6 +30,11 @@ class User(object):
 		else:
 			self.passwd = passwd
 			self.salt = salt
+
+		if role in self._user_roles:
+			self.role = role
+		else:
+			self.role = None
 
 		if hasattr(self, 'db'):
 			self.db[self.hash] = self
@@ -40,6 +47,10 @@ class User(object):
 		if _caller is not '__init__':
 			self.update()
 		return _return
+
+	def ui_pages(self):
+		if self.role is 'admin':
+			return ('')
 
 	@staticmethod
 	def find(query):

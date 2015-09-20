@@ -16,7 +16,7 @@ Database initialization functions should go here
 
 def import_po_log(log=environment.get_po_log):
 	_startTime = time.time()  # used for timing function duration
-	AwardedJob._lock = True  # set lock on object to restrict yaml overwriting
+	AwardedJob._dump_lock = True  # set lock on object to restrict yaml overwriting
 
 	_file = os.path.join(env_root, AwardedJob.default_sub_dir, 'db_storage.yaml')
 	if os.path.isfile(_file):  # check to see if YAML global storage was created
@@ -45,16 +45,15 @@ def import_po_log(log=environment.get_po_log):
 				if _mat_list.age > 5:
 					_mat_list.delivered = True
 
-		AwardedJob.db.values()[0].dump_all()  # create yaml database
-
-	del AwardedJob._lock
+	del AwardedJob._dump_lock
+	AwardedJob.db.values()[0].dump_all()  # create yaml database
 	_elapsedTime = time.time() - _startTime
 	print "Finished importing Jobs and POs from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
 
 def import_estimating_log(log=environment.get_estimating_log):
 	_startTime = time.time()  # used for timing function duration
-	EstimatingJob._lock = True  # set lock on object to restrict yaml overwriting
+	EstimatingJob._dump_lock = True  # set lock on object to restrict yaml overwriting
 
 	_file = os.path.join(env_root, EstimatingJob.default_sub_dir, 'db_storage.yaml')
 	if os.path.isfile(_file):  # check to see if YAML global storage was created
@@ -83,9 +82,8 @@ def import_estimating_log(log=environment.get_estimating_log):
 
 				_bid.add_sub(add_to_log=False, **obj)
 
-		EstimatingJob.db.values()[0].dump_all()
-
-	del EstimatingJob._lock
+	del EstimatingJob._dump_lock
+	EstimatingJob.db.values()[0].dump_all()
 	_elapsedTime = time.time() - _startTime
 	print "Finished EstimatingJob import from %s. Operation took %s seconds." % (_method, _elapsedTime)
 

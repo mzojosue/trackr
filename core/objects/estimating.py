@@ -11,11 +11,12 @@ import core.environment as env
 from core.parsing.bid_log import *
 from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
+from core.log import logger
 
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
-	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Takeoffs')
+	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
@@ -78,7 +79,7 @@ class EstimatingJob(Job):
 	@property
 	def name(self):
 		if hasattr(self, 'number'):
-			return 'E%d-%s' % (self.number, self._name)
+			return '%d - %s' % (self.number, self._name)
 
 	@property
 	def has_takeoff(self):
@@ -89,6 +90,7 @@ class EstimatingJob(Job):
 		if os.path.isdir(_takeoff_dir):
 			_takeoffs = os.listdir(_takeoff_dir)
 			return bool(len(_takeoffs))
+		else: return False
 
 	@property
 	def bid_date(self):
@@ -141,16 +143,6 @@ class EstimatingJob(Job):
 			_gc.append(str(i['gc']))
 		return _gc
 
-	@property
-	def path(self):
-		""" Return absolute sub path using program path and AwardedJob.sub_path """
-		if hasattr(self, '_path') and self._path:
-			return self._path
-		else:
-			_path = os.path.join(env.env_root, self.sub_path)
-			return _path
-
-
 
 	# Quote Functions
 
@@ -168,11 +160,11 @@ class EstimatingJob(Job):
 				return False  # global path error
 
 		# create bid sub folders
-		try:
-			for _folder in self._dir_folders:
+		for _folder in self._dir_folders:
+			try:
 				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
-		except OSError:
-			pass  # assume project sub folders already exist
+			except OSError:
+				pass  # assume project sub folders already exist
 
 		# create folders for holding quotes
 		for _scope in self.scope:
@@ -282,6 +274,8 @@ class EstimatingJob(Job):
 				self.completed_db[self.number] = self
 				self.completed = today()
 				del self.db[self.number]
+				logger.info('EstimatingJob %s was updated as complete!' % self.name)
+
 				#TODO: update sent_out data cell in Estimating Log and style row
 				update_bid_in_log(self, 'complete', self.completed.date())
 				return True
@@ -292,6 +286,8 @@ class EstimatingJob(Job):
 				self.completed_db[self.number] = self
 				self.completed = "No bid"
 				del EstimatingJob.db[self.number]
+				logger.info('Canceled EstimatingJob %s' % self.name)
+
 				#TODO: update sent_out data cell in Estimating Log and style row
 				update_bid_in_log(self, 'complete', "No bid")
 				return True
@@ -304,6 +300,7 @@ class EstimatingJob(Job):
 			if hasattr(self, 'completed_db'):
 				del self.completed_db[self.number]
 		del self
+		logger.info('Deleted EstimatingJob %s' % self.name)
 
 		if remove:
 			# TODO: delete row(s) from Estimating Log
@@ -316,6 +313,8 @@ class EstimatingJob(Job):
 		bid = self.bids[bid_hash]
 		if not self.completed:
 			self.complete_bid()
+		logger.info('Awarded EstimatingJob %s!' % self.name)
+
 		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid['gc'],
 						  gc_contact=bid['gc_contact'], scope=self.scope, desc=self.desc, rate=self.rate)
 
