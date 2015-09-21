@@ -15,7 +15,7 @@ today = datetime.today
 
 class User(object):
 	_yaml_filename = 'users.yaml'
-	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created')
+	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created', 'role')
 
 	_user_roles = ('admin', 'estimator')
 
@@ -48,17 +48,15 @@ class User(object):
 			self.update()
 		return _return
 
-	def ui_pages(self):
-		if self.role is 'admin':
-			return ('')
-
 	@staticmethod
 	def find(query):
 		if hasattr(User, 'db'):
-			for i in User.db.values():
-				if i.username == str(query):
-					return i
-			return False
+			for _key, obj in User.db.iteritems():
+				if _key == query:
+					return obj
+				elif obj.username == str(query):
+					return obj
+		return False
 
 	@staticmethod
 	def load_users():
