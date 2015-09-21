@@ -104,8 +104,7 @@ def job_quote_award_po(doc_hash, job_num=None):
 		return auth  # redirects to login
 	_job = AwardedJob.find(job_num)
 	_doc = _job.quotes[doc_hash]
-	usr = get_user()
-	_doc.mat_list.issue_po(_doc, usr)
+	_doc.mat_list.issue_po(_doc, auth)
 	return redirect(request.referrer)
 
 

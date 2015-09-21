@@ -63,14 +63,23 @@ def check_login():
 	except KeyError:
 		return redirect(url_for('login'))
 
-
-def get_user():
-	try:
-		if session['logged_in'] and session['hash_id']:
-			usr = User.find(session['hash_id'])
-			return usr
-	except KeyError:
-		return redirect(url_for('login'))
+@app.before_request
+def user_permissions(*args, **kwargs):
+	if request.endpoint != 'login' and 'static' not in request.path:
+		try:
+			if session['logged_in'] and session['hash_id']:
+				usr = User.find(session['hash_id'])
+				if '/estimating' in request.path:
+					if usr.role not in ('admin', 'estimator'):
+						# TODO: log user permission error
+						print "%s tried illegally accessing %s" % (usr.name, request.url)
+						return redirect(url_for('home'))
+				elif '/j/' in request.path:
+					if usr.role not in ('admin'):
+						print "%s tried illegally accessing %s" % (usr.name, request.url)
+						return redirect(url_for('home'))
+		except KeyError:
+			return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
