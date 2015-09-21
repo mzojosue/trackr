@@ -9,13 +9,14 @@ User.load_users()
 def add_user():
     usr = {}
     usr['name'] = str(raw_input("Please input user full name: "))
-    usr['username'] = str(raw_input("Please input login name: "))
-    usr['email'] = str(raw_input("Please input user email: "))
-    usr['passwd'] = str(raw_input("Please input password: "))
+    usr['username'] = str(raw_input("Input login name: "))
+    usr['role'] = str(raw_input("Select User role:\n\t* Admin\n\t* Estimator\n: ")).lower()
+    usr['email'] = str(raw_input("Input user email: "))
+    usr['passwd'] = str(raw_input("Input password: "))
     User(**usr)
 
 def change_passwd():
-    """ Chages user password """
+    """ Changes user password """
     return NotImplemented
 
 def delete_users():
