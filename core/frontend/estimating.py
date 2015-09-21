@@ -241,7 +241,7 @@ def current_bids():
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		_estimates = EstimatingJob.db.values()
-		return render_template('estimating/current_bids.html', estimates=_estimates)
+		return render_template('estimating/current_bids.html', estimates=_estimates, usr=auth)
 
 @app.route('/estimating/bids/past')
 def past_bids():
@@ -251,7 +251,7 @@ def past_bids():
 
 	if hasattr(EstimatingJob, 'completed_db'):
 		_estimates = reversed(EstimatingJob.completed_db.values())
-		return render_template('estimating/past_bids.html', estimates=_estimates)
+		return render_template('estimating/past_bids.html', estimates=_estimates, usr=auth)
 
 @app.route('/estimating/bid/<int:bid_num>/overview')
 def bid_overview(bid_num):
@@ -261,7 +261,7 @@ def bid_overview(bid_num):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_overview.html', bid=_bid)
+			return render_template('estimating/bid_overview.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
 
@@ -273,7 +273,7 @@ def bid_documents(bid_num):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_documents.html', bid=_bid)
+			return render_template('estimating/bid_documents.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
 
@@ -285,7 +285,7 @@ def bid_drawings(bid_num):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_drawings.html', bid=_bid)
+			return render_template('estimating/bid_drawings.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
 
