@@ -50,8 +50,13 @@ class User(object):
 
 	@staticmethod
 	def find(query):
+		"""
+		:param query: string representing username or hash value
+		:return: first object matching query
+		"""
 		if hasattr(User, 'db'):
 			for _key, obj in User.db.iteritems():
+				# TODO: detect multiple objects matching query
 				if _key == query:
 					return obj
 				elif obj.username == str(query):

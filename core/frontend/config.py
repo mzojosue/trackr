@@ -56,6 +56,7 @@ def check_login():
 	""" Checks login and keeps track of user activity. """
 	# TODO:implement a debug mode to bypass login check and return True
 	try:
+		# TODO: merge with user_permissions
 		if session['logged_in'] and session['hash_id']:
 			usr = User.find(session['hash_id'])
 			return usr
@@ -65,17 +66,16 @@ def check_login():
 
 @app.before_request
 def user_permissions(*args, **kwargs):
-	if request.endpoint != 'login' and 'static' not in request.path:
+	if request.endpoint != 'login' and 'static' not in request.path: # restrict redirects on neutral paths
 		try:
-			if session['logged_in'] and session['hash_id']:
+			# TODO: merge with check_login
+			if session['logged_in'] and session['hash_id']:  # ensure logged in
 				usr = User.find(session['hash_id'])
-				if '/estimating' in request.path:
-					if usr.role not in ('admin', 'estimator'):
+				_table = {'/estimating': ('admin', 'estimator'),
+						  '/j/': ('admin')}  # dict object containing restricted statements and allowed user types
+				for restricted, allowed in _table.iteritems():
+					if restricted in request.path and usr.role not in allowed:
 						# TODO: log user permission error
-						print "%s tried illegally accessing %s" % (usr.name, request.url)
-						return redirect(url_for('home'))
-				elif '/j/' in request.path:
-					if usr.role not in ('admin'):
 						print "%s tried illegally accessing %s" % (usr.name, request.url)
 						return redirect(url_for('home'))
 		except KeyError:
