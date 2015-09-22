@@ -360,19 +360,20 @@ class Job(yaml.YAMLObject):
 		else:
 			return False
 
-	def dump_all(self):
-		if hasattr(self, '_dump_lock') and self._dump_lock:
+	@classmethod
+	def dump_all(cls):
+		if hasattr(cls, '_dump_lock') and cls._dump_lock:
 			return None  # attribute to prevent object storage for testing purposes
 		_jobs = {}
-		if hasattr(self, 'completed_db'):
-			for num, obj in self.completed_db.items():
+		if hasattr(cls, 'completed_db'):
+			for num, obj in cls.completed_db.items():
 				_jobs[num] = obj
-		if hasattr(self, 'db'):
-			for num, obj in self.db.items():
+		if hasattr(cls, 'db'):
+			for num, obj in cls.db.items():
 				_jobs[num] = obj
 
-		if hasattr(self, 'default_sub_dir'):
-			_filename = os.path.join(env.env_root, self.default_sub_dir, self.yaml_filename)
+		if hasattr(cls, 'default_sub_dir'):
+			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
 			stream = file(_filename, 'w')
 			print 'Saving %s' % _filename
 			yaml.dump(_jobs, stream)

@@ -8,11 +8,10 @@ import core
 class TestWorker(unittest.TestCase):
 	def setUp(self):
 		core.disconnect_db()  # ensure database objects aren't interfered with
+		core.AwardedJob._dump_lock = True  # prevent object storage
 		self.name = 'test worker'
 		self.job = core.AwardedJob(1, 'test_job')
 		self.object = core.Worker(self.name, self.job)
-
-		self.job._dump_lock = True  # prevent object storage
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.job_sandbox'

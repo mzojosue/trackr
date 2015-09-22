@@ -299,8 +299,10 @@ class EstimatingJob(Job):
 		except KeyError:
 			if hasattr(self, 'completed_db'):
 				del self.completed_db[self.number]
+		_name = self.name
 		del self
-		logger.info('Deleted EstimatingJob %s' % self.name)
+		EstimatingJob.dump_all()
+		logger.info('Deleted EstimatingJob %s' % _name)
 
 		if remove:
 			# TODO: delete row(s) from Estimating Log
