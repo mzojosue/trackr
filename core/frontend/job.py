@@ -25,7 +25,7 @@ def job_overview(job_num):
 	try:
 		_job = AwardedJob.find(job_num)
 		_todos = _job.tasks.itervalues()
-		return render_template('jobs/job_overview.html', job=_job, todos=_todos)
+		return render_template('jobs/job_overview.html', job=_job, todos=_todos, usr=auth)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
@@ -36,7 +36,7 @@ def job_info(job_num):
 		return auth
 	try:
 		_job = AwardedJob.find(job_num)
-		return render_template('jobs/job_info.html', job=_job)
+		return render_template('jobs/job_info.html', job=_job, usr=auth)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
@@ -132,7 +132,7 @@ def job_pos(job_num, sort_by=None):
 		_pos = _job.POs.values()
 		if sort_by:
 			_pos = sort_pos(_pos, sort_by)
-		return render_template('jobs/job_purchases.html', job=_job, pos=_pos)
+		return render_template('jobs/job_purchases.html', job=_job, pos=_pos, usr=auth			)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
@@ -192,7 +192,7 @@ def create_job():
 
 		return redirect(url_for('job_overview', job_num=_job.number))
 	else:
-		return render_template('jobs/job_create.html')
+		return render_template('jobs/job_create.html', usr=auth)
 
 
 @app.route('/j/<int:job_num>/update', methods=['POST'])

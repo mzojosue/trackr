@@ -18,7 +18,7 @@ def create_bid():
 		_gc   = str(request.form['gc'])
 		_gcContact = str(request.form['gcContact'])
 		try:
-			_bidDate = datetime(*request.form['bidDate'])
+			_bidDate = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
 		except:
 			_bidDate = None
 
@@ -36,7 +36,7 @@ def create_bid():
 		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope, date_end=_bidDate)
 		return redirect(url_for('bid_overview', bid_num=bid.number))
 	else:
-		return render_template('estimating/estimating_create.html')
+		return render_template('estimating/estimating_create.html', usr=auth)
 
 @app.route('/estimating/bid/<int:bid_num>/award/<int:bid_hash>')
 def award_bid(bid_num, bid_hash):
