@@ -53,16 +53,24 @@
 
 				<div id="bidGC" class="col-xs-2">
 					<div class="form-group">
-						<label for="genContracter">
+						<label for="gcSelect">
 							GC:
 						</label>
-						<select name="gc" class="form-control" id="genContracter">
+						<select name="gc" class="form-control" id="gcSelect" onchange="update_gc_input(this.value)">
+							<!-- Input element gets renamed to 'gcSelect' update_gc_input based on id attribute -->
 							<!-- TODO: dynamically enumerate GCs to database instead of hard-coding values -->
-							<option>Falasca Mechanical</option>
-							<option>McCloskey Mechanical</option>
-							<option>Gary F. Gardner</option>
-							<option>Other GC</option><!-- TODO: create text input when "Other" is selected -->
+							<option value="Falasca">Falasca Mechanical</option>
+							<option value="McCloskey">McCloskey Mechanical</option>
+							<option value="Gary Gardner">Gary F. Gardner</option>
+							<option value="show_other">Other GC</option><!-- TODO: create text input when "Other" is selected -->
 						</select>
+					</div>
+					<div class="form-group" id="otherGCDiv" style="display: none">
+						<label for="gcName">
+							Other GC Name:
+						</label>
+						<input name="gcName" id="otherGC" type="text" class="form-control">
+						<!-- Input element gets renamed to 'gc' by update_gc_input based on id attribute -->
 					</div>
 					<div class="form-group">
 						<label for="gcContact">
@@ -73,20 +81,22 @@
 				</div>
 
 				<div class="col-xs-3 form-group">
-					<label for="scopeArea">Scope of Work:</label>
-					<div id="scopeArea" class="form-group">
-            <label class="checkbox-inline">
-              <input name=materialsScope value=True type="checkbox">M
-            </label>
-            <label class="checkbox-inline">
-              <input name=equipmentScope value=True type="checkbox">E
-            </label>
-            <label class="checkbox-inline">
-              <input name=insulationScope value=True type="checkbox">I
-            </label>
-            <label class="checkbox-inline">
-              <input name=balancingScope value=True type="checkbox">B
-            </label>
+					<div class="form-group">
+						<label for="scopeArea">Scope of Work:</label>
+						<div id="scopeArea">
+							<label class="checkbox-inline">
+								<input name=materialsScope value=True type="checkbox">M
+							</label>
+							<label class="checkbox-inline">
+								<input name=equipmentScope value=True type="checkbox">E
+							</label>
+							<label class="checkbox-inline">
+								<input name=insulationScope value=True type="checkbox">I
+							</label>
+							<label class="checkbox-inline">
+								<input name=balancingScope value=True type="checkbox">B
+							</label>
+						</div>
           </div>
           <div class="form-group">
 						<label for="bidDate">
@@ -108,6 +118,22 @@
 
 {% block post_script %}
 
-
+<script type="text/javascript">
+	function update_gc_input(selVal) {
+		// Displays and hides otherGC based on selVal
+		// selectID contains id string of GC select element
+		// holderID contains id string of div placeholder for appending input to
+		if (selVal == "show_other") {
+			$("#gcSelect").attr({'name': "gcSelect"});  // renames old select element
+			$("#otherGC").attr({'name': "gc"});  // renames new input element to 'gc'
+			$("#otherGCDiv").attr({'style': 'display: block'});
+		}
+		else {
+			$("#gcSelect").attr({'name': "gc"});  // renames old select element back to 'gc'
+			$("#otherGC").attr({'name': "gcName"});  // renames new input element back to 'gcName'
+			$("#otherGCDiv").attr({'style': 'display: none'});  // hides other GC text input again
+		}
+	}
+</script>
 
 {% endblock %}
