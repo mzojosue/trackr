@@ -93,6 +93,7 @@ def create_bid():
 	if request.method == 'POST':
 		_name = str(request.form['newBidName'])
 		_addr = str(request.form['jobAddress'])
+		_desc = str(request.form['jobDesc'])
 		_gc   = str(request.form['gc'])
 		_gcContact = str(request.form['gcContact'])
 		try:
@@ -111,7 +112,7 @@ def create_bid():
 			except:
 				continue
 
-		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope, date_end=_bidDate)
+		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope, date_end=_bidDate, desc=_desc)
 		return redirect(url_for('bid_overview', bid_num=bid.number))
 	else:
 		return render_template('estimating/estimating_create.html', usr=auth)
