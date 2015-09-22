@@ -284,7 +284,7 @@ def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 
 	_sheet = log.get_active_sheet()
 	_nrow = len(_sheet.rows) + 1
-	_row = ['number', '_name', 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact' , 'method', 'scope']
+	_row = ['number', '_name', 'date_received', 'bid_date', 'date_sent', 'gc', 'gc_contact', 'method', 'scope']
 	_row[4] = None  # skip 'date_sent' and 'method'
 	_row[7] = None
 
@@ -320,7 +320,7 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 		wb, _row_int = insert_bid_row(obj, estimating_log)   # stores new row
 		ws = wb.get_active_sheet()
 
-		_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact' , None, 'scope')
+		_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact', None, 'scope')
 		for attr in _attr:
 			if attr:  # Do not write to first 2 columns ('number', '_name'), and 'completed' and 'method' columns
 				_col = _attr.index(attr) + 1
@@ -381,6 +381,7 @@ def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environmen
 
 				# update information
 				_sheet.cell(row=_row_count, column=_col).value = value
+				_sheet.cell(row=_row_count, column=_col).font = base_font
 
 				# TODO: confirm update
 
