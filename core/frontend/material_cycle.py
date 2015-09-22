@@ -72,7 +72,7 @@ def material_list(job_num, m_hash):
 	try:
 		_job = AwardedJob.find(job_num)
 		_list = _job.materials[m_hash]
-		return render_template('material_list.html', job=_job, mlist=_list)
+		return render_template('material_list.html', job=_job, mlist=_list, usr=auth)
 	except KeyError:
 		return "Material List doesn't exist..."
 
@@ -103,7 +103,7 @@ def deliveries():
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	return render_template('deliveries.html')
+	return render_template('deliveries.html', usr=auth)
 
 @app.route('/deliveries/json')
 def serialized_deliveries():

@@ -80,7 +80,7 @@ def inventory():
 		return auth  # redirects to login
 	if hasattr(InventoryItem, 'db'):
 		_inventory = InventoryItem.db.itervalues()
-		return render_template('inventory.html', inventory=_inventory)
+		return render_template('inventory.html', inventory=_inventory, usr=auth)
 
 @app.route('/inventory/item', methods=['POST'])
 def new_inventory_item():
@@ -128,7 +128,7 @@ def timesheets():
 	if hasattr(Timesheet, 'db'):
 		_jobs = sort_jobs(AwardedJob.db.values())
 		_timesheets = Timesheet.db.itervalues()
-		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs)
+		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs, usr=auth)
 
 @app.route('/timesheets/upload', methods=('POST', 'GET'))
 def upload_timesheet():

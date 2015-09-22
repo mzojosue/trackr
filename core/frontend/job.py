@@ -132,7 +132,7 @@ def job_pos(job_num, sort_by=None):
 		_pos = _job.POs.values()
 		if sort_by:
 			_pos = sort_pos(_pos, sort_by)
-		return render_template('jobs/job_purchases.html', job=_job, pos=_pos, usr=auth)
+		return render_template('jobs/job_purchases.html', job=_job, pos=_pos, usr=auth			)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
