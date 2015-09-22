@@ -81,6 +81,19 @@ def bid_drawings(bid_num):
 			return "Error: Bid does not exist."
 
 
+@app.route('/estimating/bid/<int:bid_num>/takeoffs')
+def bid_takeoffs(bid_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth  # redirects to login
+	if hasattr(EstimatingJob, 'db'):
+		try:
+			_bid = EstimatingJob.find(bid_num)
+			return render_template('estimating/bid_takeoffs.html', bid=_bid, usr=auth)
+		except KeyError:
+			return "Error: Bid does not exist."
+
+
 ######################
 #** API Functions **##
 
@@ -325,3 +338,16 @@ def bid_drawing_doc(bid_num, dwg_name):
 	_doc = bid.drawings[dwg_name]
 	if _doc:
 		return send_from_directory(*os.path.split(_doc[0]))
+
+
+@app.route('/estimating/bid<int:bid_num>/get/<query:query>')
+def bid_get_document(bid_num, query):
+
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth  # redirects to login
+	_bid = EstimatingJob.find(bid_num)
+	doc = os.path.join(_bid.path, query)
+	print doc
+	if os.path.isfile(doc):
+		print 'bam'

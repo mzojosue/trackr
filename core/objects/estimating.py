@@ -82,6 +82,28 @@ class EstimatingJob(Job):
 			return '%d - %s' % (self.number, self._name)
 
 	@property
+	def takeoffs(self):
+		""" Iterates through contents of Takeoffs folder and returns file-names, paths, and last modified times
+		:return:
+		"""
+		if self.path:
+			_dir = os.path.join(self.path, 'Takeoffs')
+			if os.path.isdir(_dir):
+				_reports = os.listdir(_dir)
+				_return = {}
+				for report in _reports:
+					_path = os.path.join(_dir, report)
+					_mod_time = os.stat(_path)
+					# TODO: process dwg type
+					_return[report] = [_path, _mod_time]
+				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
+
+	@property
 	def has_takeoff(self):
 		""" Checks to see if self has any takeoff documents
 		:return: Returns boolean if self has files in Takeoff folder
