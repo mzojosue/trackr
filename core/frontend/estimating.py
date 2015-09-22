@@ -10,7 +10,7 @@ from job import *
 @app.route('/estimating/create', methods=['GET', 'POST'])
 def create_bid():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if request.method == 'POST':
 		_name = str(request.form['newBidName'])
@@ -18,7 +18,7 @@ def create_bid():
 		_gc   = str(request.form['gc'])
 		_gcContact = str(request.form['gcContact'])
 		try:
-			_bidDate = datetime(*request.form['bidDate'])
+			_bidDate = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
 		except:
 			_bidDate = None
 
@@ -36,7 +36,7 @@ def create_bid():
 		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope, date_end=_bidDate)
 		return redirect(url_for('bid_overview', bid_num=bid.number))
 	else:
-		return render_template('estimating/estimating_create.html')
+		return render_template('estimating/estimating_create.html', usr=auth)
 
 @app.route('/estimating/bid/<int:bid_num>/award/<int:bid_hash>')
 def award_bid(bid_num, bid_hash):
@@ -73,7 +73,7 @@ def delete_bid(bid_num):
 	:return: Redirects page to `request.referrer`
 	"""
 	auth = check_login()  # verify that user has admin privileges
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth
 	_bid = EstimatingJob.find(bid_num)
 	if _bid.delete_bid():
@@ -82,7 +82,7 @@ def delete_bid(bid_num):
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def create_sub_bid(bid_num):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	_gc = request.form['gcName']
@@ -125,7 +125,7 @@ def award_sub_bid(bid_num, sub_hash):
 def update_sub_bid(bid_num, sub_hash):
 	#TODO:add more attributes to update
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	bid = EstimatingJob.find(bid_num)
 	sub = int(sub_hash)
@@ -142,7 +142,7 @@ def update_sub_bid(bid_num, sub_hash):
 @app.route('/estimating/<int:bid_num>/quote/<scope>/<int:q_hash>')
 def bid_quote(bid_num, scope, q_hash):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	_quote = _bid.quotes[scope][q_hash]
@@ -151,7 +151,7 @@ def bid_quote(bid_num, scope, q_hash):
 @app.route('/estimating/<int:bid_num>/quote/upload', methods=['POST'])
 def upload_bid_quote(bid_num):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	_scope = request.form['scope']
@@ -178,7 +178,7 @@ def update_bid_quote(bid_num, q_hash):
 	:return: u
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	return NotImplemented
 
@@ -190,7 +190,7 @@ def delete_bid_quote(bid_num, q_hash):
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	return NotImplemented
 
@@ -200,14 +200,14 @@ def delete_bid_quote(bid_num, q_hash):
 @app.route('/estimating')
 def estimating_home():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	return render_template('estimating/estimating.html')
+	return render_template('estimating/estimating.html', usr=auth)
 
 @app.route('/estimating/bids/json')
 def estimating_serialized_overview():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 
 	# Grab 'from' and 'to' GET requests
@@ -237,54 +237,64 @@ def estimating_analytics():
 @app.route('/estimating/bids/current')
 def current_bids():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		_estimates = EstimatingJob.db.values()
-		return render_template('estimating/current_bids.html', estimates=_estimates)
+		return render_template('estimating/current_bids.html', estimates=_estimates, usr=auth)
 
 @app.route('/estimating/bids/past')
 def past_bids():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 
 	if hasattr(EstimatingJob, 'completed_db'):
 		_estimates = reversed(EstimatingJob.completed_db.values())
-		return render_template('estimating/past_bids.html', estimates=_estimates)
+		return render_template('estimating/past_bids.html', estimates=_estimates, usr=auth)
 
 @app.route('/estimating/bid/<int:bid_num>/overview')
 def bid_overview(bid_num):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_overview.html', bid=_bid)
+			return render_template('estimating/bid_overview.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
 
 @app.route('/estimating/bid/<int:bid_num>/documents')
 def bid_documents(bid_num):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_documents.html', bid=_bid)
+			return render_template('estimating/bid_documents.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
 
 @app.route('/estimating/bid/<int:bid_num>/drawings')
 def bid_drawings(bid_num):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_drawings.html', bid=_bid)
+			return render_template('estimating/bid_drawings.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
+
+@app.route('/estimating/bid/<int:bid_num>/drawings/<dwg_name>')
+def bid_drawing_doc(bid_num, dwg_name):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth  # redirects to login
+	bid = EstimatingJob.find(bid_num)
+	_doc = bid.drawings[dwg_name]
+	if _doc:
+		return send_from_directory(*os.path.split(_doc[0]))

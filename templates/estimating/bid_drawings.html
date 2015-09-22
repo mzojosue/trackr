@@ -14,13 +14,13 @@
 
 
 {% block nav_links %}
-  {{ layout.navbar_links('estimating_home') }}
+  {{ layout.navbar_links('estimating_home', usr=usr) }}
 {% endblock %}
 
 
 {% block body %}
 
-  {{ estimating.bid_sidebar('bid_drawings', bid=bid) }}
+  {{ estimating.bid_sidebar('bid_drawings', bid=bid, usr=usr) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
@@ -40,7 +40,11 @@
 				{% for dwg in bid.drawings %}
 					<tr>
 						<td>{{ bid.drawings.keys().index(dwg) + 1 }}</td>
-						<td>{{ dwg }}</td>
+						<td><a target="_blank"
+						       href="{{ url_for('bid_drawing_doc', bid_num=bid.number, dwg_name=dwg) }}">
+                  {{ dwg }}
+								</a>
+						</td>
 						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg][0]))) }}</td>
 						<td>Mech</td>
 					</tr>
