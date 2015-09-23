@@ -247,68 +247,48 @@ class Job(yaml.YAMLObject):
 		else:
 			return False
 
-	@property
-	def addendums(self):
-		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
+	def dump_folder(self, dir):
+		""" Iterates through contents of given dir and returns file-names, paths, and last modified times
 		:return:
 		"""
+		# TODO: update docstring
 		if self.path:
-			_dir = os.path.join(self.path, 'Addendums')
+			_dir = os.path.join(self.path, dir)
 			if os.path.isdir(_dir):
-				_adds = os.listdir(_dir)
+				_files = os.listdir(_dir)
 				_return = {}
-				for add in _adds:
-					_path = os.path.join(_dir, add)
+				for f in _files:
+					_path = os.path.join(_dir, f)
 					_mod_time = os.stat(_path)
 					# TODO: process dwg type
-					_return[add] = [_path, _mod_time]
+					_return[f] = [_path, _mod_time]
 				return _return
 			else:
 				# TODO: log directory error
 				pass
 		# TODO: log attribute error
 		return {}  # catchall
+
+	@property
+	def addendums(self):
+		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
+		:return: self.dump_folder
+		"""
+		return self.dump_folder('Addendums')
 
 	@property
 	def drawings(self):
 		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
-		:return:
+		:return: self.dump_folder
 		"""
-		if self.path:
-			_dir = os.path.join(self.path, 'Drawings')
-			if os.path.isdir(_dir):
-				_dwgs = os.listdir(_dir)
-				_return = {}
-				for dwg in _dwgs:
-					_path = os.path.join(_dir, dwg)
-					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[dwg] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		return self.dump_folder('Drawings')
 
 	@property
 	def documents(self):
-		if self.path:
-			_dir = os.path.join(self.path, 'Documents')
-			if os.path.isdir(_dir):
-				_docs = os.listdir(_dir)
-				_return = {}
-				for doc in _docs:
-					_path = os.path.join(_dir, doc)
-					_mod_time = os.stat(_path)
-					# TODO: process doc type
-					_return[doc] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		""" Iterates through contents of Documents folder and returns file-names, paths, and last modified times
+		:return: self.dump_folder
+		"""
+		return self.dump_folder('Documents')
 
 	@property
 	def has_drawings(self):

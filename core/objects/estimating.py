@@ -84,35 +84,17 @@ class EstimatingJob(Job):
 	@property
 	def takeoffs(self):
 		""" Iterates through contents of Takeoffs folder and returns file-names, paths, and last modified times
-		:return:
+		:return: dump_folder
 		"""
-		if self.path:
-			_dir = os.path.join(self.path, 'Takeoffs')
-			if os.path.isdir(_dir):
-				_reports = os.listdir(_dir)
-				_return = {}
-				for report in _reports:
-					_path = os.path.join(_dir, report)
-					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[report] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		return self.dump_folder('Takeoffs')
 
 	@property
 	def has_takeoff(self):
 		""" Checks to see if self has any takeoff documents
 		:return: Returns boolean if self has files in Takeoff folder
 		"""
-		_takeoff_dir = os.path.join(self.path, 'Takeoffs')
-		if os.path.isdir(_takeoff_dir):
-			_takeoffs = os.listdir(_takeoff_dir)
-			return bool(len(_takeoffs))
-		else: return False
+		_takeoffs = self.takeoffs
+		return bool(len(_takeoffs))
 
 	@property
 	def bid_date(self):

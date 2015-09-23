@@ -55,15 +55,24 @@ def estimating_analytics():
 	return NotImplemented
 
 
-@app.route('/estimating/bid/<int:bid_num>/documents')
-def bid_documents(bid_num):
+@app.route('/estimating/bid/<int:bid_num>/dir/<dir>')
+def bid_folder(bid_num, dir):
+	""" Renders given directory as page. Renders specific pages for 'Drawings', and 'Takeoffs'.
+	:param bid_num: bid number to select
+	:param dir: directory to iterate over and render
+	:return:
+	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_documents.html', bid=_bid, usr=auth)
+			if dir == 'Drawings':
+				return render_template('estimating/bid_drawings.html', bid=_bid, usr=auth)
+			else:
+				contents = _bid.dump_folder(dir)
+				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents)
 		except KeyError:
 			return "Error: Bid does not exist."
 
@@ -334,13 +343,13 @@ def bid_drawing_doc(bid_num, dwg_name):
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	bid = EstimatingJob.find(bid_num)
-	_doc = bid.drawings[dwg_name]
-	if _doc:
-		return send_from_directory(*os.path.split(_doc[0]))
+	_bid = EstimatingJob.find(bid_num)
+	doc = _bid.drawings[dwg_name]
+	if doc:
+		return send_from_directory(*os.path.split(doc[0]))
 
 
-@app.route('/estimating/bid<int:bid_num>/get/<query:query>')
+@app.route('/estimating/bid/<int:bid_num>/get/<path:query>')
 def bid_get_document(bid_num, query):
 
 	auth = check_login()
@@ -350,4 +359,4 @@ def bid_get_document(bid_num, query):
 	doc = os.path.join(_bid.path, query)
 	print doc
 	if os.path.isfile(doc):
-		print 'bam'
+		return send_from_directory(*os.path.split(doc))
