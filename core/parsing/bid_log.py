@@ -293,11 +293,13 @@ def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 		try:
 			if val:
 				_val = obj.__getattribute__(val)
+				# TODO: get unwritten objects from correct sub bid
 				if hasattr(_val, 'strftime'):
 					_val = _val.strftime('%m.%d.%Y')
 				elif hasattr(_val, 'sort'):
 					_val = ', '.join(sorted(_val))
-				_sheet.cell(row=_nrow, column=col, value=_val)
+				_sheet.cell(row=_nrow, column=col).value = _val
+				_sheet.cell(row=_nrow, column=col).font = base_font
 		except Exception as e:
 			raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
 
