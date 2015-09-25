@@ -58,7 +58,7 @@ function addMaterialItem() {
 
 }
 
-function removeMaterialItem(divNum) {s
+function removeMaterialItem(divNum) {
 
   var d = document.getElementById('itemizedMaterialArea');
   var getID = 'itemID-' + divNum;

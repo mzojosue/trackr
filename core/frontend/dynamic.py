@@ -9,7 +9,7 @@ def get_mat_lists(job_num, query=None):
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not auth:
 		return auth  # redirects to login
 	_job = AwardedJob.find(job_num)
 	_return = []
@@ -38,7 +38,7 @@ def get_mat_lists(job_num, query=None):
 @app.route('/dynamic/j/has_open_lists')
 def job_with_open_list():
 	auth = check_login()
-	if auth is not True:
+	if not auth:
 		return auth  # redirects to login
 	_return = []
 	if hasattr(AwardedJob, 'db'):

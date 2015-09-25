@@ -14,13 +14,13 @@
 
 
 {% block nav_links %}
-	{{ layout.navbar_links('home') }}
+	{{ layout.navbar_links('home', usr=usr) }}
 {% endblock %}
 
 
 {% block body %}
 
-  {{ layout.sidebar_links('home') }}
+  {{ layout.sidebar_links('home', usr) }}
 
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         <div class="page-header">
