@@ -48,6 +48,9 @@ class User(object):
 			self.update()
 		return _return
 
+	def __repr__(self):
+		return "'%s', %s" % (self.username, self.role)
+
 	@staticmethod
 	def find(query):
 		"""
