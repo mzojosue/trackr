@@ -119,9 +119,9 @@ def create_bid():
 		_gc   = str(request.form['gc'])
 		_gcContact = str(request.form['gcContact'])
 		try:
-			_bidDate = datetime.strptime(request.form['bidDate'], '%Y-%m-%d')
+			_bid_date = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
 		except:
-			_bidDate = None
+			_bid_date = None
 
 		_scope = []
 		__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']
@@ -134,7 +134,8 @@ def create_bid():
 			except:
 				continue
 
-		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope, date_end=_bidDate, desc=_desc)
+		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope,
+							date_end=_bid_date, desc=_desc)
 		return redirect(url_for('bid_overview', bid_num=bid.number))
 	else:
 		return render_template('estimating/estimating_create.html', usr=auth)
@@ -233,18 +234,28 @@ def award_sub_bid(bid_num, sub_hash):
 		return NotImplemented
 
 
-@app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/update', methods=['POST'])
+@app.route('/estimating/bid/<int:bid_num>/sub/<int:sub_hash>/update', methods=['POST'])
 def update_sub_bid(bid_num, sub_hash):
-	#TODO:add more attributes to update
+	""" Updates sub bid attributes based on hardcoded attribute list ('gc', 'gc_contact', 'bid_date').
+	Parses bid_date as datetime object.
+	:param bid_num: Type int representing bid to update
+	:param sub_hash: Sub bid to edit
+	:return: Redirects to referring page
+	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	bid = EstimatingJob.find(bid_num)
-	sub = int(sub_hash)
 
-	_val = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
-	bid.bids[sub]['bid_date'] = _val
-	bid.update()
+	values = ('gc', 'gc_contact', 'bid_date')
+	for _val in values:
+		val = request.form[_val]  # grab value from POST request
+		if _val == 'bid_date':
+			val = datetime.strptime(val, '%Y-%m-%d')  # parse value as datetime
+		else:
+			val = str(val)
+		bid.bids[sub_hash][_val] = val  # update value. update is not called
+	bid.update()  # update object
 	return redirect(request.referrer)
 
 
