@@ -6,7 +6,7 @@ import core
 class TestMaterialListMethods(unittest.TestCase):
 	def setUp(self):
 		num = core.get_job_num()
-		job = core.AwardedJob(num, 'test_job')
+		job = core.AwardedJob(num, 'test_job', init_struct=False)
 
 		doc = core.os.path.join(job.sub_path, 'Materials')
 		self._doc = (doc, 'doc.file')
