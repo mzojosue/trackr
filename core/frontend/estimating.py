@@ -119,7 +119,7 @@ def create_bid():
 		_gc   = str(request.form['gc'])
 		_gcContact = str(request.form['gcContact'])
 		try:
-			_bidDate = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
+			_bidDate = datetime.strptime(request.form['bidDate'], '%Y-%m-%d')
 		except:
 			_bidDate = None
 
