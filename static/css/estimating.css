@@ -14,7 +14,7 @@
 }
 
 .bid-status {
-  margin-top: 0px;
+  margin-top: 0;
   margin-bottom: 30px;
 }
 
@@ -30,14 +30,27 @@
   margin-bottom: 10px;
 }
 
-.date-input {
-  width: 40% !important;
-}
+
+/* Sub Bid Classes */
 
 .sub-bid-btn {
   margin-top: -5px;
   margin-right: -10px;
 }
+
+.date-input {
+  width: 60% !important;
+}
+
+.gc_contact-input {
+  width: 80% !important;
+}
+
+.gc-input {
+  width: 80% !important;
+}
+/* End Sub Bid Classes */
+
 
 #subBidModal {
   color: #4E4E4E;
