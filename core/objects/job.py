@@ -422,7 +422,7 @@ class AwardedJob(Job):
 		""" Initializes project directory hierarchy. """
 		# TODO:initialize documents w/ jobs information
 		try:
-			os.mkdir(os.path.join(env.env_root, self.sub_path))
+			os.makedirs(self.path)
 			log.logger.debug('Created project directory for "%s"' % self.name)
 		except OSError:
 			log.logger.warning("...project folder already exists")
