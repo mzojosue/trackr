@@ -355,9 +355,10 @@ def bid_drawing_doc(bid_num, dwg_name):
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
-	doc = _bid.drawings[dwg_name]
+	doc = _bid.drawings[dwg_name]  # extract returned dict
 	if doc:
-		return send_from_directory(*os.path.split(doc[0]))
+		dir = os.path.split(doc['path'])
+		return send_from_directory(*dir)
 
 
 @app.route('/estimating/bid/<int:bid_num>/get/<path:query>')

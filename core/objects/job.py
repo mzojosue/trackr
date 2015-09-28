@@ -260,8 +260,9 @@ class Job(yaml.YAMLObject):
 				for f in _files:
 					_path = os.path.join(_dir, f)
 					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[f] = [_path, _mod_time]
+					# TODO: process file type
+					_path = os.path.join(dir, f)
+					_return[f] = {'path': _path, 'mod_time': _mod_time}
 				return _return
 			else:
 				# TODO: log directory error
