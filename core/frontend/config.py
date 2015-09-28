@@ -28,6 +28,8 @@ app.jinja_env.globals['today'] = today
 app.jinja_env.globals['hasattr'] = hasattr
 app.jinja_env.globals['getmtime'] = path.getmtime
 app.jinja_env.globals['time'] = time
+app.jinja_env.globals['isdir'] = os.path.isdir
+app.jinja_env.globals['isfile'] = os.path.isfile
 
 
 def allowed_file(filename):
