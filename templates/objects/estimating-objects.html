@@ -42,7 +42,6 @@ range{# templates/objects/estimating-objects.html #}
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
   {% if usr and usr.role == 'admin' %}
     {% set links = [('bid_overview', 'View Bid', 'eye-open'),
-                    ('bid_documents', 'Documents'),
                     ('bid_drawings', 'Drawings')] %}
   {% else %}
     {% set links = [('bid_overview', 'View Bid', 'eye-open'),

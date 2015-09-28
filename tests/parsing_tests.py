@@ -13,7 +13,8 @@ class TestPOLogParsing(unittest.TestCase):
 		self.log.create_sheet()
 		self.log.create_sheet()
 
-		self.job = core.AwardedJob(core.get_job_num(), 'test_job')
+		core.Job._dump_lock = True  # prevent object storage
+		self.job = core.AwardedJob(core.get_job_num(), 'test_job', init_struct=False)
 		_mat_list = core.MaterialList(self.job)
 		_quote = core.MaterialListQuote(_mat_list, 'test vendor', price=500)
 		self.po = core.PO(self.job, mat_list=_mat_list, quote=_quote, update=False)
