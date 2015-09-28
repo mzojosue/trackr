@@ -13,7 +13,7 @@
 
 
 {% block nav_links %}
-{{ layout.navbar_links('all_jobs') }}
+{{ layout.navbar_links('all_jobs', usr=usr) }}
 {% endblock %}
 
 
@@ -24,19 +24,12 @@
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <h1 class="page-header">
         {{ job.name }}&nbsp;
-        {% if job.alt_name %}
-        <small>{{ job.alt_name }}</small>
-        {% endif %}
-        <!-- TODO:implement link to unlock and edit jobs -->
-        <a href="" class="btn btn-default btn-sm">
-            Unlock for Editing
-        </a>
     </h1>
 
     <ul class="nav nav-tabs" id="matListNav">
         <li role="presentation" class="active">
             <a href="" class="disabled">
-                Material Lists
+                All Material Lists
             </a>
         </li>
     </ul>
@@ -87,8 +80,8 @@
                     <span class="glyphicon glyphicon-ok"></span>
                     {% endif %}
                 </td>
-                <td>
-                    <a href="{{ url_for('material_list', m_hash=i.hash) }}">
+                <td id="{{ i.hash }}-list-id">
+                    <a href="{{ url_for('material_list', job_num=job.number, m_hash=i.hash) }}">
                         {% if i.label|length %}
                         {{ i.label }}
                         {% else %}
@@ -107,7 +100,7 @@
                     {% endif %}
                     {% if i.po and i.po.quote.doc %}
                     <a target="_blank"
-                       href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.po.quote.hash) }}">
+                       href="{{ url_for('material_quote_doc', job_num=job.number, m_hash=i.hash, q_hash=i.po.quote.hash) }}">
                         &nbsp;<span class="glyphicon glyphicon-duplicate"></span>
                     </a>
                     {% endif %}

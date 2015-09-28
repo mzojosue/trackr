@@ -37,12 +37,16 @@ range{# templates/objects/estimating-objects.html #}
 {% endmacro %}
 
 
-{% macro bid_sidebar(active_link, bid) %}
+{% macro bid_sidebar(active_link, bid, usr=None) %}
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
-  {% set links = [('bid_overview', 'View Bid', 'eye-open'),
-                  ('bid_documents', 'Documents'),
-                  ('bid_drawings', 'Drawings')] %}
+  {% if usr and usr.role == 'admin' %}
+    {% set links = [('bid_overview', 'View Bid', 'eye-open'),
+                    ('bid_drawings', 'Drawings')] %}
+  {% else %}
+    {% set links = [('bid_overview', 'View Bid', 'eye-open'),
+                    ('bid_drawings', 'Drawings')] %}
+  {% endif %}
 
 	<div class="col-sm-3 col-md-2 sidebar bid-sidebar">
     <ul class="nav nav-sidebar">
@@ -64,10 +68,14 @@ range{# templates/objects/estimating-objects.html #}
         </li>
       {% endfor %}
 		</ul>
-		<a href="{{ url_for('delete_bid', bid_num=bid.number) }}" id="delete-bid" class="btn btn-danger">
-			<span class="glyphicon glyphicon-trash"></span>&nbsp;
-			Delete Bid
-		</a>
+
+    {# Enclose restricted element #}
+    {% if usr and usr.role == 'admin' %}
+      <a href="{{ url_for('delete_bid', bid_num=bid.number) }}" id="delete-bid" class="btn btn-danger">
+        <span class="glyphicon glyphicon-trash"></span>&nbsp;
+        Delete Bid
+      </a>
+    {% endif %}
 	</div><!-- /.sidebar -->
 
 {% endmacro %}

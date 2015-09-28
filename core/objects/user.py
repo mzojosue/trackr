@@ -15,9 +15,11 @@ today = datetime.today
 
 class User(object):
 	_yaml_filename = 'users.yaml'
-	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created')
+	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created', 'role')
 
-	def __init__(self, name, username, email, passwd, salt=None, date_created=today()):
+	_user_roles = ('admin', 'estimator')
+
+	def __init__(self, name, username, email, passwd, role='admin', salt=None, date_created=today()):
 		self.name = name
 		self.username = username
 		self.email = email
@@ -28,6 +30,11 @@ class User(object):
 		else:
 			self.passwd = passwd
 			self.salt = salt
+
+		if role in self._user_roles:
+			self.role = role
+		else:
+			self.role = None
 
 		if hasattr(self, 'db'):
 			self.db[self.hash] = self
@@ -41,13 +48,23 @@ class User(object):
 			self.update()
 		return _return
 
+	def __repr__(self):
+		return "'%s', %s" % (self.username, self.role)
+
 	@staticmethod
 	def find(query):
+		"""
+		:param query: string representing username or hash value
+		:return: first object matching query
+		"""
 		if hasattr(User, 'db'):
-			for i in User.db.values():
-				if i.username == str(query):
-					return i
-			return False
+			for _key, obj in User.db.iteritems():
+				# TODO: detect multiple objects matching query
+				if _key == query:
+					return obj
+				elif obj.username == str(query):
+					return obj
+		return False
 
 	@staticmethod
 	def load_users():

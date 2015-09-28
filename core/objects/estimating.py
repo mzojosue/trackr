@@ -11,15 +11,18 @@ import core.environment as env
 from core.parsing.bid_log import *
 from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
+from core.log import logger
 
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
+	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
 				 address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
-				 tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False, struct=True, add_to_log=True):
+				 tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False,
+				 struct=True, add_to_log=True):
 		"""
 		:param name: The desired name for the bid
 		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
@@ -70,24 +73,30 @@ class EstimatingJob(Job):
 		# TODO: implement grouping system
 		self.group = group
 
-		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope, struct=struct, add_to_log=False)
+		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope,
+					 struct=struct, add_to_log=False)
 		if add_to_log:
 			add_bid_to_log(self)
 
 	@property
 	def name(self):
 		if hasattr(self, 'number'):
-			return 'E%d-%s' % (self.number, self._name)
+			return '%d - %s' % (self.number, self._name)
+
+	@property
+	def takeoffs(self):
+		""" Iterates through contents of Takeoffs folder and returns file-names, paths, and last modified times
+		:return: dump_folder
+		"""
+		return self.dump_folder('Takeoffs')
 
 	@property
 	def has_takeoff(self):
 		""" Checks to see if self has any takeoff documents
 		:return: Returns boolean if self has files in Takeoff folder
 		"""
-		_takeoff_dir = os.path.join(self.path, 'Takeoffs')
-		if os.path.isdir(_takeoff_dir):
-			_takeoffs = os.listdir(_takeoff_dir)
-			return bool(len(_takeoffs))
+		_takeoffs = self.takeoffs
+		return bool(len(_takeoffs))
 
 	@property
 	def bid_date(self):
@@ -140,49 +149,37 @@ class EstimatingJob(Job):
 			_gc.append(str(i['gc']))
 		return _gc
 
-	@property
-	def path(self):
-		""" Return absolute sub path using program path and AwardedJob.sub_path """
-		if hasattr(self, '_path') and self._path:
-			return self._path
-		else:
-			_path = os.path.join(env.env_root, self.sub_path)
-			return _path
-
-
 
 	# Quote Functions
 
 	def init_struct(self):
+		""" Rebuilds directory structure based off self.path, EstimatingJob._dir_folders, and self.scope
+		:return: False if global path error. Otherwise returns True
+		"""
 		# create initial bid directory
 		try:
-			print "Creating directory for bid path..."
-			os.mkdir(os.path.join(env.env_root, self.sub_path))
-			print "...operation successful"
+			os.makedirs(self.path)
 		except OSError:
-			print "...Bid directory already exists"
+			if os.path.isdir(self.path):
+				pass  # top level directory already exists
+			else:
+				return False  # global path error
 
 		# create bid sub folders
-		try:
-			print "Creating bid sub folders..."
-			_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Takeoffs')
-			for _folder in _folders:
-				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
-			print "...operation successful"
-		except OSError:
-			print "...Bid sub directories already exist"
+		for _folder in self._dir_folders:
+			try:
+				os.mkdir(os.path.join(self.path, _folder))
+			except OSError:
+				pass  # assume project sub folders already exist
 
 		# create folders for holding quotes
-		print "Creating sub folders for quotes"
 		for _scope in self.scope:
 			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
 				try:
-					os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
+					os.mkdir(os.path.join(self.path, 'Quotes', _scope))
 				except OSError:
-					print "...Directory for [%s] quotes already exist" % _scope
-		print "...operation successful"
+					pass  # assume quote folders already exist
 
-		print "Folder directory for %s created\n" % self.name
 		return True
 
 	@property
@@ -195,6 +192,7 @@ class EstimatingJob(Job):
 				_scope = os.path.join(_dir, i)
 				if os.path.isdir(_scope):
 					_return[i] = os.listdir(_scope)
+		# TODO: join files in Quotes directory with self._quotes
 		return _return
 
 	@property
@@ -247,8 +245,8 @@ class EstimatingJob(Job):
 		"""
 		if not bid_date: bid_date = 'ASAP'
 		_bid_hash = abs(hash(str(gc).lower()))
-		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
-				'scope': scope}
+		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact,
+				'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		self.bids[_bid_hash] = _bid
 		if scope:
 			for i in scope:
@@ -282,6 +280,8 @@ class EstimatingJob(Job):
 				self.completed_db[self.number] = self
 				self.completed = today()
 				del self.db[self.number]
+				logger.info('EstimatingJob %s was updated as complete!' % self.name)
+
 				#TODO: update sent_out data cell in Estimating Log and style row
 				update_bid_in_log(self, 'complete', self.completed.date())
 				return True
@@ -292,6 +292,8 @@ class EstimatingJob(Job):
 				self.completed_db[self.number] = self
 				self.completed = "No bid"
 				del EstimatingJob.db[self.number]
+				logger.info('Canceled EstimatingJob %s' % self.name)
+
 				#TODO: update sent_out data cell in Estimating Log and style row
 				update_bid_in_log(self, 'complete', "No bid")
 				return True
@@ -303,7 +305,10 @@ class EstimatingJob(Job):
 		except KeyError:
 			if hasattr(self, 'completed_db'):
 				del self.completed_db[self.number]
+		_name = self.name
 		del self
+		EstimatingJob.dump_all()
+		logger.info('Deleted EstimatingJob %s' % _name)
 
 		if remove:
 			# TODO: delete row(s) from Estimating Log
@@ -311,13 +316,17 @@ class EstimatingJob(Job):
 		return True
 
 	def award_bid(self, bid_hash):
-		""" Function that creates an AwardedJob object based on EstimatingJob object and selected gc. This function is run through the webApp and is bound to a specific bid/gc
+		""" Function that creates an AwardedJob object based on EstimatingJob object and selected gc.
+		This function is run through the webApp and is bound to a specific bid/gc
 		:param gc: string object representing GC that bid was sent to """
 		bid = self.bids[bid_hash]
 		if not self.completed:
 			self.complete_bid()
-		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid['gc'],
-						  gc_contact=bid['gc_contact'], scope=self.scope, desc=self.desc, rate=self.rate)
+		logger.info('Awarded EstimatingJob %s!' % self.name)
+
+		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name,
+						  address=self.address, gc=bid['gc'], gc_contact=bid['gc_contact'], scope=self.scope,
+						  desc=self.desc, rate=self.rate)
 
 	@staticmethod
 	def find(num):

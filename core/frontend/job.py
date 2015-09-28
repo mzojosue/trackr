@@ -8,9 +8,9 @@ def all_jobs():
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	return render_template('jobs/all_jobs.html')
+	return render_template('jobs/all_jobs.html', usr=auth)
 
 
 @app.route('/j/<int:job_num>')
@@ -20,15 +20,25 @@ def job_overview(job_num):
 	:param job_num: specifies jobs number
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	try:
 		_job = AwardedJob.find(job_num)
 		_todos = _job.tasks.itervalues()
-		return render_template('jobs/job_overview.html', job=_job, todos=_todos)
+		return render_template('jobs/job_overview.html', job=_job, todos=_todos, usr=auth)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
+@app.route('/j/<int:job_num>/info')
+def job_info(job_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth
+	try:
+		_job = AwardedJob.find(job_num)
+		return render_template('jobs/job_info.html', job=_job, usr=auth)
+	except KeyError:
+		return "Error: AwardedJob does not exist"
 
 @app.route('/j/<int:job_num>/analytics')
 def job_analytics(job_num):
@@ -39,18 +49,13 @@ def job_analytics(job_num):
 	return abort(404)
 
 
-@app.route('/materials/<doc_hash>')
 @app.route('/j/<int:job_num>/materials/<doc_hash>')
-def job_material_doc(doc_hash, job_num=None):
+def job_material_doc(job_num, doc_hash):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	if not job_num:
-		_doc = MaterialList.db[int(doc_hash)]
-		_job = _doc.job
-	else:
-		_job = AwardedJob.find(job_num)
-		_doc = _job.materials[int(doc_hash)]
+	_job = AwardedJob.find(job_num)
+	_doc = _job.materials[int(doc_hash)]
 
 	if type(_doc.doc) is tuple:
 		return send_from_directory(*_doc.doc)
@@ -59,29 +64,14 @@ def job_material_doc(doc_hash, job_num=None):
 @app.route('/j/<int:job_num>/materials/<int:doc_hash>/del')
 def delete_material_doc(doc_hash, job_num=None):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	# TODO:delete document in filesystem
-	AwardedJob.db[job_num].del_material_list(doc_hash)
+	AwardedJob.db[job_num].del_mat_list(doc_hash)
 	del MaterialList.db[doc_hash]
 	return redirect(request.referrer)
 
 
-@app.route('/quote/<doc_hash>')
-@app.route('/j/<int:job_num>/qoutes/<doc_hash>')
-def job_quote_doc(doc_hash, job_num=None):
-	auth = check_login()
-	if auth is not True:
-		return auth  # redirects to login
-	if not job_num:
-		_doc = MaterialList.db[int(doc_hash)]
-		_job = _doc.job
-	else:
-		_job = AwardedJob.find(job_num)
-		_doc = _job.quotes[int(doc_hash)]
-		print _doc._doc
-		if type(_doc.doc) is tuple:
-			return send_from_directory(*_doc.doc)
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/update', methods=['POST'])
 def update_job_quote(job_num, doc_hash):
@@ -91,7 +81,7 @@ def update_job_quote(job_num, doc_hash):
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	return abort(404)
 
@@ -100,7 +90,7 @@ def update_job_quote(job_num, doc_hash):
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
 def delete_job_quote(job_num, doc_hash):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	# TODO:implement quote deletion functions
 	AwardedJob.db[job_num].del_quote(doc_hash)
@@ -110,12 +100,11 @@ def delete_job_quote(job_num, doc_hash):
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/award')
 def job_quote_award_po(doc_hash, job_num=None):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_job = AwardedJob.find(job_num)
 	_doc = _job.quotes[doc_hash]
-	usr = get_user()
-	_doc.mat_list.issue_po(_doc, usr)
+	_doc.mat_list.issue_po(_doc, auth)
 	return redirect(request.referrer)
 
 
@@ -127,7 +116,7 @@ def job_deliveries(job_num=None):
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	return abort(404)
 
@@ -136,14 +125,14 @@ def job_deliveries(job_num=None):
 @app.route('/j/<int:job_num>/purchases/sort/<sort_by>')
 def job_pos(job_num, sort_by=None):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	try:
 		_job = AwardedJob.find(int(job_num))
 		_pos = _job.POs.values()
 		if sort_by:
 			_pos = sort_pos(_pos, sort_by)
-		return render_template('jobs/job_purchases.html', job=_job, pos=_pos)
+		return render_template('jobs/job_purchases.html', job=_job, pos=_pos, usr=auth			)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
@@ -151,7 +140,7 @@ def job_pos(job_num, sort_by=None):
 @app.route('/j/<int:job_num>/rentals')
 def job_rentals(job_num):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	return abort(404)
 
@@ -163,7 +152,7 @@ def create_job():
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if request.method == 'POST':
 
@@ -203,13 +192,13 @@ def create_job():
 
 		return redirect(url_for('job_overview', job_num=_job.number))
 	else:
-		return render_template('jobs/job_create.html')
+		return render_template('jobs/job_create.html', usr=auth)
 
 
 @app.route('/j/<int:job_num>/update', methods=['POST'])
 def update_job_info(job_num):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_job = AwardedJob.db[job_num]
 	_job.address = str(request.form['jobAddress'])

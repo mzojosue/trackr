@@ -1,4 +1,4 @@
-{% import "objects/objects.html" as objects %}
+{% import "objects/job_objects.html" as objects %}
 {% import "objects/layout_objects.html" as layout %}
 {% import "objects/modal_objects.html" as modal %}
 
@@ -70,10 +70,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 <!-- Polyfill which adds HTML5 elements support for old browsers -->
-<script src="//cdn.jsdelivr.net/webshim/1.14.5/polyfiller.js"></script>
+<script src="https://cdn.jsdelivr.net/webshim/1.14.5/polyfiller.js"></script>
 <script>
-    webshims.setOptions('forms-ext', {types: 'date'});
-webshims.polyfill('forms forms-ext');
+  webshims.setOptions('forms-ext', {types: 'date'});
+  webshims.polyfill('forms forms-ext');
 </script>
 {% block post_script %}{% endblock %}
 </body>

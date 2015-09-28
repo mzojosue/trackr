@@ -1,15 +1,19 @@
 {# templates/objects/layout-objects.html #}
 
 
-{% macro sidebar_links(active_link) %}
+{% macro sidebar_links(active_link, usr=None) %}
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
-  {% set links = [('home', 'Overview', 'eye-open'),
-                  ('analytics', 'Analytics', 'stats'),
-                  ('deliveries', 'Deliveries', 'plane'),
-                  ('timesheets', 'Timesheets', 'time'),
-                  ('rental_log', 'Rental Logs'),
-                  ('inventory', 'Inventory')] %}
+  {% if usr and usr.role == 'admin' %}
+    {% set links = [('home', 'Overview', 'eye-open'),
+                    ('analytics', 'Analytics', 'stats'),
+                    ('deliveries', 'Deliveries', 'plane'),
+                    ('timesheets', 'Timesheets', 'time'),
+                    ('rental_log', 'Rental Logs'),
+                    ('inventory', 'Inventory')] %}
+  {% else %}
+    {% set links = [('home', 'Overview', 'eye-open')] %}
+  {% endif %}
 
 	<div class="col-sm-3 col-md-2 sidebar">
     <ul class="nav nav-sidebar">
@@ -40,6 +44,7 @@
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
   {% set links = [('job_overview', 'Overview', 'eye-open'),
+                  ('job_info', 'Info', 'info-sign'),
                   ('job_analytics', 'Analytics', 'stats'),
                   ('job_materials', 'Materials', 'wrench'),
                   ('job_deliveries', 'Devlieries', 'plane'),
@@ -70,15 +75,22 @@
 {% endmacro %}
 
 
-{% macro navbar_links(active_link) %}
+{% macro navbar_links(active_link, usr=None) %}
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
-  {% set links = [('home', 'Dashboard'),
+  {% if usr and usr.role == 'admin' %}
+    {% set links = [('home', 'Dashboard'),
                   ('estimating_home', 'Estimating', 'piggy-bank'),
                   ('all_jobs', 'Jobs'),
                   ('user_settings', 'Settings'),
                   ('user_help', 'Help'),
                   ('logout', '', 'off')] %}
+  {% elif usr and usr.role == 'estimator' %}
+    {% set links = [('estimating_home', 'Home', 'piggy-bank'),
+                  ('user_settings', 'Settings'),
+                  ('user_help', 'Help'),
+                  ('logout', '', 'off')] %}
+  {% endif %}
 
   {% for _link in links %}
     {% if _link[0] == active_link %}

@@ -1,5 +1,8 @@
+import time
+import subprocess
 import pymongo
 from mongodict import *
+from pymongo.errors import ConnectionFailure
 
 from core.scheduler import scheduler
 from environment import *
@@ -14,19 +17,24 @@ Database initialization functions should go here
 
 
 def import_po_log(log=environment.get_po_log):
+	_startTime = time.time()  # used for timing function duration
+	AwardedJob._dump_lock = True  # set lock on object to restrict yaml overwriting
+
 	_file = os.path.join(env_root, AwardedJob.default_sub_dir, 'db_storage.yaml')
 	if os.path.isfile(_file):  # check to see if YAML global storage was created
+		_method = 'yaml storage'
 		_stream = file(_file, 'r')
 		for _dump in yaml.load_all(_stream):
 			for num, obj in _dump.items():
 				AwardedJob.db[num] = obj
 				obj.init_struct()  # insure directory structure is created
-				# TODO: sort between completed and active jobs
+
+			# TODO: sort between completed and active jobs
 
 	else:  # default to parsing Excel workbook
+		_method = 'PO Log'
 		_obj_content = parse_po_log(log)  # creates generator from Excel Workbook
 
-		AwardedJob._lock = True  # set lock on object to restrict yaml overwriting
 		for _type, _content in _obj_content:
 			if _type == 'job':
 				_job = AwardedJob(*_content)
@@ -39,15 +47,19 @@ def import_po_log(log=environment.get_po_log):
 				if _mat_list.age > 5:
 					_mat_list.delivered = True
 
-		del AwardedJob._lock
-		AwardedJob.db.values()[0].dump_all()  # create yaml database
+	del AwardedJob._dump_lock
+	AwardedJob.db.values()[0].dump_all()  # create yaml database
+	_elapsedTime = time.time() - _startTime
+	print "Finished importing Jobs and POs from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
 
 def import_estimating_log(log=environment.get_estimating_log):
-	EstimatingJob._lock = True  # set lock on object to restrict yaml overwriting
+	_startTime = time.time()  # used for timing function duration
+	EstimatingJob._dump_lock = True  # set lock on object to restrict yaml overwriting
 
 	_file = os.path.join(env_root, EstimatingJob.default_sub_dir, 'db_storage.yaml')
 	if os.path.isfile(_file):  # check to see if YAML global storage was created
+		_method = 'yaml storage'
 		_stream = file(_file, 'r')
 		for _dump in yaml.load_all(_stream):
 			for num, obj in _dump.items():
@@ -58,7 +70,7 @@ def import_estimating_log(log=environment.get_estimating_log):
 				obj.init_struct()  # insure directory structure is created
 
 	else:  # default to parsing Excel workbook
-		print "Parsing Estimating Log"
+		_method = 'Estimating Log'
 		_row_content = parse_est_log(log)  # creates generator from Excel Workbook
 
 		for _type, obj in _row_content:
@@ -72,8 +84,10 @@ def import_estimating_log(log=environment.get_estimating_log):
 
 				_bid.add_sub(add_to_log=False, **obj)
 
-	del EstimatingJob._lock
-	return EstimatingJob.db.values()[0].dump_all()
+	del EstimatingJob._dump_lock
+	EstimatingJob.db.values()[0].dump_all()
+	_elapsedTime = time.time() - _startTime
+	print "Finished EstimatingJob import from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
 
 def disconnect_db():
@@ -107,9 +121,22 @@ def disconnect_db():
 	User.db = {}
 
 
+def start_db():
+	""" Attempts to start MongoDB from hardcoded path. Passes db path, and 'quiet' arguments.
+	"""
+	try:
+		pymongo.MongoClient()
+		return True  # daemon already running
+	except ConnectionFailure:
+		try:
+			subprocess.Popen(['C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod', '--dbpath', 'C:\\data\\db', '--quiet'])
+			print "Successfully started MongoDB"
+		except OSError:
+			print "All attempts to start MongodDB failed"
+
 def init_db(db='trackr_db'):
 
-	print "Initializing Object DBs"
+	print "Connecting objects to DB\n"
 	logger.debug("Initializing Object DBs...")
 	try:
 		# Worker/Job DBs
@@ -117,8 +144,7 @@ def init_db(db='trackr_db'):
 		AwardedJob.db = MongoDict(database=db, collection='jobs')
 		AwardedJob.completed_db = MongoDict(database=db, collection='completed_jobs')
 
-		# Material Cycle DBs
-		MaterialList.db = MongoDict(database=db, collection='materials')
+		# Material Cycle DB
 		Delivery.db = MongoDict(database=db, collection='deliveries')
 
 		# _Todo DBs
@@ -149,10 +175,10 @@ def init_db(db='trackr_db'):
 
 def clear_db(db='trackr_db'):
 
-	print "Clearing Database..."
 	try:
 		client = pymongo.MongoClient("localhost", 27017)
 		client.drop_database(str(db))
+		print "Cleared DB"
 		logger.debug('Database was cleared')
 	except:
 		print "Couldn't connect to database"
@@ -170,6 +196,7 @@ def reset_db(db='trackr_db'):
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
+	start_db()
 	clear_db()
 	User.load_users()
 	if True: #not check_po_log():
@@ -182,7 +209,7 @@ def reset_db(db='trackr_db'):
 	Worker.load_workers()
 	os.chdir(_cwd)  # Ensure that directories haven't been changed
 
-	print "Database was successfully reset"
+	print "Database was successfully reset\n"
 	logger.info("Database was successfully reset")
 
 	return True

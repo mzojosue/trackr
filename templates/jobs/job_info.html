@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block title %}
+{{ job.name }} - Info
+{% endblock %}
+
+
+{% block styles %}
+
+<link href="{{ url_for('static', filename='css/job.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+{{ layout.navbar_links('all_jobs', usr=usr) }}
+{% endblock %}
+
+
+{% block body %}
+
+{{ layout.job_sidebar('job_info', job_num=job.number) }}
+
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+  <h1 class="page-header" id="jobHeader">
+    {{ job.name }}
+    <small>
+      Info
+    </small>
+    <a href="javascript:" id="unlockBtn" class="btn btn-default btn-sm"
+       onclick="unlock_job_for_editing('{{ job.number }}');">
+      Unlock for Editing
+    </a>
+  </h1>
+  <form id="jobInfo" name="jobInfo" method="post"
+        action="{{ url_for('update_job_info', job_num=job.number) }}">
+     <div class="col-xs-3">
+        <label for="jobAddress">Address:</label>
+				<textarea name="jobAddress" id="jobAddress" class="form-control" rows="3" onclick="this.select();" readonly>
+						{{- job.address -}}
+				</textarea>
+        <br>
+
+        <label for="jobDesc">Description:</label>
+				   <textarea id="jobDesc" name="jobDesc" class="form-control" rows="3" onclick="this.select();" readonly>
+						{{- job.desc -}}
+					 </textarea>
+     </div>
+
+     <div class="col-xs-2">
+        <label for="foremanInfo">
+          Foreman's Information:
+        </label>
+
+        <div class="well" id="foremanInfo">
+           <label for="foremanName">
+             Name:
+           </label>
+           <input type="tel" class="form-control" id="foremanName" onclick="this.select();"
+                  value="{# job.foreman.name #}" readonly>
+
+           <label for="foremanPhone">
+             Phone #
+           </label>
+           <input type="text" class="form-control" id="foremanPhone" onclick="this.select();"
+                  value="856.873.3210" readonly>
+
+           <label for="foremanEmail">
+             Email:
+           </label>
+           <input type="email" class="form-control" id="foremanEmail" onclick="this.select();"
+                  value="{# job.foreman.email #}" readonly>
+         </div>
+     </div>
+     <!-- /#foremanInfo -->
+
+     <div class="col-xs-2">
+         <div class="form-group">
+             <label for="poPre">
+                 PO Prefix:
+             </label>
+             <input type="text" name="poPre" id="poPre" class="form-control" value="{{ job.po_pre }}" readonly>
+         </div>
+         <div class="form-group">
+             <label for="nextPO">
+                 Next Available PO:
+             </label>
+
+         <div id="nextPO" class="input-group">
+            <input type="text" class="form-control" onclick="this.select();" value="{{ job.show_po }}"
+                   readonly>
+               <a class="input-group-btn">
+                  <button class="btn btn-success">
+                     <span class="glyphicon glyphicon-plus"></span>
+                  </button>
+               </a>
+         </div>
+       </div>
+     </div>
+
+    {{ objects.worker_widget(job=job) }}
+    <div class="clearfix visible-lg-block"></div>
+    <hr>
+    <!-- TODO:list contract amount and updated jobs cost. -->
+    <!-- TODO:list start and end date -->
+  </form>
+</div>
+
+
+
+{% endblock %}

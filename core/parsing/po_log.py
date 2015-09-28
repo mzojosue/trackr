@@ -15,13 +15,17 @@ from core.log import logger
 def parse_po_log(po_log=environment.get_po_log):
 	# TODO: add logger debugging hooks
 	log = openpyxl.load_workbook(po_log, read_only=True)
-	_nsheet = len(log.get_sheet_names()) - 2    # skip over "Blank Page" and "Small Projects" pages
-	for _sheetNum in range(1, _nsheet):
+	_nsheet = len(log.get_sheet_names())
+	for _sheetNum in range(1, _nsheet):  ## skip over first worksheet
 		_sheet = log.get_sheet_by_name(log.get_sheet_names()[_sheetNum])
 		logger.debug('Working on worksheet "%s"' % _sheet.title)
 
-		_job = [i for i in parse("{}-{}", _sheet.title)]
-		yield 'job', _job
+		try:
+			_job = [i for i in parse("{} - {}", _sheet.title)]
+			yield 'job', _job
+		except TypeError:
+			print "Encountered error parsing %s" % _sheet.title
+			continue  # Assume sheet is not a job
 
 		for _row in _sheet.rows:
 			__po = _row[0].value

@@ -10,6 +10,9 @@ import core
 
 class TestEstimatingJob(unittest.TestCase):
 	def setUp(self):
+		core.disconnect_db()  # ensure database objects aren't interfered with
+		core.EstimatingJob.yaml_filename = ''
+		core.EstimatingJob._dump_lock = True
 		self.name = 'test_bid'
 		self.bid = core.EstimatingJob(self.name, add_to_log=False, struct=False)
 
@@ -34,7 +37,7 @@ class TestEstimatingJob(unittest.TestCase):
 		shutil.rmtree(_delete)
 
 	def testInit(self):
-		""" Tests all attributes creating during initialization
+		""" Tests all attributes creating during initialization as well as class attributes
 		:return:
 		"""
 		return NotImplemented

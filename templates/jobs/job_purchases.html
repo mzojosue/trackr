@@ -13,7 +13,7 @@
 
 
 {% block nav_links %}
-{{ layout.navbar_links('all_jobs') }}
+  {{ layout.navbar_links('all_jobs', usr=usr) }}
 {% endblock %}
 
 
@@ -29,10 +29,6 @@
             Unlock for Editing
         </a>
     </h1>
-
-    <h4 class="sub-header">
-        Purchase Orders:
-    </h4>
 
     <div class="row">
 
@@ -83,7 +79,7 @@
                 </td>
                 <td>
                     <!-- TODO:create link to material list -->
-                    <a href="{{ url_for('material_list', m_hash=i.mat_list.hash) }}">
+                    <a href="{{ url_for('material_list', job_num=job.number, m_hash=i.mat_list.hash) }}">
                         {{ i.mat_list }}
                     </a>
                 </td>

@@ -48,7 +48,7 @@ class MaterialList(object):
 
 		self.job.add_mat_list(self)
 
-		self._quotes = {}
+		self.quotes = {}
 		self.tasks = {}
 		self.rentals = {}
 		self.fulfilled = False  # True once list has been purchased
@@ -116,7 +116,6 @@ class MaterialList(object):
 
 	def update(self):
 		if hasattr(self, 'db') and hasattr(self, 'hash'):
-			self.db[self.hash] = self
 			if hasattr(self, 'job'):
 				self.job.add_mat_list(self)
 		return None
@@ -135,13 +134,17 @@ class MaterialList(object):
 			raise TypeError
 
 	def add_quote(self, quote_obj):
-		self._quotes[quote_obj.hash] = quote_obj
+		self.quotes[quote_obj.hash] = quote_obj
 		self.sent_out = True
 		self.update()
 		return None
 
 	def del_quote(self, quote_obj):
-		del self._quotes[quote_obj.hash]
+		if type(quote_obj) != int:
+			_hash = quote_obj.hash
+		else:
+			_hash = quote_obj
+		del self.quotes[_hash]
 		self.update()
 		return None
 
@@ -204,11 +207,6 @@ class MaterialList(object):
 				pass
 		return None
 
-	@staticmethod
-	def find(mlist_hash):
-		if hasattr(MaterialList, 'db'):
-			return MaterialList.db[int(mlist_hash)]
-
 
 class Quote(object):
 	def __init__(self, vend, price=0.0, date_uploaded=None, doc=None):
@@ -228,7 +226,7 @@ class Quote(object):
 
 	@property
 	def hash(self):
-		if hasattr(self, 'doc'):
+		if hasattr(self, 'doc') and self.doc:
 			return abs(hash(str(self.doc)))  # hash attribute is derived from document title
 		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
 			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
@@ -237,9 +235,8 @@ class Quote(object):
 
 	@property
 	def doc(self):
-		if hasattr(self, 'job') and self._doc:
-			_path = os.path.join(self.job.path, 'Quotes')
-			return _path, self._doc
+		if self.path and self._doc:
+			return self.path, self._doc
 		elif self._doc:  # self has no path
 			return True
 		else:
@@ -256,6 +253,12 @@ class Quote(object):
 		if hasattr(self, 'job') and hasattr(self.job, 'path'):
 			_path = os.path.join(self.job.path, 'Quotes')
 			return _path
+		elif hasattr(self, '_path'):
+			_path = os.path.join(self._path, 'Quotes')
+			return _path
+
+		else:
+			return False
 
 	@property
 	def price(self):
@@ -285,8 +288,8 @@ class MaterialListQuote(Quote):
 		# do not update yaml file if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__':
-			scheduler.add_job(update_po_in_log, args=[self, key, value])
-		self.update()
+			#scheduler.add_job(update_po_in_log, args=[self, key, value])
+			self.update()
 		return _return
 
 	def update(self):

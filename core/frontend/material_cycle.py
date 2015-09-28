@@ -1,4 +1,5 @@
 from datetime import datetime
+from flask import send_from_directory
 
 from config import *
 
@@ -13,7 +14,7 @@ def job_materials(job_num=None):
 	:param job_num: specifies jobs number
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	try:
 		_job = AwardedJob.find(int(job_num))
@@ -52,42 +53,42 @@ def job_materials(job_num=None):
 				_label = request.form['listLabel']
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label, user=auth)
 			return redirect(url_for('material_list', m_hash=__obj.hash))
-		return render_template('jobs/job_materials.html', job=_job)
+		return render_template('jobs/job_materials.html', job=_job, usr=auth)
 	except KeyError:
 		flash('Error! AwardedJob does not exist.', 'danger')
 		return redirect(request.referrer)
 
 
-@app.route('/material/<int:m_hash>/')
-def material_list(m_hash):
+@app.route('/j/<int:job_num>/material/<int:m_hash>/')
+def material_list(job_num, m_hash):
 	"""
 	Renders material list page
 	:param m_hash: hash attribute of material list object to display
 	:return: renders material list page
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	try:
-		_list = MaterialList.db[int(m_hash)]
-		_job = _list.job
-		return render_template('material_list.html', job=_job, mlist=_list)
+		_job = AwardedJob.find(job_num)
+		_list = _job.materials[m_hash]
+		return render_template('material_list.html', job=_job, mlist=_list, usr=auth)
 	except KeyError:
 		return "Material List doesn't exist..."
 
 
-@app.route('/material/<int:m_hash>/update', methods=['POST'])
-def update_material_list(m_hash):
+@app.route('/j/<int:job_num>/material/<int:m_hash>/update', methods=['POST'])
+def update_material_list(job_num, m_hash):
 	"""
 	Updates material list using http post methods
 	:param m_hash: Material list hash to update
 	:return: Redirects to referring page
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	_list = MaterialList.db[int(m_hash)]
-	_job = _list.job
+	_job = AwardedJob.find(job_num)
+	_list = _job.materials[m_hash]
 	if 'sentOut' in request.form:
 		_list.sent_out = True
 		_list.update()
@@ -100,9 +101,9 @@ def update_material_list(m_hash):
 @app.route('/deliveries')
 def deliveries():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	return render_template('deliveries.html')
+	return render_template('deliveries.html', usr=auth)
 
 @app.route('/deliveries/json')
 def serialized_deliveries():
@@ -111,7 +112,7 @@ def serialized_deliveries():
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 
 	# Grab 'from' and 'to' GET requests
@@ -141,7 +142,7 @@ def schedule_delivery(job_num=None):
 	:param job_num: specifies jobs number
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if not job_num:
 		job_num = int(request.form['jobs-number'])
@@ -157,7 +158,7 @@ def schedule_delivery(job_num=None):
 @app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
 def accept_delivery(job_num, d_hash):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_job = AwardedJob.find(job_num)
 	_dlvry = _job.deliveries[d_hash]
@@ -174,7 +175,7 @@ def quote():
 	:return:
 	"""
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if request.method == 'POST':
 		##TODO:correctly implement document upload
@@ -198,28 +199,33 @@ def quote():
 		flash('Quote successfully uploaded.', 'success')
 		return redirect(url_for('material_list', m_hash=_list.hash))
 
-@app.route('/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
-def add_quote_doc(m_hash, q_hash):
+@app.route('/j/<int:job_num>/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
+def add_quote_doc(job_num, m_hash, q_hash):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	_mlist = MaterialList.db[m_hash]
+	_job = AwardedJob.find(job_num)
+	_mlist = _job.materials[m_hash]
 	_quote = _mlist.quotes[q_hash]
-	_doc = request.files['fileUpload']
-	if _doc and allowed_file(_doc.filename):
-		filename = secure_filename(_doc.filename)
+	_file = request.files['fileUpload']
+	if _file and allowed_file(_file.filename):
+		filename = secure_filename(_file.filename)
 		_path = os.path.join(_mlist.job.path, 'Quotes', filename)
-		_doc.save(_path)
+		_file.save(_path)
 		_quote._doc = filename
+
+		_mlist.del_quote(q_hash)
+		_mlist.add_quote(_quote)  # update quote hash
+		_job.update()
 		print "Saved document %s for %s" % (_quote.doc, _quote.job)
 	else:
-		print "%s not saved" % _doc
-	return redirect(url_for('material_list', m_hash=_mlist.hash))
+		print "%s not saved" % _file
+	return redirect(url_for('material_list', job_num=_job.number, m_hash=_mlist.hash))
 
 @app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
 def update_po_attr(job_num, po_num, attr):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_job = AwardedJob.db[job_num]
 	_po = _job.POs[po_num]
@@ -232,3 +238,14 @@ def update_po_attr(job_num, po_num, attr):
 	log.logger.info("Updated %s for %s to %s" % (attr, _po, _value))
 	return redirect(request.referrer)
 
+
+@app.route('/j/<int:job_num>/materials/<int:m_hash>/qoutes/<int:q_hash>')
+def material_quote_doc(job_num, m_hash, q_hash):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth  # redirects to login
+	_job = AwardedJob.find(job_num)
+	_m_list = _job.materials[m_hash]
+	_doc = _m_list.quotes[q_hash]
+	if _doc.doc:
+		return send_from_directory(*_doc.doc)

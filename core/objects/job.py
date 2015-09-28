@@ -14,7 +14,7 @@ class Worker(object):
 	B_RATE = 51.76
 
 	yaml_tag = u'!Worker'
-	_yaml_attr = ('date_created', 'job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
+	_yaml_attr = ('date_created', '_job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
 	_yaml_filename = 'workers.yaml'
 
 	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today(), timesheets=[]):
@@ -31,6 +31,7 @@ class Worker(object):
 		self.hash = abs(hash(str(self.name) + str(date_created)))
 		self.date_created = date_created
 		self.job = job
+		self._job_num = self.job.number
 		self.prev_jobs = []
 		self.phone = str(phone)
 		self.email = str(email)
@@ -50,6 +51,7 @@ class Worker(object):
 
 	@property
 	def job_num(self):
+		self._job_num = self.job.number
 		return self.job.number
 
 	def __setattr__(self, key, value):
@@ -63,8 +65,8 @@ class Worker(object):
 				self.prev_jobs.append(self.job.name)
 				del self.job.workers[self.hash]
 				self.job.update()
-			else:
-				self.update()
+				self._job_num = self.job.number
+			self.update()
 		_return = super(Worker, self).__setattr__(key, value)
 		return _return
 
@@ -100,23 +102,6 @@ class Worker(object):
 		else:
 			return Worker(name, job)
 
-	@staticmethod
-	def load_workers():
-		""" Loads users from campano/workers.yaml in root environment"""
-		fname = os.path.join(env.env_root, Worker._yaml_filename)
-		try:
-			with open(fname, 'r') as _file_dump:
-				_file_dump = yaml.load(_file_dump)
-				for _uname, _attr in _file_dump.iteritems():
-					_attr['name'] = _uname
-					_attr['job'] = AwardedJob.find(_attr['job_num'])
-					del _attr['job_num']
-					Worker(**_attr)
-			log.logger.info('Successfully imported users.yaml')
-		except IOError:
-			pass
-		return True
-
 	def add_labor(self, hours, date_worked=today(), week_end=None, job=None):
 		if job:
 			self.job = job
@@ -139,44 +124,42 @@ class Worker(object):
 			timesheet = Timesheet(self.job, week_end)
 		timesheet.add_labor(self, *work)
 
-	"""def load_info(self):
-		_data_file = os.path.join(self.path, self._yaml_filename)
+	@staticmethod
+	def load_workers():
+		""" Loads users from campano/workers.yaml in root environment"""
+		fname = os.path.join(env.env_root, Worker._yaml_filename)
 		try:
-			_data = open(_data_file, 'r')
-			_data = yaml.load(_data)
-			for i in self._yaml_attr:
-				try:
-					_val = _data[i]
-					# load values from .yaml file to self
-					self.__setattr__(i, _val)
-				except (KeyError, AttributeError):
-					continue
+			with open(fname, 'r') as _file_dump:
+				_file_dump = yaml.load(_file_dump)
+				for _name, _attr in _file_dump.iteritems():
+					_attr['job'] = AwardedJob.find(_attr['_job_num'])
+					del _attr['job_num']
+					Worker(**_attr)
+			log.logger.info('Successfully imported users.yaml')
 		except IOError:
-			self.dump_info()"""
+			return False
+		return True
 
-	def dump_info(self):
+	@classmethod
+	def dump_info(cls):
 		""" dump values from self to .yaml file """
-		_filename = os.path.join(env.env_root, self._yaml_filename)
-		try:
-			with open(_filename, 'r') as _data_file:
-				_dump = yaml.load(_data_file)
-				if self.name in _dump:
-					# TODO: update object instead of quitting
-					return True
-		except IOError:
-			pass
-		_data = {}
-		for i in self._yaml_attr:
-			try:
-				_val = self.__getattribute__(i)
-				_data[i] = _val
-			except AttributeError:
-				continue
-		_data = {self.name: _data}
+		_filename = os.path.join(env.env_root, cls._yaml_filename)
 
-		with open(_filename, 'a') as _data_file:
-			yaml.dump(_data, _data_file, default_flow_style=False)
-			log.logger.info('Successfully added %s to Worker yaml storage' % self.name)
+		_dump = {}
+		if hasattr(Worker, 'db'):
+			for _work in Worker.db.itervalues():
+				_data = {}
+				for i in cls._yaml_attr:
+					try:
+						_val = _work.__getattribute__(i)
+						_data[i] = _val
+					except AttributeError:
+						continue
+				_dump[_data['name']] = _data
+
+		with open(_filename, 'w') as _data_file:
+			# TODO: log file write
+			yaml.dump(_dump, _data_file, default_flow_style=False)
 
 	def update(self):
 		"""
@@ -187,7 +170,7 @@ class Worker(object):
 			Worker.db[self.hash] = self
 			if hasattr(self, 'job'):
 				self.job.add_worker(self)
-		self.dump_info()
+			self.dump_info()
 		return None
 
 
@@ -250,69 +233,62 @@ class Job(yaml.YAMLObject):
 		"""
 		if hasattr(self, 'default_sub_dir'):
 			return os.path.join(self.default_sub_dir, self.name)
+		else:
+			return False
+
+	@property
+	def path(self):
+		""" Return absolute sub path using program path and Class.sub_path """
+		if hasattr(self, '_path') and self._path:
+			return self._path
+		elif self.sub_path:
+			_path = os.path.join(env.env_root, self.sub_path)
+			return _path
+		else:
+			return False
+
+	def dump_folder(self, dir):
+		""" Iterates through contents of given dir and returns file-names, paths, and last modified times
+		:return:
+		"""
+		# TODO: update docstring
+		if self.path:
+			_dir = os.path.join(self.path, dir)
+			if os.path.isdir(_dir):
+				_files = os.listdir(_dir)
+				_return = {}
+				for f in _files:
+					_path = os.path.join(_dir, f)
+					_mod_time = os.stat(_path)
+					# TODO: process dwg type
+					_return[f] = [_path, _mod_time]
+				return _return
+			else:
+				# TODO: log directory error
+				pass
+		# TODO: log attribute error
+		return {}  # catchall
 
 	@property
 	def addendums(self):
 		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
-		:return:
+		:return: self.dump_folder
 		"""
-		if hasattr(self, 'path'):
-			_dir = os.path.join(self.path, 'Addendums')
-			if os.path.isdir(_dir):
-				_adds = os.listdir(_dir)
-				_return = {}
-				for add in _adds:
-					_path = os.path.join(_dir, add)
-					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[add] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		return self.dump_folder('Addendums')
 
 	@property
 	def drawings(self):
 		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
-		:return:
+		:return: self.dump_folder
 		"""
-		if hasattr(self, 'path'):
-			_dir = os.path.join(self.path, 'Drawings')
-			if os.path.isdir(_dir):
-				_dwgs = os.listdir(_dir)
-				_return = {}
-				for dwg in _dwgs:
-					_path = os.path.join(_dir, dwg)
-					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[dwg] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		return self.dump_folder('Drawings')
 
 	@property
 	def documents(self):
-		if hasattr(self, 'path'):
-			_dir = os.path.join(self.path, 'Documents')
-			if os.path.isdir(_dir):
-				_docs = os.listdir(_dir)
-				_return = {}
-				for doc in _docs:
-					_path = os.path.join(_dir, doc)
-					_mod_time = os.stat(_path)
-					# TODO: process doc type
-					_return[doc] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		""" Iterates through contents of Documents folder and returns file-names, paths, and last modified times
+		:return: self.dump_folder
+		"""
+		return self.dump_folder('Documents')
 
 	@property
 	def has_drawings(self):
@@ -344,6 +320,7 @@ class Job(yaml.YAMLObject):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__' and _caller is not 'load_info':
+			log.logger.info('In %s, updated "%s" attribute to %s')
 			self.update()
 		return _return
 
@@ -358,27 +335,28 @@ class Job(yaml.YAMLObject):
 				self.db[self.number] = self
 			else:                  # no db attribute
 				return 'DB_ERROR'  # returned for debugging
-			if not hasattr(self, '_lock'):  # ensures that file is not written multiple times during import
+			if not hasattr(self, '_dump_lock'):  # ensures that file is not written multiple times during import
 				self.dump_all()  # save to global yaml storage
 		else:
 			return False
 
-	def dump_all(self):
-		if hasattr(self, '_dump_lock') and self._dump_lock:
+	@classmethod
+	def dump_all(cls):
+		if hasattr(cls, '_dump_lock') and cls._dump_lock:
 			return None  # attribute to prevent object storage for testing purposes
 		_jobs = {}
-		if hasattr(self, 'completed_db'):
-			for num, obj in self.completed_db.items():
+		if hasattr(cls, 'completed_db'):
+			for num, obj in cls.completed_db.items():
 				_jobs[num] = obj
-		if hasattr(self, 'db'):
-			for num, obj in self.db.items():
+		if hasattr(cls, 'db'):
+			for num, obj in cls.db.items():
 				_jobs[num] = obj
 
-		if hasattr(self, 'default_sub_dir'):
-			_filename = os.path.join(env.env_root, self.default_sub_dir, self.yaml_filename)
+		if hasattr(cls, 'default_sub_dir'):
+			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
 			stream = file(_filename, 'w')
+			print 'Saving %s' % _filename
 			yaml.dump(_jobs, stream)
-
 
 
 class AwardedJob(Job):
@@ -386,9 +364,9 @@ class AwardedJob(Job):
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
-	             gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
-	             contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(),
-	             sheet_num=None, init_struct=True):
+				gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
+				contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(),
+				sheet_num=None, init_struct=True):
 		"""
 		:param job_num: desired jobs number
 		:param name: primary jobs name
@@ -411,8 +389,8 @@ class AwardedJob(Job):
 		# TODO:implement better document storage
 		self.number = int(job_num)
 		super(AwardedJob, self).__init__(name=name, date_received=date_received, alt_name=alt_name,
-		                                 address=address, gc=gc, gc_contact=gc_contact, scope=scope, desc=desc,
-		                                 rate=rate, tax_exempt=tax_exempt, certified_pay=certified_pay)
+										 address=address, gc=gc, gc_contact=gc_contact, scope=scope, desc=desc,
+										 rate=rate, tax_exempt=tax_exempt, certified_pay=certified_pay)
 		self.start_date = start_date
 		self.end_date = end_date
 		if po_pre:
@@ -425,10 +403,10 @@ class AwardedJob(Job):
 
 		self._PO = 0    # stores most recent PO suffix number
 		self.POs = {}   # stores PO strings as keys
-		self.workers = {}
-		self._materials = {}
-		self._quotes = {}
-		self.deliveries = {}
+		self.workers = {}     # stores all current Worker objects
+		self._materials = {}  # stores all MaterialList objects
+		self._quotes = {}     # stores unlinked Quote objects
+		self.deliveries = {}  # TODO: iterate over _materials
 		self.tasks = {}
 		# AwardedJob.timesheets.key is datetime.datetime object for the week-ending
 		# AwardedJob.timesheets.value is [ 'pathname/to/timesheet', { worker.hash: (worker, hours) } ]
@@ -439,116 +417,12 @@ class AwardedJob(Job):
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
 
-	@property
-	def materials(self):
-		""" Iterates through contents of 'Materials' folder and returns file names.
-		Creates MaterialList objects for all files that aren't owned by an object.
-		:return:
-		"""
-		if hasattr(self, 'path'):
-			_dir = os.path.join(self.path, 'Materials')
-			if os.path.isdir(_dir):
-				_mats = os.listdir(_dir)
-				for mat in _mats:
-					_hash = abs(hash(str(mat)))
-					if _hash not in self._materials:
-						# TODO: log new MaterialList
-						self._materials[_hash] = MaterialList(self, doc=mat)
-			else:
-				# TODO: log directory error
-				pass
-		return self._materials
-
-	@property
-	def quotes(self):
-		if hasattr(self, 'path'):
-			_dir = os.path.join(self.path, 'Materials')
-			if os.path.isdir(_dir):
-				_doc_hashes = []
-				for q in self._quotes.values():
-					_doc_hashes.append(q.doc[1])
-
-				_quotes = os.listdir(_dir)
-				for q_doc in _quotes:
-					_hash = abs(hash(str(q_doc)))
-					if _hash not in _doc_hashes:
-						self._quotes[_hash] = Quote(vend=None, doc=q_doc)
-			else:
-				# TODO: log directory error
-				pass
-		return self._quotes
-
-	@property
-	def unlinked_quotes(self):
-		""" Returns recently object quotes objects that aren't linked to material lists
-		:return:
-		"""
-		if hasattr(self, 'path'):
-			_return = []
-			_dir = os.path.join(self.path, 'Materials')
-			if os.path.isdir(_dir):
-				_doc_hashes = []
-				for key, quote in self._quotes.values():  # enumerate all document hashes
-					if quote.doc:
-						_doc_hashes.append(key)
-
-				_quotes = os.listdir(_dir)
-				for q_doc in _quotes:
-					_hash = abs(hash(str(q_doc)))
-					if _hash not in _doc_hashes:
-						_return.append(q_doc)
-			return _return
-
-
-	@property
-	def sheet_name(self):
-		if hasattr(self, 'number'):
-			return ' - '.join([str(self.number), str(self._name)])
-
-	@property
-	def next_po(self):
-		"""
-		Optimizes PO# usage by ensuring that all PO numbers are used, and none are skipped.
-		:return: returns claimed PO number
-		"""
-		_keys = self.POs.keys()
-		_k_len = len(_keys)
-
-		if _k_len:
-			# calculate ideal sum of continuous sequence of equal length
-			_ideal_seq_sum = (_k_len/2) * (0 + (_k_len - 1))
-
-			# calculate the real sum of existing po# sequence
-			_seq_sum = (_k_len/2) * (_keys[0] - _keys[-1])
-
-			# check to see if current sequence is continuous
-			if not (int(_seq_sum) == int(_ideal_seq_sum)):
-				#find the smallest integer to begin to complete the sequence.
-				_new_PO = 0  # start search @ 0
-				while True:
-					if _new_PO not in _keys:
-						self._PO = _new_PO
-						break
-					else:
-						_new_PO += 1
-			else:
-				self._PO = _keys[-1] + 1
-		return self._PO
-
-	@property
-	def show_po(self):
-		""" Shows formatted PO# that's available next.
-		:return: returns the formatted value of the next available PO for considering it being given to a vendor
-		"""
-		_po = self._PO
-		_po = '%03d' % _po        # add padding to PO number
-		return '-'.join([self.name, _po])
 
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
 		# TODO:initialize documents w/ jobs information
 		try:
-			os.mkdir(os.path.join(env.env_root, self.sub_path))
+			os.makedirs(self.path)
 			log.logger.debug('Created project directory for "%s"' % self.name)
 		except OSError:
 			log.logger.warning("...project folder already exists")
@@ -563,11 +437,234 @@ class AwardedJob(Job):
 			except OSError:
 				log.logger.warning('Sub directory, "%s", for %s already exists!' % (_folder, self.name))
 
+
+	# Material List Functions #
+
 	@property
-	def path(self):
-		""" Return absolute sub path using global project path and AwardedJob.sub_path """
-		_path = os.path.join(env.env_root, self.sub_path)
-		return _path
+	def materials(self):
+		""" Iterates through contents of 'Materials' folder and returns file names.
+		Creates MaterialList objects for all files that aren't owned by an object.
+		:return:
+		"""
+		if self.path:
+			_dir = os.path.join(self.path, 'Materials')
+			if os.path.isdir(_dir):
+				_mats = os.listdir(_dir)
+				for mat in _mats:
+					_hash = abs(hash(str(mat)))
+					if _hash not in self._materials:
+						MaterialList(self, doc=mat)
+			else:
+				# TODO: log directory error
+				pass
+		return self._materials
+
+	@property
+	def has_open_lists(self):
+		"""
+		Returns 0 if jobs has no open material lists
+		:return: Integer of material lists that have not been purchased.
+		"""
+		open_lists = []
+		for mlist in self.materials.itervalues():
+			if not mlist.fulfilled:
+				open_lists.append(mlist)
+		return open_lists
+
+	def add_mat_list(self, mlist_obj):
+		"""
+		Blindly adds material list object to self.
+		:param mlist_obj: material list object to add to self
+		:return: None
+		"""
+		if not mlist_obj.hash in self._materials:
+			log.logger.info('Added material list %s (%s) to %s' % (mlist_obj.hash, mlist_obj.items, self.name))
+
+		self._materials[mlist_obj.hash] = mlist_obj
+		self.update()
+
+	def del_mat_list(self, mlist_hash, delete=False):
+		"""
+		Deletes material list object from self._materials
+		:param mlist_hash: hash to delete from self._materials
+		:param delete: if True is passed, then the document is deleted from the filesystem
+		:return: None
+		"""
+		for i in self.POs.values():
+			if i.mat_list.hash == mlist_hash:
+				del self.POs[i.number]
+		for i in self._quotes.values():
+			if i.mat_list.hash == mlist_hash:
+				del self._quotes[i.hash]
+		del self._materials[mlist_hash]
+
+		if delete:
+			# TODO:delete document in filesystem
+			pass
+		self.update()
+
+		if not delete:
+			log.logger.info('Deleted %s material list from %s' % (mlist_hash, self.name))
+
+
+	# Quote Functions #
+
+	@property
+	def quotes(self):
+		""" Aggregates unlinked Quote objects and material list quotes via self._quotes and self.materials[].quotes.
+		Function calls unlinked_quotes to ensure that self._quotes is updated.
+		:return: self._quotes and material list quotes
+		"""
+		_dir = os.path.join(self.path, 'Quotes')
+		q_doc_len = len(os.listdir(_dir))
+		if not hasattr(self, 'q_doc_len') or self.q_doc_len != q_doc_len:
+			self.q_doc_len = q_doc_len
+			self.unlinked_quotes  # updates self._quotes
+
+		_return = {}
+		for _mlist in self.materials.itervalues():
+			_return.update(_mlist.quotes)
+		_return.update(self._quotes)  # Assume that _quotes is up to date
+		return _return
+
+	@property
+	def unlinked_quotes(self):
+		""" Grabs and returns unlinked quotes which have been added to the Quotes directory
+		:return: self._quotes
+		"""
+		if self.path:
+			_dir = os.path.join(self.path, 'Quotes')
+			if os.path.isdir(_dir):
+				_quotes = os.listdir(_dir)
+				for q_doc in _quotes:
+					_hash = abs(hash(str(q_doc)))
+					if _hash not in self.quotes.keys() and not _hash in self._quotes.keys():
+						_obj = Quote(vend=None, doc=q_doc)
+						_obj._path = self.path
+						self._quotes[_hash] = _obj
+			else:
+				# log directory error
+				pass
+		return self._quotes
+
+	def add_quote(self, quote_obj):
+		"""
+		Blindly adds quote object to self.
+		:param quote_obj: quote object to add to self
+		:return: None
+		"""
+		_mat_list = quote_obj.mat_list.hash
+		self._materials[_mat_list].add_quote(quote_obj)
+		self.update()
+
+		log.logger.info('Added quote object from "%s" to "%s" material list for %s' % (quote_obj.vend, _mat_list, self.name))
+
+	def del_quote(self, quote_hash, delete=False):
+		"""
+		Deletes quote object from self._quotes
+		:param quote_hash: hash to delete from self._quotes
+		:param delete: if True is passed, then the document is deleted from the filesystem
+		:return: None
+		"""
+		for i in self._materials.values():
+			if quote_hash in i.quotes.keys():
+				del i.quotes[quote_hash]
+		for i in self.POs.values():
+			if i.quote.hash == quote_hash:
+				del self.POs[i.number]
+
+		if delete:
+			# TODO:delete document in filesystem
+			pass
+		self.update()
+
+		if not delete:
+			log.logger.info('Deleted %s material list from %s' % (quote_hash, self.name))
+
+
+	# PO Functions #
+
+	def add_po(self, po_obj):
+		"""
+		Blindly adds PO object to self.
+		:param po_obj: PO object to add to self.
+		:return: None
+		"""
+		if po_obj.number not in self.POs:
+			log.logger.info('Awarded %s to %s for %s' % (po_obj.name, po_obj.vend, self.name))
+		self.POs[po_obj.number] = po_obj
+		_mat_list = po_obj.mat_list.hash
+		self._materials[_mat_list].po = po_obj
+		self._materials[_mat_list].fulfilled = True
+		self.update()
+
+	@property
+	def next_po(self):
+		"""
+		Optimizes PO# usage by ensuring that all PO numbers are used, and none are skipped.
+		:return: returns claimed PO number
+		"""
+		_keys = self.POs.keys()
+		_k_len = len(_keys)
+
+		_return = 0
+		if _k_len:
+			# calculate ideal sum of continuous sequence of equal length
+			_ideal_seq_sum = (_k_len/2) * (0 + (_k_len - 1))
+
+			# calculate the real sum of existing po# sequence
+			_seq_sum = (_k_len/2) * (_keys[0] - _keys[-1])
+
+			# check to see if current sequence is continuous
+			if not (int(_seq_sum) == int(_ideal_seq_sum)):
+				#find the smallest integer to begin to complete the sequence.
+				_new_PO = 0  # start search @ 0
+				while True:
+					if _new_PO not in _keys:
+						_return = _new_PO
+						break
+					else:
+						_new_PO += 1
+			else:
+				_return = _keys[-1] + 1
+		return _return
+
+	@property
+	def show_po(self):
+		""" Shows formatted PO# that's available next.
+		:return: returns the formatted value of the next available PO for considering it being given to a vendor
+		"""
+		_po = self.next_po
+		_po = '%03d' % _po        # add padding to PO number
+		return '-'.join([self.name, _po])
+
+
+	# Delivery Functions #
+
+	def add_delivery(self, deliv_obj):
+		"""
+		Blindly adds delivery object to self.
+		:param deliv_obj: delivery object to add to self
+		:return: None
+		"""
+		self.deliveries[deliv_obj.hash] = deliv_obj
+		self.update()
+
+		log.logger.info('Scheduled delivery on %s for %s' % (deliv_obj.expected, self.name))
+
+
+	# Worker/Labor/Cost Functions #
+
+	def add_worker(self, wrkr_obj):
+		"""
+		Blindly adds worker object to self.
+		:param wrkr_obj: Worker object to add to self
+		:return: None
+		"""
+		self.workers[wrkr_obj.hash] = wrkr_obj
+		self.update()
+
+		log.logger.info('"%s" has been added to %s project' % (wrkr_obj.name, self.name))
 
 	@property
 	def labor(self):
@@ -591,17 +688,8 @@ class AwardedJob(Job):
 			amt += i.quote.price
 		return amt
 
-	@property
-	def has_open_lists(self):
-		"""
-		Returns 0 if jobs has no open material lists
-		:return: Integer of material lists that have not been purchased.
-		"""
-		open_lists = []
-		for mlist in self._materials.itervalues():
-			if not mlist.fulfilled:
-				open_lists.append(mlist)
-		return open_lists
+
+	# Task Functions #
 
 	def add_task(self, task_obj):
 		"""
@@ -614,115 +702,6 @@ class AwardedJob(Job):
 
 		log.logger.info('Added task object "%s" to %s' % (task_obj.name, self.name))
 
-	def add_mat_list(self, mlist_obj):
-		"""
-		Blindly adds material list object to self.
-		:param mlist_obj: material list object to add to self
-		:return: None
-		"""
-		if not mlist_obj.hash in self._materials:
-			log.logger.info('Added material list %s (%s) to %s' % (mlist_obj.hash, mlist_obj.items, self.name))
-
-		self._materials[mlist_obj.hash] = mlist_obj
-		self.update()
-
-
-	def add_quote(self, quote_obj):
-		"""
-		Blindly adds quote object to self.
-		:param quote_obj: quote object to add to self
-		:return: None
-		"""
-		_mat_list = quote_obj.mat_list.hash
-		self._quotes[quote_obj.hash] = quote_obj
-		self._materials[_mat_list].add_quote(quote_obj)
-		self.update()
-
-		log.logger.info('Added quote object from "%s" to "%s" material list for %s' % (quote_obj.vend, _mat_list, self.name))
-
-	def add_delivery(self, deliv_obj):
-		"""
-		Blindly adds delivery object to self.
-		:param deliv_obj: delivery object to add to self
-		:return: None
-		"""
-		self.deliveries[deliv_obj.hash] = deliv_obj
-		self.update()
-
-		log.logger.info('Scheduled delivery on %s for %s' % (deliv_obj.expected, self.name))
-
-	def add_po(self, po_obj):
-		"""
-		Blindly adds PO object to self.
-		:param po_obj: PO object to add to self.
-		:return: None
-		"""
-		if po_obj.number not in self.POs:
-			log.logger.info('Awarded %s to %s for %s' % (po_obj.name, po_obj.vend, self.name))
-		self.POs[po_obj.number] = po_obj
-		_mat_list = po_obj.mat_list.hash
-		self._materials[_mat_list].po = po_obj
-		self._materials[_mat_list].fulfilled = True
-		self.update()
-
-
-	def add_worker(self, wrkr_obj):
-		"""
-		Blindly adds worker object to self.
-		:param wrkr_obj: Worker object to add to self
-		:return: None
-		"""
-		self.workers[wrkr_obj.hash] = wrkr_obj
-		self.update()
-
-		log.logger.info('"%s" has been added to %s project' % (wrkr_obj.name, self.name))
-
-	def del_material_list(self, mlist_hash, delete=False):
-		"""
-		Deletes material list object from self._materials
-		:param mlist_hash: hash to delete from self._materials
-		:param delete: if True is passed, then the document is deleted from the filesystem
-		:return: None
-		"""
-		for i in self.POs.values():
-			if i.mat_list.hash == mlist_hash:
-				del self.POs[i.number]
-		for i in self._quotes.values():
-			if i.mat_list.hash == mlist_hash:
-				del self._quotes[i.hash]
-		del self._materials[mlist_hash]
-
-		if delete:
-			# TODO:delete document in filesystem
-			pass
-		self.update()
-
-		if not delete:
-			log.logger.info('Deleted %s material list from %s' % (mlist_hash, self.name))
-
-	def del_quote(self, quote_hash, delete=False):
-		"""
-		Deletes quote object from self._quotes
-		:param quote_hash: hash to delete from self._quotes
-		:param delete: if True is passed, then the document is deleted from the filesystem
-		:return: None
-		"""
-		for i in self._materials.values():
-			if quote_hash in i._quotes.keys():
-				del i._quotes[quote_hash]
-		for i in self.POs.values():
-			if i.quote.hash == quote_hash:
-				del self.POs[i.number]
-		del self._quotes[quote_hash]
-
-		if delete:
-			# TODO:delete document in filesystem
-			pass
-		self.update()
-
-		if not delete:
-			log.logger.info('Deleted %s material list from %s' % (quote_hash, self.name))
-
 	def del_task(self, task_hash):
 		"""
 		Delete task object from self.tasks
@@ -733,6 +712,14 @@ class AwardedJob(Job):
 		self.update()
 
 		log.logger.info('Deleted %s task from %s' % (task_hash, self.name))
+
+
+	# Misc Functions #
+
+	@property
+	def sheet_name(self):
+		if hasattr(self, 'number'):
+			return ' - '.join([str(self.number), str(self._name)])
 
 	@staticmethod
 	def find(num):

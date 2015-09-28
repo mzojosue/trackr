@@ -20,11 +20,11 @@
 
 {% block body %}
 
-  {{ estimating.bid_sidebar('bid_drawings', bid=bid, usr=usr) }}
+  {{ estimating.bid_sidebar('bid_takeoffs', bid=bid, usr=usr) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
-			{{ bid.name }} - Drawings&nbsp;
+			{{ bid.name }} - Takeoffs&nbsp;
 		</h1>
 
 		<div class="row">
@@ -37,15 +37,16 @@
           <th>Scope:</th>
 					<!--th>Uploaded By:</th-->
 				</tr>
-				{% for dwg in bid.drawings %}
+				{% for doc in bid.takeoffs %}
 					<tr>
-						<td>{{ bid.drawings.keys().index(dwg) + 1 }}</td>
-						<td><a target="_blank"
-						       href="{{ url_for('bid_drawing_doc', bid_num=bid.number, dwg_name=dwg) }}">
-                  {{ dwg }}
-								</a>
+						<td>{{ bid.takeoffs.keys().index(doc) + 1 }}</td>
+						<td>
+							<a target="_blank"
+							   href="{{ url_for('bid_drawing_doc', bid_num=bid.number, dwg_name=doc) }}">
+                 {{ doc }}
+							</a>
 						</td>
-						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg][0]))) }}</td>
+						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.takeoffs[doc][0]))) }}</td>
 						<td>Mech</td>
 					</tr>
 				{% endfor %}
