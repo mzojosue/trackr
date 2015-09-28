@@ -45,7 +45,7 @@
                   {{ dwg }}
 								</a>
 						</td>
-						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg][0]))) }}</td>
+						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg]['mod_time']))) }}</td>
 						<td>Mech</td>
 					</tr>
 				{% endfor %}
