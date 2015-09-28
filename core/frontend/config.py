@@ -2,7 +2,6 @@ from os import path
 import time
 
 from flask import *
-from werkzeug import secure_filename
 
 from core.objects import *
 
@@ -16,7 +15,8 @@ UPLOAD_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/uploads/'
 ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'png', 'jpg'}
 
 app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLDER)
-app.secret_key = str(hash( ''.join([ "!campanohvac_2015", str(now()), os.urandom(4)]) ))
+# generate random private key for encrypting client-side sessions
+app.secret_key = str(hash( ''.join(["!campanohvac_2015", str(now()), os.urandom(4)]) ))
 
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo
@@ -28,6 +28,7 @@ app.jinja_env.globals['today'] = today
 app.jinja_env.globals['hasattr'] = hasattr
 app.jinja_env.globals['getmtime'] = path.getmtime
 app.jinja_env.globals['time'] = time
+
 
 def allowed_file(filename):
 	return '.' in filename and \
@@ -63,29 +64,11 @@ def friendly_time(dt, past_="ago", future_="from now", default="just now"):
 	for period, singular, plural in periods:
 
 		if period:
-			return "%d %s %s" % (period, \
-				singular if period == 1 else plural, \
+			return "%d %s %s" % (period,
+				singular if period == 1 else plural,
 				past_ if dt_is_past else future_)
 
 	return default
-
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
-	"""
-	Accepts a file via POST named 'file' and saves to core.UPLOAD_FOLDER
-	:return: redirect to uploaded file if successful. otherwise redirects back to referrer page with error status.
-	"""
-	if request.method == 'POST':
-		# TODO:accept arbitrary http post key name and save destination
-		_file = request.files['file']
-		if _file and allowed_file(_file.filename):
-			filename = secure_filename(_file.filename)
-			_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-			return redirect(url_for('uploaded_file', filename=filename))
-		else:
-			# TODO:show error status on redirect
-			return redirect(request.referrer)
 
 
 def check_login():
@@ -102,7 +85,7 @@ def check_login():
 
 @app.before_request
 def user_permissions(*args, **kwargs):
-	if request.endpoint != 'login' and 'static' not in request.path: # restrict redirects on neutral paths
+	if request.endpoint != 'login' and 'static' not in request.path:  # restrict redirects on neutral paths
 		try:
 			# TODO: merge with check_login
 			if session['logged_in'] and session['hash_id']:  # ensure logged in

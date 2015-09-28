@@ -21,7 +21,8 @@ class EstimatingJob(Job):
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
 				 address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
-				 tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False, struct=True, add_to_log=True):
+				 tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False,
+				 struct=True, add_to_log=True):
 		"""
 		:param name: The desired name for the bid
 		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
@@ -72,7 +73,8 @@ class EstimatingJob(Job):
 		# TODO: implement grouping system
 		self.group = group
 
-		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope, struct=struct, add_to_log=False)
+		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope,
+					 struct=struct, add_to_log=False)
 		if add_to_log:
 			add_bid_to_log(self)
 
@@ -156,7 +158,7 @@ class EstimatingJob(Job):
 		"""
 		# create initial bid directory
 		try:
-			os.mkdir(self.path)
+			os.makedirs(self.path)
 		except OSError:
 			if os.path.isdir(self.path):
 				pass  # top level directory already exists
@@ -166,7 +168,7 @@ class EstimatingJob(Job):
 		# create bid sub folders
 		for _folder in self._dir_folders:
 			try:
-				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
+				os.mkdir(os.path.join(self.path, _folder))
 			except OSError:
 				pass  # assume project sub folders already exist
 
@@ -174,7 +176,7 @@ class EstimatingJob(Job):
 		for _scope in self.scope:
 			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
 				try:
-					os.mkdir(os.path.join(env.env_root, self.sub_path, 'Quotes', _scope))
+					os.mkdir(os.path.join(self.path, 'Quotes', _scope))
 				except OSError:
 					pass  # assume quote folders already exist
 
@@ -243,8 +245,8 @@ class EstimatingJob(Job):
 		"""
 		if not bid_date: bid_date = 'ASAP'
 		_bid_hash = abs(hash(str(gc).lower()))
-		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact, 'bid_date': bid_date, 'date_received': date_received,
-				'scope': scope}
+		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact,
+				'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		self.bids[_bid_hash] = _bid
 		if scope:
 			for i in scope:
@@ -314,15 +316,17 @@ class EstimatingJob(Job):
 		return True
 
 	def award_bid(self, bid_hash):
-		""" Function that creates an AwardedJob object based on EstimatingJob object and selected gc. This function is run through the webApp and is bound to a specific bid/gc
+		""" Function that creates an AwardedJob object based on EstimatingJob object and selected gc.
+		This function is run through the webApp and is bound to a specific bid/gc
 		:param gc: string object representing GC that bid was sent to """
 		bid = self.bids[bid_hash]
 		if not self.completed:
 			self.complete_bid()
 		logger.info('Awarded EstimatingJob %s!' % self.name)
 
-		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name, address=self.address, gc=bid['gc'],
-						  gc_contact=bid['gc_contact'], scope=self.scope, desc=self.desc, rate=self.rate)
+		return AwardedJob(job_num=get_job_num(), name=self._name, date_received=today(), alt_name=self.alt_name,
+						  address=self.address, gc=bid['gc'], gc_contact=bid['gc_contact'], scope=self.scope,
+						  desc=self.desc, rate=self.rate)
 
 	@staticmethod
 	def find(num):
