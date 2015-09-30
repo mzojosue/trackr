@@ -184,7 +184,6 @@ def clear_db(db='trackr_db'):
 		print "Couldn't connect to database"
 		logger.debug('Couldnt connect to database')
 
-	set_po_log_hash('')
 	init_db(db)
 
 	return True
