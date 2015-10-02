@@ -128,11 +128,16 @@ def start_db():
 		pymongo.MongoClient()
 		return True  # daemon already running
 	except ConnectionFailure:
-		try:
-			subprocess.Popen(['C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod', '--dbpath', 'C:\\data\\db', '--quiet'])
-			print "Successfully started MongoDB"
-		except OSError:
-			print "All attempts to start MongodDB failed"
+		_paths = ('C:\\Program Files\\MongoDB 2.6 Standard\\bin\\mongod', 'C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod')
+		for path in _paths:
+			try:
+				subprocess.Popen([path, '--dbpath', 'C:\\data\\db', '--quiet'])
+				print "Successfully started MongoDB"
+				return True
+			except OSError:
+				continue  # continue iterating down possible paths
+		print "All attempts to start MongoDB failed."
+
 
 def init_db(db='trackr_db'):
 
