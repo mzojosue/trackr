@@ -262,7 +262,6 @@ class Job(yaml.YAMLObject):
 					_mod_time = os.stat(_path)
 					# TODO: process file type
 					_sub_path = os.path.join(dir, f)
-					print _path
 					_return[f] = {'path': _path, 'sub_path': _sub_path, 'mod_time': _mod_time}
 				return _return
 			else:
