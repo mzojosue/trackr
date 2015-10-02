@@ -168,8 +168,8 @@ def accept_delivery(job_num, d_hash):
 
 
 # Quote Pages #
-@app.route('/quote', methods=['GET', 'POST'])
-def quote():
+@app.route('/j/<int:job_num>/material/<int:m_hash>/quote', methods=['GET', 'POST'])
+def quote(job_num, m_hash):
 	""" Used for uploading and associating a quote with a material list via HTTP POST methods
 	:param:
 	:return:
@@ -179,10 +179,8 @@ def quote():
 		return auth  # redirects to login
 	if request.method == 'POST':
 		##TODO:correctly implement document upload
-		try:
-			_list = MaterialList.db[int(request.form['materialList'])]
-		except ValueError:
-			return redirect(request.referrer)
+		_job = AwardedJob.find(job_num)
+		_list = _job.materials[m_hash]
 
 		__price = request.form['quotePrice']
 		__vend = request.form['vendor']
@@ -197,7 +195,7 @@ def quote():
 		elif __price and __vend:
 			_obj = MaterialListQuote(mat_list=_list, price=__price, vend=__vend)
 		flash('Quote successfully uploaded.', 'success')
-		return redirect(url_for('material_list', m_hash=_list.hash))
+		return redirect(url_for('material_list', job_num=_job.number, m_hash=_list.hash))
 
 @app.route('/j/<int:job_num>/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
 def add_quote_doc(job_num, m_hash, q_hash):
