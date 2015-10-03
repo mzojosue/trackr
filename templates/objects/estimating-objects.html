@@ -1,4 +1,4 @@
-range{# templates/objects/estimating-objects.html #}
+{# templates/objects/estimating-objects.html #}
 
 
 
@@ -41,33 +41,51 @@ range{# templates/objects/estimating-objects.html #}
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
   {% if usr and usr.role == 'admin' %}
-    {% set links = [('bid_overview', 'View Bid', 'eye-open'),
-                    ('bid_drawings', 'Drawings')] %}
+    {% set links = [('bid_overview', 'View Bid', 'eye-open')] %}
   {% else %}
-    {% set links = [('bid_overview', 'View Bid', 'eye-open'),
-                    ('bid_drawings', 'Drawings')] %}
+    {% set links = [('bid_overview', 'View Bid', 'eye-open')] %}
   {% endif %}
 
 	<div class="col-sm-3 col-md-2 sidebar bid-sidebar">
     <ul class="nav nav-sidebar">
-      {% for _link in links %}
-        {% if _link[0] == active_link %}
+      {%- for _link in links %}
+        {%- if _link[0] == active_link -%}
           <li class="active">
-        {% else %}
+        {%- else -%}
           <li>
-        {% endif %}
+        {%- endif -%}
 
-          <a href="{{ url_for(_link[0], bid_num=bid.number) }}">
+      <a href="{{ url_for(_link[0], bid_num=bid.number) }}">
 
-            {% if _link[2] %}
-              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
-            {% endif %}
+        {%- if _link[2] -%}
+          <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
+        {%- endif -%}
 
-            {{ _link[1] }}
-          </a>
+        {{- _link[1] -}}
+      </a>
+      </li>
+      {% endfor -%}
+    </ul>
+
+		<h4>
+			File Browser:
+		</h4>
+    <ul class="nav nav-sidebar">
+      {%- for _file, attr in bid.dump_folder('').iteritems() -%}
+        <li {% if active_link == _file %}class="active"{% endif %}>
+          {% if path.isfile(attr['path']) %}
+            <a target="_blank"
+               href="{{ url_for('bid_get_document', bid_num=bid.number, query=attr['sub_path']) }}">
+              {{ _file }}
+            </a>
+          {% elif path.isdir(attr['path']) %}
+            <a href="{{ url_for('bid_folder', bid_num=bid.number, dir=attr['sub_path']) }}">
+              {{ _file }}
+            </a>
+          {% endif %}
         </li>
-      {% endfor %}
-		</ul>
+      {%- endfor -%}
+    </ul>
 
     {# Enclose restricted element #}
     {% if usr and usr.role == 'admin' %}

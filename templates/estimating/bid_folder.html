@@ -20,33 +20,38 @@
 
 {% block body %}
 
-  {{ estimating.bid_sidebar('Drawings', bid=bid, usr=usr) }}
+  {{ estimating.bid_sidebar(current_page, bid=bid, usr=usr) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-		<h1 class="page-header">
-			{{ bid.name }} - Drawings&nbsp;
-		</h1>
+		<h2 class="page-header">
+			{{ bid.name }}&nbsp;
+		</h2>
 
 		<div class="row">
 
 			<table class="table table-striped">
 				<tr id="tableHeadings">
-					<th>Doc #</th>
           <th>Project Name:</th>
           <th>Date Added</th>
           <th>Scope:</th>
 					<!--th>Uploaded By:</th-->
 				</tr>
-				{% for dwg in bid.drawings %}
+				{% for _file, attr in dir.iteritems() %}
 					<tr>
-						<td>{{ bid.drawings.keys().index(dwg) + 1 }}</td>
-						<td><a target="_blank"
-						       href="{{ url_for('bid_get_document', bid_num=bid.number, query=dwg) }}">
-                  {{ dwg }}
-								</a>
-						</td>
-						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg]['path']))) }}</td>
-						<td>Mech<!-- TODO: deterimine drawing type --></td>
+						<td>
+              {% if path.isfile(attr['path']) %}
+                <a target="_blank"
+                   href="{{ url_for('bid_get_document', bid_num=bid.number, query=attr['sub_path']) }}">
+                  {{ _file }}
+                </a>
+              {% elif path.isdir(attr['path']) %}
+                <a href="{{ url_for('bid_folder', bid_num=bid.number, dir=attr['sub_path']) }}">
+                  {{  _file }}
+                </a>
+              {% endif %}
+            </td>
+						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(attr['path']))) }}</td>
+						<td>Mech</td>
 					</tr>
 				{% endfor %}
 			</table>

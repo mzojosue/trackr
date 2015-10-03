@@ -58,7 +58,7 @@ def estimating_analytics():
 	return NotImplemented
 
 
-@app.route('/estimating/bid/<int:bid_num>/dir/<dir>')
+@app.route('/estimating/bid/<int:bid_num>/dir/<path:dir>')
 def bid_folder(bid_num, dir):
 	""" Renders given directory as page. Renders specific pages for 'Drawings', and 'Takeoffs'.
 	:param bid_num: bid number to select
@@ -74,8 +74,9 @@ def bid_folder(bid_num, dir):
 			if dir == 'Drawings':
 				return render_template('estimating/bid_drawings.html', bid=_bid, usr=auth)
 			else:
-				contents = _bid.dump_folder(dir)
-				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents)
+				_dir = os.path.join(_bid.path, dir)
+				contents = _bid.dump_folder(_dir)
+				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents, current_page=dir)
 		except KeyError:
 			return "Error: Bid does not exist."
 
