@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from werkzeug import secure_filename
 
 from job import *
+from core.sorting import *
 
 
 ##############################
@@ -16,24 +15,28 @@ def estimating_home():
 	return render_template('estimating/estimating.html', usr=auth)
 
 
-@app.route('/estimating/bids/current')
-def current_bids():
+@app.route('/estimating/bids/current', defaults={'sort_by': 'number'})
+@app.route('/estimating/bids/current/sort/<sort_by>')
+def current_bids(sort_by):
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		_estimates = EstimatingJob.db.values()
+		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/current_bids.html', estimates=_estimates, usr=auth)
 
 
-@app.route('/estimating/bids/past')
-def past_bids():
+@app.route('/estimating/bids/past', defaults={'sort_by': 'number'})
+@app.route('/estimating/bids/past/sort/<sort_by>')
+def past_bids(sort_by):
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 
 	if hasattr(EstimatingJob, 'completed_db'):
-		_estimates = reversed(EstimatingJob.completed_db.values())
+		_estimates = EstimatingJob.completed_db.values()
+		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/past_bids.html', estimates=_estimates, usr=auth)
 
 
