@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from werkzeug import secure_filename
 
 from job import *
+from core.sorting import *
 
 
 ##############################
@@ -16,24 +15,28 @@ def estimating_home():
 	return render_template('estimating/estimating.html', usr=auth)
 
 
-@app.route('/estimating/bids/current')
-def current_bids():
+@app.route('/estimating/bids/current', defaults={'sort_by': 'number'})
+@app.route('/estimating/bids/current/sort/<sort_by>')
+def current_bids(sort_by):
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		_estimates = EstimatingJob.db.values()
+		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/current_bids.html', estimates=_estimates, usr=auth)
 
 
-@app.route('/estimating/bids/past')
-def past_bids():
+@app.route('/estimating/bids/past', defaults={'sort_by': 'number'})
+@app.route('/estimating/bids/past/sort/<sort_by>')
+def past_bids(sort_by):
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 
 	if hasattr(EstimatingJob, 'completed_db'):
-		_estimates = reversed(EstimatingJob.completed_db.values())
+		_estimates = EstimatingJob.completed_db.values()
+		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/past_bids.html', estimates=_estimates, usr=auth)
 
 
@@ -55,7 +58,7 @@ def estimating_analytics():
 	return NotImplemented
 
 
-@app.route('/estimating/bid/<int:bid_num>/dir/<dir>')
+@app.route('/estimating/bid/<int:bid_num>/dir/<path:dir>')
 def bid_folder(bid_num, dir):
 	""" Renders given directory as page. Renders specific pages for 'Drawings', and 'Takeoffs'.
 	:param bid_num: bid number to select
@@ -71,8 +74,9 @@ def bid_folder(bid_num, dir):
 			if dir == 'Drawings':
 				return render_template('estimating/bid_drawings.html', bid=_bid, usr=auth)
 			else:
-				contents = _bid.dump_folder(dir)
-				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents)
+				_dir = os.path.join(_bid.path, dir)
+				contents = _bid.dump_folder(_dir)
+				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents, current_page=dir)
 		except KeyError:
 			return "Error: Bid does not exist."
 
