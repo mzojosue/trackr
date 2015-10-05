@@ -215,7 +215,10 @@ class EstimatingJob(Job):
 				_scope_fulfilled += 1
 			else:
 				_quotes_needed += 1
-		_status = (float(_scope_fulfilled) / float(_scope_len))
+		try:
+			_status = (float(_scope_fulfilled) / float(_scope_len))
+		except ZeroDivisionError:
+			_status = 0.0
 		if _quotes_needed:
 			_need = 'Need quotes from %d vendors' % _quotes_needed
 		else:
