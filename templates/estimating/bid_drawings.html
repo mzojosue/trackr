@@ -37,15 +37,15 @@
           <th>Scope:</th>
 					<!--th>Uploaded By:</th-->
 				</tr>
-				{% for dwg in bid.drawings %}
+				{% for dwg, info in bid.drawings.iteritems() %}
 					<tr>
 						<td>{{ bid.drawings.keys().index(dwg) + 1 }}</td>
 						<td><a target="_blank"
-						       href="{{ url_for('bid_get_document', bid_num=bid.number, query=dwg) }}">
+						       href="{{ url_for('bid_get_document', bid_num=bid.number, query=info['sub_path']) }}">
                   {{ dwg }}
 								</a>
 						</td>
-						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg]['path']))) }}</td>
+						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(info['path']))) }}</td>
 						<td>Mech</td>
 					</tr>
 				{% endfor %}
