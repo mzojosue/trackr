@@ -69,7 +69,7 @@ class TestWorker(unittest.TestCase):
 		return NotImplemented
 
 	def test_dump_info(self):
-		""" Creates arbitrary Worker objects then verifies contents written to disk by dump_info.
+		""" Creates arbitrary Worker objects then verifies contents written to disk by dump_all.
 		Tests with/w/o db attribute.
 		"""
 		return NotImplemented

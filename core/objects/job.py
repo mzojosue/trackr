@@ -163,7 +163,7 @@ class Worker(object):
 
 	def update(self):
 		"""
-		Calls self.dump_info
+		Calls self.dump_all
 		:return: None
 		"""
 		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
@@ -344,14 +344,17 @@ class Job(yaml.YAMLObject):
 
 	@classmethod
 	def dump_all(cls):
+		""" Iterates through class databases and saves all objects to YAML file
+		:return: None
+		"""
 		if hasattr(cls, '_dump_lock') and cls._dump_lock:
 			return None  # attribute to prevent object storage for testing purposes
-		_jobs = {}
+		_jobs = {}  # aggregate both current and past jobs
 		if hasattr(cls, 'completed_db'):
-			for num, obj in cls.completed_db.items():
+			for num, obj in cls.completed_db.iteritems():
 				_jobs[num] = obj
 		if hasattr(cls, 'db'):
-			for num, obj in cls.db.items():
+			for num, obj in cls.db.iteritems():
 				_jobs[num] = obj
 
 		if hasattr(cls, 'default_sub_dir'):
