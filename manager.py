@@ -22,7 +22,7 @@ def change_passwd():
 
 
 def update_role():
-	name = str(raw_input("Please input username"))
+	name = str(raw_input("Please input username: "))
 	usr = User.find(name)
 	if usr:
 		print "User is currently '%s'" % usr.role
@@ -30,7 +30,7 @@ def update_role():
 		role = str(raw_input(_str))
 		if role in User._user_roles:
 			usr.role = role
-			return usr
+			return "Updated %s" % usr
 		else:
 			print "Error: Invalid role '%s'" % role
 	else:
