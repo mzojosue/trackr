@@ -373,6 +373,6 @@ def bid_get_document(bid_num, query):
 		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	doc = os.path.join(_bid.path, query)
-	print doc
+	print os.path.isfile(doc)
 	if os.path.isfile(doc):
 		return send_from_directory(*os.path.split(doc))

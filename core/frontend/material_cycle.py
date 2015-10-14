@@ -168,8 +168,8 @@ def accept_delivery(job_num, d_hash):
 
 
 # Quote Pages #
-@app.route('/j/<int:job_num>/material/<int:m_hash>/quote', methods=['GET', 'POST'])
-def quote(job_num, m_hash):
+@app.route('/j/<int:job_num>/material/quote', methods=['GET', 'POST'])
+def quote(job_num):
 	""" Used for uploading and associating a quote with a material list via HTTP POST methods
 	:param:
 	:return:
@@ -180,7 +180,7 @@ def quote(job_num, m_hash):
 	if request.method == 'POST':
 		##TODO:correctly implement document upload
 		_job = AwardedJob.find(job_num)
-		_list = _job.materials[m_hash]
+		_list = _job.materials[int(request.form['materialList'])]
 
 		__price = request.form['quotePrice']
 		__vend = request.form['vendor']

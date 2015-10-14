@@ -43,10 +43,17 @@
               {{ bid.drawings.keys().index(dwg) + 1 }}
             </td>
 
-						<td><a target="_blank"
-						       href="{{ url_for('bid_get_document', bid_num=bid.number, query=info['sub_path']) }}">
-                  {{ dwg }}
-								</a>
+						<td>
+							{% if path.isfile(info['path']) %}
+	              <a target="_blank"
+	                 href="{{ url_for('bid_get_document', bid_num=bid.number, query=info['sub_path']) }}">
+	                {{ dwg }}
+	              </a>
+	            {% elif path.isdir(info['path']) %}
+	              <a href="{{ url_for('bid_folder', bid_num=bid.number, dir=info['sub_path']) }}">
+	                {{ dwg }}
+	              </a>
+	            {% endif %}
 						</td>
 
 						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(info['path']))) }}</td>
