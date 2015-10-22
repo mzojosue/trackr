@@ -194,6 +194,36 @@ def clear_db(db='trackr_db'):
 	return True
 
 
+def check_db(db='trackr_db'):
+	""" Ensures database is updated by comparing hashes of YAML storage objects with values in database.
+	YAML storage is re-imported if database is not up to date.
+	:param db: Mongo database to iterate through
+	:return: True if operation complete
+	"""
+	client = pymongo.MongoClient("localhost", 27017)
+	_db = client[db]['environment']
+	hashes = _db.yaml_hashes
+	stores = [['bid_storage', get_estimating_log, 'import_estimating_log'],
+			  ['job_storage', get_po_log, 'import_po_log']]  # TODO: implement User and Worker db checking
+	for _id, _path, update_func in stores:
+		_value = hashes.find_one({'_id': _id})
+
+		m = hashlib.md5()
+		m.update( file(_path).read() )
+		_hash = m.hexdigest()  # compute md5 digest of _path
+
+		if not _value or not (str(_value['hash']) == _hash):  # execute update_func and schedule database update
+			f = globals()[update_func]
+			scheduler.add_job(f)
+			_value = {'_id': _id, 'hash': _hash, 'date_modified': datetime.now()}
+			hashes.update({'_id': _id}, _value, upsert=True)
+			print "Updating %s" % _id
+		else:
+			print "%s up-to-date" % _id
+	scheduler.start()
+	return True
+
+
 def reset_db(db='trackr_db'):
 	_cwd = os.getcwd()
 
@@ -203,12 +233,8 @@ def reset_db(db='trackr_db'):
 	start_db()
 	clear_db()
 	User.load_users()
-	if True: #not check_po_log():
-		#scheduler.add_job(import_estimating_log)
-		#scheduler.add_job(import_po_log)
-		#scheduler.start()
-		import_estimating_log()
-		import_po_log()
+
+	check_db()
 
 	Worker.load_workers()
 	os.chdir(_cwd)  # Ensure that directories haven't been changed

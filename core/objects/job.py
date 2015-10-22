@@ -342,12 +342,20 @@ class Job(yaml.YAMLObject):
 			return False
 
 	@classmethod
+	def storage(cls):
+		if hasattr(cls, 'default_sub_dir'):
+			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
+			return _filename
+
+
+	@classmethod
 	def dump_all(cls):
 		""" Iterates through class databases and saves all objects to YAML file
 		:return: None
 		"""
 		if hasattr(cls, '_dump_lock') and cls._dump_lock:
 			return None  # attribute to prevent object storage for testing purposes
+
 		_jobs = {}  # aggregate both current and past jobs
 		if hasattr(cls, 'completed_db'):
 			for num, obj in cls.completed_db.iteritems():
@@ -357,7 +365,7 @@ class Job(yaml.YAMLObject):
 				_jobs[num] = obj
 
 		if hasattr(cls, 'default_sub_dir'):
-			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
+			_filename = cls.storage()
 			stream = file(_filename, 'w')
 			print 'Saving %s' % _filename
 			yaml.dump(_jobs, stream)
