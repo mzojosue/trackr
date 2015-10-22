@@ -401,3 +401,96 @@ class EstimatingQuote(Quote):
 		_path = os.path.join(_path, self.category)
 		return _path
 
+
+class BidSheet(object):
+	""" BidSheet manages the cost and collection of takeoff metrics, quote values, and GC scopes. """
+	def __init__(self, label=None, date_created=now(), bid=None, revision=None):
+		"""
+		:param label: string identify object
+		:param date_created: defaults to `now()`
+		:param bid: bid number, bid object or tuple( parent bid number, sub bid hash value )
+		:param revision: revision label or date
+		:return:
+		"""
+		self.date_created = date_created
+		if not date_created:
+			self.date_created = now()
+		self.bid = bid
+
+		self.sections = {}  # container for storing bid sections with section label as key
+		self.subcontractors = {}  # container for storing subcontractor bid sections with arbitrary key
+
+	def add_section(self, section):
+		if hasattr(section, 'label'):
+			self.sections[ section.label ] = section
+			return self.sections
+
+	def del_sections(self, label):
+		if self.sections.has_key(label):
+			del self.sections[label]
+			return True
+
+	def calculate(self, **kwargs):
+		purch_cost = 0.0
+		labor_hours = 0
+		sub_cost = 0.0  # subcontractor cost
+
+		for section in self.sections.itervalues():
+			# repeat iteration as per section['_iter']
+			section.calculate()
+			pass
+
+		# Calculate labor cost
+		# Return sum of all costs with profit markup
+
+
+class BidSection(object):
+	""" BidSection manages the cost and collection of SectionItems. """
+	# default section items
+	default_items = {
+		'sm_shop': SectionItem('sm_shop', metric='weight', value=30),
+		'sm_field': SectionItem('sm_field', metric='weight', value=25),
+		'RGDs': SectionItem('RGDs', metric='weight', value=0.25),
+		'RTUs':	SectionItem('RTUs', metric='item', value=4),
+		'VAVs': SectionItem('VAVs', metric='item', value=2.25),
+		'EFs': SectionItem('EFs', metric='item', value=2.25),
+		'curbed_fans': SectionItem('curbed_fans', metric='item', value=2.25),
+		'louvers': SectionItem('louvers', metric='item', value=0.5)
+	}
+	def __init__(self, label, iter=1):
+		self.label = label
+		self.iter = int(iter)
+		self.section = {}
+
+	def calculate(self):
+		""" Sums the cost of each SectionItem in self.section
+		:return:
+		"""
+		return NotImplemented
+
+
+class SectionItem(object):
+	""" Object that stores numeric values and methods of calculating cost based on given metric.
+	Eg: labor cost per item plus cost, hours per foot, labor cost per pound
+	"""
+	valid_metrics = ('item', 'length', 'weight')
+	valid_outputs = ('cost', 'hours')
+
+	def __init__(self, name, amount=None, metric='item', value=0.0, cost=None, correction_factor=1.0):
+		self.name = name
+		self.amount = amount
+		self.metric = metric
+		self.value = value
+		self.cost = cost
+		self.correction_factor = correction_factor
+
+	def calculate(self, output='cost'):
+		""" Process value based on metric and output type while implementing cost and correction factor
+		:param output:
+		:return:
+		"""
+		_return = self.amount * self.value * self.correction_factor  # calculate labor hours
+		if str(output) is 'cost':
+			# calculate labor cost
+			pass
+		return _return
