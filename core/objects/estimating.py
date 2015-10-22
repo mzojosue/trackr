@@ -430,53 +430,52 @@ class BidSheet(object):
 			del self.sections[label]
 			return True
 
-	def calculate(self, **kwargs):
-		purch_cost = 0.0
+	def calculate(self, output='hours', rate=None):
+		purch_cost = 0.0  # dynamically create variables based on output type
 		labor_hours = 0
 		sub_cost = 0.0  # subcontractor cost
 
 		for section in self.sections.itervalues():
-			# repeat iteration as per section['_iter']
-			section.calculate()
+			section.calculate(output, rate)
 			pass
 
 		# Calculate labor cost
 		# Return sum of all costs with profit markup
+		return NotImplemented
 
 
 class BidSection(object):
 	""" BidSection manages the cost and collection of SectionItems. """
-	# default section items
-	default_items = {
-		'sm_shop': SectionItem('sm_shop', metric='weight', value=30),
-		'sm_field': SectionItem('sm_field', metric='weight', value=25),
-		'RGDs': SectionItem('RGDs', metric='weight', value=0.25),
-		'RTUs':	SectionItem('RTUs', metric='item', value=4),
-		'VAVs': SectionItem('VAVs', metric='item', value=2.25),
-		'EFs': SectionItem('EFs', metric='item', value=2.25),
-		'curbed_fans': SectionItem('curbed_fans', metric='item', value=2.25),
-		'louvers': SectionItem('louvers', metric='item', value=0.5)
-	}
-	def __init__(self, label, iter=1):
+	value_outputs = ('cost', 'hours')
+
+	def __init__(self, label, iterate=1):
 		self.label = label
-		self.iter = int(iter)
+		self.iterate = int(iterate)
 		self.section = {}
 
-	def calculate(self):
-		""" Sums the cost of each SectionItem in self.section
+	def calculate(self, output='hours', rate=None):
+		""" Sums the cost of each SectionItem in self.section.
+		:param output: defines returned value. Can either be 'cost' or 'hours', defaults to 'hours'.
+		:param rate: used in conjunction with output when calculating total cost from labor hours.
+			The rate value should be passed down from the parent bid.
 		:return:
 		"""
-		return NotImplemented
+		_return = 0
+		for item in self.section.itervalues():
+			_return += item.calculate(output, rate)
+
+		_return *= self.iterate
+		return _return
 
 
 class SectionItem(object):
 	""" Object that stores numeric values and methods of calculating cost based on given metric.
-	Eg: labor cost per item plus cost, hours per foot, labor cost per pound
+	Eg: 'labor cost per item plus cost', 'hours per foot', 'labor cost per pound'
 	"""
 	valid_metrics = ('item', 'length', 'weight')
 	valid_outputs = ('cost', 'hours')
 
-	def __init__(self, name, amount=None, metric='item', value=0.0, cost=None, correction_factor=1.0):
+	def __init__(self, name, amount=0, metric='item', value=0.0, cost=0.0, correction_factor=1.0):
 		self.name = name
 		self.amount = amount
 		self.metric = metric
@@ -484,13 +483,40 @@ class SectionItem(object):
 		self.cost = cost
 		self.correction_factor = correction_factor
 
-	def calculate(self, output='cost'):
+	def calculate(self, output='hours', rate=None):
 		""" Process value based on metric and output type while implementing cost and correction factor
-		:param output:
-		:return:
+		:param output: defines returned value. Can either be 'cost' or 'hours', defaults to 'hours'.
+		:param rate: used in conjunction with output when calculating total cost from labor hours.
+			The rate value should be passed down from the parent bid and BidSection.
+		:return: total amount of labor hours by calculating product of self.amount, self.value, and self.correction_factor.
+			If output=='cost' and a valid rate is given, labor cost is calculated by multiplying by rate passed, and adding the purchasing cost.
 		"""
 		_return = self.amount * self.value * self.correction_factor  # calculate labor hours
-		if str(output) is 'cost':
-			# calculate labor cost
+
+		if str(output) is 'cost' and rate:  # labor rate must be passed
+			_return *= rate       # convert labor hours to labor cost
+			_return += self.cost  # add item cost to output
 			pass
 		return _return
+
+	def __repr__(self):
+		_metric = self.metric
+		_format = (float(self.amount), self.name, self.value)
+		if _metric is 'item':
+			return "%s %s(s) @ %s hours per item" % _format
+		elif _metric is 'length':
+			return "%s feet of %s @ %s hours per foot" % _format
+		elif _metric is 'weight':
+			return "%s pounds of %s @ %s hours per pound" % _format
+
+# Default section items
+default_items = {
+	'sm_shop': SectionItem('sm_shop', metric='weight', value=30),
+	'sm_field': SectionItem('sm_field', metric='weight', value=25),
+	'RGDs': SectionItem('RGD', metric='item', value=0.25),
+	'RTUs':	SectionItem('RTU', metric='item', value=4),
+	'VAVs': SectionItem('VAV', metric='item', value=2.25),
+	'EFs': SectionItem('EF', metric='item', value=2.25),
+	'curbed_fans': SectionItem('curbed_fan', metric='item', value=2.25),
+	'louvers': SectionItem('louver', metric='item', value=0.5)
+}
