@@ -39,6 +39,9 @@ def past_bids(sort_by):
 		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/past_bids.html', estimates=_estimates, usr=auth)
 
+@app.route('/estimating/analytics')
+def estimating_analytics():
+	return NotImplemented
 
 @app.route('/estimating/bid/<int:bid_num>/overview')
 def bid_overview(bid_num):
@@ -53,9 +56,17 @@ def bid_overview(bid_num):
 			return "Error: Bid does not exist."
 
 
-@app.route('/estimating/analytics')
-def estimating_analytics():
-	return NotImplemented
+@app.route('/estimating/bid/<int:bid_num>/calculate')
+def bid_calculate(bid_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth  # redirects to login
+	if hasattr(EstimatingJob, 'db'):
+		try:
+			_bid = EstimatingJob.find(bid_num)
+			return render_template('estimating/bid_calculate.html', bid=_bid, usr=auth)
+		except KeyError:
+			return "Error: Bid does not exist."
 
 
 @app.route('/estimating/bid/<int:bid_num>/dir/<path:dir>')

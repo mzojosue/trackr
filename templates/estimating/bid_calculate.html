@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	{{ bid }}
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+  {{ layout.navbar_links('estimating_home', usr=usr) }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.bid_sidebar('bid_calculate', bid=bid, usr=usr) }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h2 class="page-header">
+			{{ bid.name }}&nbsp;
+		</h2>
+
+		<div class="row">
+			<div class="col-xs-6 col-md-5">
+				<h4>New Section:</h4>
+				<form method="POST" class="col-xs-8">
+
+					<label for="newSectionName">Takeoff Section Name:</label>
+					<div class="form-group">
+						<input name="newSectionName" id="newSectionName" type="text" class="form-control">
+					</div>
+
+					<label for="metalWeight">Sheet Metal Weight (w/o waist):</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="metalWeight" id="metalWeight" type="number" class="form-control">
+							<span class="input-group-addon">lbs</span>
+						</div>
+					</div>
+					<label for="metalCost">Sheet Metal Cost:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<span class="input-group-addon">$</span>
+							<input name="metalCost" id="metalCost" type="number" class="form-control">
+							<span class="input-group-addon">.00</span>
+						</div>
+					</div>
+
+					<label for="airDeviceCount">Air Device Count:</label>
+					<div class="form-group">
+						<p class="small">Include registers, grilles, and diffusers</p>
+						<div class="input-group">
+							<input name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
+							<span class="input-group-addon">pieces</span>
+						</div>
+					</div>
+					<label for="linearDiffLength">Linear Diffuser Length:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="linearDiffLength" id="linearDiffLength" type="number" class="form-control">
+							<span class="input-group-addon">feet, 0"</span>
+						</div>
+					</div>
+					<label for="fsdCount">FSD Count:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="fsdCount" id="fsdCount" type="number" class="form-control">
+							<span class="input-group-addon">pieces</span>
+						</div>
+					</div>
+					<label for="volDamperCount">Volume Damper Count:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="volDamperCount" id="volDamperCount" type="number" class="form-control">
+							<span class="input-group-addon">pieces</span>
+						</div>
+					</div>
+
+					<label for="ahuCount">AHU Count:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="ahuCount" id="ahuCount" type="number" class="form-control">
+							<span class="input-group-addon">units</span>
+						</div>
+					</div>
+					<label for="vavCount">VAV/Term Unit Count:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="vavCount" id="vavCount" type="number" class="form-control">
+							<span class="input-group-addon">units</span>
+						</div>
+					</div>
+					<label for="curbEfCount">Curbed Fan Count:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="curbEfCount" id="curbEfCount" type="number" class="form-control">
+							<span class="input-group-addon">fans</span>
+						</div>
+					</div>
+					<label for="efCount">Ceiling Fan Count:</label>
+					<div class="form-group">
+						<div class="input-group">
+							<input name="efCount" id="efCount" type="number" class="form-control">
+							<span class="input-group-addon">fans</span>
+						</div>
+					</div>
+					<button class="btn btn-lg btn-primary" type="submit">
+						Save Section&nbsp;
+						<span class="glyphicon glyphicon-floppy-open"></span>
+					</button>
+				</form>
+			</div>
+			<div class="col-xs-6 col-md-5">
+				<h4>Takeoff Sections:</h4>
+				<div class="well panel-group" id="accordian" role="tablist" aria-multiselectable="true">
+					<div class="panel panel-success">
+						<div class="panel-heading" role="tab">
+							<h4 class="panel-title">
+								<a role="button" id="heading-1" data-toggle="collapse" data-parent="#accordian" href="#section-1" aria-controls="section-1">
+									Test heading
+								</a>
+							</h4>
+						</div>
+						<div class="panel-collapse collapse in" id="section-1" role="tabpanel">
+							<div class="panel-body">
+								Test
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div><!-- /.row -->
+	</div><!-- /.main -->
+
+{% endblock %}
+
+
+{% block post_script %}
+
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.min.js"></script>
+
+{% endblock %}
