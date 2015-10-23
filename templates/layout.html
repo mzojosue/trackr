@@ -3,7 +3,7 @@
 {% import "objects/modal_objects.html" as modal %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" {% block html_attributes %}{% endblock %}>
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -24,7 +24,7 @@
 
 </head>
 
-<body>
+<body {% block body_attributes %}{% endblock %}>
 
 <nav class="navbar navbar-inverse navbar-fixed-top">
 	<div class="container-fluid">

@@ -118,8 +118,8 @@ def bid_takeoffs(bid_num):
 			return "Error: Bid does not exist."
 
 
-######################
-#** API Functions **##
+#######################
+#** Estimating API **##
 
 
 @app.route('/estimating/create', methods=['GET', 'POST'])
@@ -203,7 +203,7 @@ def delete_bid(bid_num):
 		return redirect(url_for('current_bids'))
 
 
-# Sub Bid Pages #
+# Sub Bid API #
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def create_sub_bid(bid_num):
@@ -274,7 +274,7 @@ def update_sub_bid(bid_num, sub_hash):
 	return redirect(request.referrer)
 
 
-# Bid Quote Pages #
+# Bid Quote API #
 
 @app.route('/estimating/<int:bid_num>/quote/<scope>/<int:q_hash>')
 def bid_quote(bid_num, scope, q_hash):
@@ -334,6 +334,17 @@ def delete_bid_quote(bid_num, q_hash):
 		return auth  # redirects to login
 	return NotImplemented
 
+
+# Bid Pricing API #
+
+@app.route('/estimating/<int:bid_num>/pricing/section/create', methods=['POST'])
+def create_section(bid_num):
+	_data = json.loads(request.data.decode())
+	print _data
+	return "true"
+
+
+# Misc Bid API Routes #
 
 @app.route('/estimating/bids/json')
 def estimating_serialized_overview():

@@ -1,9 +1,7 @@
 from operator import itemgetter
 import os
 from datetime import datetime
-
-today = datetime.today
-now = datetime.now
+from copy import copy
 
 # Import parent classes and methods for estimating objects
 import core.environment as env
@@ -13,6 +11,8 @@ from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
 from core.log import logger
 
+today = datetime.today
+now = datetime.now
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
@@ -404,7 +404,10 @@ class EstimatingQuote(Quote):
 
 class BidSheet(object):
 	""" BidSheet manages the cost and collection of takeoff metrics, quote values, and GC scopes. """
-	def __init__(self, label=None, date_created=now(), bid=None, revision=None):
+
+	valid_scope = Job.valid_scope
+
+	def __init__(self, label=None, date_created=now(), bid=None, revision=None, scope=valid_scope):
 		"""
 		:param label: string identify object
 		:param date_created: defaults to `now()`
@@ -416,17 +419,21 @@ class BidSheet(object):
 		if not date_created:
 			self.date_created = now()
 		self.bid = bid
+		self.scope = []
+		for i in scope:
+			if str(i) in self.valid_scope:
+				self.scope.append(str(i))
 
 		self.sections = {}  # container for storing bid sections with section label as key
 		self.subcontractors = {}  # container for storing subcontractor bid sections with arbitrary key
 
 	def add_section(self, section):
 		if hasattr(section, 'label'):
-			self.sections[ section.label ] = section
+			self.sections[section.label] = section
 			return self.sections
 
 	def del_sections(self, label):
-		if self.sections.has_key(label):
+		if hasattr(self.sections, 'label'):
 			del self.sections[label]
 			return True
 
@@ -453,6 +460,23 @@ class BidSection(object):
 		self.iterate = int(iterate)
 		self.section = {}
 
+	def add_item(self, item):
+		if hasattr(item, 'calculate') and hasattr(item, 'name'):
+			self.section[item.name] = copy(item)  # make item in section independent from global item
+			return True
+
+	def del_item(self, item):
+		"""
+		:param item: could be item name str or object
+		:return: False if operation not completed
+		"""
+		if item in self.section:  # treat item as name str
+			del self.section[item]
+		elif hasattr(item, 'name'):  # treat item as SectionItem object
+			del self.section[item.name]
+		else:
+			return False
+
 	def calculate(self, output='hours', rate=None):
 		""" Sums the cost of each SectionItem in self.section.
 		:param output: defines returned value. Can either be 'cost' or 'hours', defaults to 'hours'.
@@ -472,11 +496,25 @@ class SectionItem(object):
 	""" Object that stores numeric values and methods of calculating cost based on given metric.
 	Eg: 'labor cost per item plus cost', 'hours per foot', 'labor cost per pound'
 	"""
+	valid_scope = Job.valid_scope
 	valid_metrics = ('item', 'length', 'weight')
 	valid_outputs = ('cost', 'hours')
 
-	def __init__(self, name, amount=0, metric='item', value=0.0, cost=0.0, correction_factor=1.0):
+	available_items = {}  # organizes items by scope
+	for i in valid_scope:
+		available_items[i] = {}
+
+	def __init__(self, name, scope, amount=0, metric='item', value=0.0, cost=0.0, correction_factor=1.0):
 		self.name = name
+		if scope in self.valid_scope:
+			self.scope = scope
+		elif scope[0].upper() in self.valid_scope:
+			self.scope = scope[0].upper()
+		else:
+			self.scope = None
+		if self.scope:  # add self to item storage
+			SectionItem.available_items[self.scope][self.name] = self
+
 		self.amount = amount
 		self.metric = metric
 		self.value = value
@@ -511,12 +549,12 @@ class SectionItem(object):
 
 # Default section items
 default_items = {
-	'sm_shop': SectionItem('sm_shop', metric='weight', value=30),
-	'sm_field': SectionItem('sm_field', metric='weight', value=25),
-	'RGDs': SectionItem('RGD', metric='item', value=0.25),
-	'RTUs':	SectionItem('RTU', metric='item', value=4),
-	'VAVs': SectionItem('VAV', metric='item', value=2.25),
-	'EFs': SectionItem('EF', metric='item', value=2.25),
-	'curbed_fans': SectionItem('curbed_fan', metric='item', value=2.25),
-	'louvers': SectionItem('louver', metric='item', value=0.5)
+	'sm_shop': SectionItem('sm_shop', metric='weight', value=30, scope='fabrication'),
+	'sm_field': SectionItem('sm_field', metric='weight', value=25, scope='install'),
+	'RGDs': SectionItem('RGD', metric='item', value=0.25, scope='materials'),
+	'RTUs':	SectionItem('RTU', metric='item', value=4, scope='equipment'),
+	'VAVs': SectionItem('VAV', metric='item', value=2.25, scope='equipment'),
+	'EFs': SectionItem('EF', metric='item', value=2.25, scope='equipment'),
+	'curbed_fans': SectionItem('curbed_fan', metric='item', value=2.25, scope='equipment'),
+	'louvers': SectionItem('louver', metric='item', value=0.5, scope='louvers')
 }

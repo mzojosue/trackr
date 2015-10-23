@@ -5,6 +5,18 @@
 	{{ bid }}
 {% endblock %}
 
+{% block html_attributes %}
+  {%- raw -%}
+    ng-app="BidCalculateApp"
+  {%- endraw -%}
+{% endblock %}
+
+{% block body_attributes %}
+  {%- raw -%}
+    ng-controller="BidSectionController"
+  {%- endraw -%}
+{% endblock %}
+
 
 {% block styles %}
 
@@ -28,113 +40,129 @@
 		</h2>
 
 		<div class="row">
-			<div class="col-xs-6 col-md-5">
-				<h4>New Section:</h4>
-				<form method="POST" class="col-xs-8">
+			<form method="post" id="bidSection" class="col-xs-7"
+        role="form" ng-submit="createSection()">
+        <div id="wrapper" class="col-xs-9">
 
-					<label for="newSectionName">Takeoff Section Name:</label>
-					<div class="form-group">
-						<input name="newSectionName" id="newSectionName" type="text" class="form-control">
-					</div>
+          <h4>New Section:</h4>
 
-					<label for="metalWeight">Sheet Metal Weight (w/o waist):</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="metalWeight" id="metalWeight" type="number" class="form-control">
-							<span class="input-group-addon">lbs</span>
-						</div>
-					</div>
-					<label for="metalCost">Sheet Metal Cost:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<span class="input-group-addon">$</span>
-							<input name="metalCost" id="metalCost" type="number" class="form-control">
-							<span class="input-group-addon">.00</span>
-						</div>
-					</div>
+          <label for="sectionNameInput">Takeoff Section Name:</label>
+          <div class="form-group">
+            <input  ng-model="section.name" name="sectionNameInput" id="name" type="text" class="form-control">
+          </div>
 
-					<label for="airDeviceCount">Air Device Count:</label>
-					<div class="form-group">
-						<p class="small">Include registers, grilles, and diffusers</p>
-						<div class="input-group">
-							<input name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
-							<span class="input-group-addon">pieces</span>
-						</div>
-					</div>
-					<label for="linearDiffLength">Linear Diffuser Length:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="linearDiffLength" id="linearDiffLength" type="number" class="form-control">
-							<span class="input-group-addon">feet, 0"</span>
-						</div>
-					</div>
-					<label for="fsdCount">FSD Count:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="fsdCount" id="fsdCount" type="number" class="form-control">
-							<span class="input-group-addon">pieces</span>
-						</div>
-					</div>
-					<label for="volDamperCount">Volume Damper Count:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="volDamperCount" id="volDamperCount" type="number" class="form-control">
-							<span class="input-group-addon">pieces</span>
-						</div>
-					</div>
 
-					<label for="ahuCount">AHU Count:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="ahuCount" id="ahuCount" type="number" class="form-control">
-							<span class="input-group-addon">units</span>
-						</div>
-					</div>
-					<label for="vavCount">VAV/Term Unit Count:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="vavCount" id="vavCount" type="number" class="form-control">
-							<span class="input-group-addon">units</span>
-						</div>
-					</div>
-					<label for="curbEfCount">Curbed Fan Count:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="curbEfCount" id="curbEfCount" type="number" class="form-control">
-							<span class="input-group-addon">fans</span>
-						</div>
-					</div>
-					<label for="efCount">Ceiling Fan Count:</label>
-					<div class="form-group">
-						<div class="input-group">
-							<input name="efCount" id="efCount" type="number" class="form-control">
-							<span class="input-group-addon">fans</span>
-						</div>
-					</div>
-					<button class="btn btn-lg btn-primary" type="submit">
-						Save Section&nbsp;
-						<span class="glyphicon glyphicon-floppy-open"></span>
-					</button>
-				</form>
-			</div>
-			<div class="col-xs-6 col-md-5">
+          <!-- Begin Scope Area -->
+          <label for="metalWeight">Sheet Metal Weight (w/o waist):</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input ng-model="section.weight" name="metalWeight" id="weight" type="number" class="form-control">
+              <span class="input-group-addon">lbs</span>
+            </div>
+          </div>
+          <label for="metalCost">Sheet Metal Cost:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-addon">$</span>
+              <input name="metalCost" id="metalCost" type="number" class="form-control">
+              <span class="input-group-addon">.00</span>
+            </div>
+          </div>
+
+          <label for="airDeviceCount">Air Device Count:</label>
+          <div class="form-group">
+            <p class="small">Include grilles, registers, and diffusers</p>
+            <div class="input-group">
+              <input name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
+              <span class="input-group-addon">pieces</span>
+            </div>
+          </div>
+          <label for="linearDiffLength">Linear Diffuser Length:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input name="linearDiffLength" id="linearDiffLength" type="number" class="form-control">
+              <span class="input-group-addon">feet, 0"</span>
+            </div>
+          </div>
+          <label for="fsdCount">FSD Count:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input name="fsdCount" id="fsdCount" type="number" class="form-control">
+              <span class="input-group-addon">pieces</span>
+            </div>
+          </div>
+          <label for="volDamperCount">Volume Damper Count:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input name="volDamperCount" id="volDamperCount" type="number" class="form-control">
+              <span class="input-group-addon">pieces</span>
+            </div>
+          </div>
+
+          <label for="ahuCount">AHU Count:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input name="ahuCount" id="ahuCount" type="number" class="form-control">
+              <span class="input-group-addon">units</span>
+            </div>
+          </div>
+          <label for="vavCount">VAV/Term Unit Count:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input name="vavCount" id="vavCount" type="number" class="form-control">
+              <span class="input-group-addon">units</span>
+            </div>
+          </div>
+          <label for="curbEfCount">Curbed Fan Count:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input name="curbEfCount" id="curbEfCount" type="number" class="form-control">
+              <span class="input-group-addon">fans</span>
+            </div>
+          </div>
+          <label for="efCount">Ceiling Fan Count:</label>
+          <div class="form-group">
+            <div class="input-group">
+              <input name="efCount" id="efCount" type="number" class="form-control">
+              <span class="input-group-addon">fans</span>
+            </div>
+          </div>
+          <!-- End Scope Area -->
+
+
+          <button class="btn btn-lg btn-primary" type="submit">
+            Save Section&nbsp;
+            <span class="glyphicon glyphicon-floppy-open"></span>
+          </button>
+        </div><!-- /#wrapper -->
+			</form>
+
+			<div class="col-xs-5">
 				<h4>Takeoff Sections:</h4>
-				<div class="well panel-group" id="accordian" role="tablist" aria-multiselectable="true">
-					<div class="panel panel-success">
-						<div class="panel-heading" role="tab">
-							<h4 class="panel-title">
-								<a role="button" id="heading-1" data-toggle="collapse" data-parent="#accordian" href="#section-1" aria-controls="section-1">
-									Test heading
-								</a>
-							</h4>
-						</div>
-						<div class="panel-collapse collapse in" id="section-1" role="tabpanel">
-							<div class="panel-body">
-								Test
-							</div>
-						</div>
-					</div>
-				</div>
+        {% raw %}
+          <div class="well panel-group" id="accordian" role="tablist" aria-multiselectable="true">
+
+            <div class="panel panel-success" ng-repeat="(name, val) in sections">
+              <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                  <a role="button" id="section-header-{{ name }}" data-toggle="collapse" data-parent="#accordian" href="#section-{{ name }}" aria-controls="section-{{ name }}">
+                    {{ name }}
+                  </a>&nbsp;
+                  <button class="btn btn-sm btn-warning" ng-click="editSection(name)">
+                    <span class="glyphicon glyphicon-pencil"></span>&nbsp;
+                    Edit
+                  </button>
+                </h4>
+              </div>
+              <div class="panel-collapse collapse in" id="section-{{ name }}" role="tabpanel">
+                <div class="panel-body">
+                  {{ val }}
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /.well.panel-group -->
+        {% endraw %}
 			</div>
 
 		</div><!-- /.row -->
@@ -146,5 +174,45 @@
 {% block post_script %}
 
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.min.js"></script>
+  <script type="text/javascript" language="javascript">
+    (function () {
+
+      'use strict';
+
+      angular.module('BidCalculateApp', [])
+
+      .controller('BidSectionController', ['$scope', '$log', '$http', function($scope, $log, $http) {
+          $scope.section = {};   // Input form area
+          $scope.sections = {};  // Holds bid sections for bid sheet
+
+          $scope.createSection = function() {
+            $http.post('{{ url_for('create_section', bid_num=bid.number) }}',
+              $scope.section ).
+              success(function(results) {
+                if ('name' in $scope.section) {
+                  $scope.sections[$scope.section['name']] = angular.copy($scope.section);
+                  $log.log(results);
+                  for (var key in $scope.section) {
+                    if ($scope.section.hasOwnProperty(key)) {
+                      $log.log( key );
+                    }
+                  }
+                  $scope.section = {}
+                }
+              }).
+              error(function(error) {
+                $log.log(error);
+              });
+          };
+          $scope.editSection = function(name) {
+            // Update input form area with passed section label
+            $scope.section = angular.copy($scope.sections[name]);
+          }
+      }
+
+      ]);
+
+    }());
+  </script>
 
 {% endblock %}
