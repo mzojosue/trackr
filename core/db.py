@@ -230,10 +230,9 @@ def reset_db(db='trackr_db'):
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
-	start_db()
-	clear_db()
 	User.load_users()
 
+	start_db()
 	check_db()
 
 	Worker.load_workers()
