@@ -58,7 +58,7 @@
 
           <!-- Begin Scope Area -->
           <div class="scope-sm">
-            <div id="sm" class="section-item well">
+            <div class="sm-weight">
               <label for="metalWeight">Sheet Metal Weight (w/o waist):</label>
               <div class="form-group">
                 <div class="input-group">
@@ -66,138 +66,81 @@
                   <span class="input-group-addon">lbs</span>
                 </div>
               </div>
-	            <label for="metalCost">Sheet Metal Cost:</label>
-	            <div class="form-group">
-		            <div class="input-group">
-			            <span class="input-group-addon">$</span>
-			            <input ng-model="section.metalCost" name="metalCost" id="metalCost" type="number" class="form-control">
-			            <span class="input-group-addon">.00</span>
-		            </div>
-	            </div>
-            </div><!-- /.sm -->
+            </div><!-- /.sm-weight -->
+            <div class="sm-cost">
+              <label for="metalCost">Sheet Metal Cost:</label>
+              <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon">$</span>
+                  <input ng-model="section.metalCost" name="metalCost" id="metalCost" type="number" class="form-control">
+                  <span class="input-group-addon">.00</span>
+                </div>
+              </div>
+            </div><!-- /.sm-cost -->
           </div><!-- /.scope-sm -->
 
           <!-- TODO: continue to implement scope div's -->
           <div class="scope-M">
-	          <div id="airDevices" class="section-item well">
-		          <label for="airDeviceCount">Air Device Count:</label>
-		          <div class="form-group">
-			          <p class="small">Include grilles, registers, and diffusers</p>
-			          <div class="input-group">
-				          <input ng-model="section.airDeviceCount" name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
-				          <span class="input-group-addon">pieces</span>
-			          </div>
-		          </div>
-		          <label for="airDeviceCost">Air Device Cost:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <span class="input-group-addon">$</span>
-				          <input ng-model="section.airDeviceCost" name="airDeviceCost" id="airDeviceCost" type="number" class="form-control">
-				          <span class="input-group-addon">.00</span>
-			          </div>
-		          </div>
-	          </div><!-- /.airDevices -->
-
-	          <div id="fsd" class="section-item well">
-		          <label for="fsdCount">FSD Count:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <input ng-model="section.fsdCount" name="fsdCount" id="fsdCount" type="number" class="form-control">
-				          <span class="input-group-addon">pieces</span>
-			          </div>
-		          </div>
-							<label for="airDeviceCost">Air Device Cost:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <span class="input-group-addon">$</span>
-				          <input ng-model="section.fsdCost" name="airDeviceCost" id="airDeviceCost" type="number" class="form-control">
-				          <span class="input-group-addon">.00</span>
-			          </div>
-		          </div>
-	          </div><!-- /.fsd -->
-
-	          <div id="vol-damper" class="section-item well">
-		          <label for="volDamperCount">Volume Damper Count:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <input ng-model="section.volDamperCount" name="volDamperCount" id="volDamperCount" type="number" class="form-control">
-				          <span class="input-group-addon">pieces</span>
-			          </div>
-		          </div>
-	          </div><!-- /.vol-damper -->
-
-	          <div id="curbedFans" class="section-item well">
-		          <div class="form-group">
-			          <label for="curbedFanCount">Curbed Fan Count:</label>
-			          <div class="input-group">
-				          <input ng-model="section.curbedFanCount" name="curbedFanCount" id="curbedFanCount" type="number" class="form-control">
-				          <span class="input-group-addon">fans</span>
-			          </div>
-		          </div>
-		          <div class="form-group">
-			          <label for="curbedFanCost">Curbed Fan Cost:</label>
-			          <div class="input-group">
-				          <span class="input-group-addon">$</span>
-				          <input ng-model="section.curbedFanCost" name="curbedFanCost" id="curbedFanCost" type="number" class="form-control">
-				          <span class="input-group-addon">.00</span>
-			          </div>
-		          </div>
-	          </div><!-- /.curbedFans -->
-
-	          <div id="ceilingFans" class="section-item well">
-		          <label for="ceilingFanCount">Ceiling Fan Count:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <input ng-model="section.ceilingFanCount" name="ceilingFanCount" id="ceilingFanCount" type="number" class="form-control">
-				          <span class="input-group-addon">fans</span>
-			          </div>
-		          </div>
-		          <div class="form-group">
-			          <label for="ceilingFanCost">Ceiling Fan Cost:</label>
-			          <div class="input-group">
-				          <span class="input-group-addon">$</span>
-				          <input ng-model="section.ceilingFanCost" name="ceilingFanCost" id="ceilingFanCost" type="number" class="form-control">
-				          <span class="input-group-addon">.00</span>
-			          </div>
-		          </div>
-	          </div><!-- /.ceilingFans -->
+            <label for="airDeviceCount">Air Device Count:</label>
+            <div class="form-group">
+              <p class="small">Include grilles, registers, and diffusers</p>
+              <div class="input-group">
+                <input ng-model="section.airDeviceCount" name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
+                <span class="input-group-addon">pieces</span>
+              </div>
+            </div>
+            <label for="linearDiffLength">Linear Diffuser Length:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.linearDiffLength" name="linearDiffLength" id="linearDiffLength" type="number" class="form-control">
+                <span class="input-group-addon">feet, 0"</span>
+              </div>
+            </div>
+            <label for="fsdCount">FSD Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.fsdCount" name="fsdCount" id="fsdCount" type="number" class="form-control">
+                <span class="input-group-addon">pieces</span>
+              </div>
+            </div>
+            <label for="volDamperCount">Volume Damper Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.volDamperCount" name="volDamperCount" id="volDamperCount" type="number" class="form-control">
+                <span class="input-group-addon">pieces</span>
+              </div>
+            </div>
+            <label for="curbEfCount">Curbed Fan Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.curbEfCount" name="curbEfCount" id="curbEfCount" type="number" class="form-control">
+                <span class="input-group-addon">fans</span>
+              </div>
+            </div>
+            <label for="efCount">Ceiling Fan Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.efCount" name="efCount" id="efCount" type="number" class="form-control">
+                <span class="input-group-addon">fans</span>
+              </div>
+            </div>
           </div><!-- /.scope-M -->
 
           <div class="scope-E">
-	          <div id="ahu" class="section-item well">
-		          <label for="ahuCount">AHU Count:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <input ng-model="section.ahuCount" name="ahuCount" id="ahuCount" type="number" class="form-control">
-				          <span class="input-group-addon">units</span>
-			          </div>
-		          </div>
-		          <label for="ahuCost">AHU Cost:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <span class="input-group-addon">$</span>
-				          <input ng-model="section.ahuCost" name="ahuCost" id="ahuCost" type="number" class="form-control">
-				          <span class="input-group-addon">.00</span>
-			          </div>
-		          </div>
-	          </div><!-- /.ahu -->
-	          <div id="vav" class="section-item well">
-							<label for="vavCount">VAV/Term Unit Count:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <input ng-model="section.vavCount" name="vavCount" id="vavCount" type="number" class="form-control">
-				          <span class="input-group-addon">units</span>
-			          </div>
-		          </div>
-		          <label for="vavCount">VAV/Term Unit Cost:</label>
-		          <div class="form-group">
-			          <div class="input-group">
-				          <span class="input-group-addon">$</span>
-				          <input ng-model="section.vavCost" name="vavCost" id="vavCost" type="number" class="form-control">
-				          <span class="input-group-addon">.00</span>
-			          </div>
-		          </div>
-	          </div><!-- /.vav -->
+            <label for="ahuCount">AHU Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.ahuCount" name="ahuCount" id="ahuCount" type="number" class="form-control">
+                <span class="input-group-addon">units</span>
+              </div>
+            </div>
+            <label for="vavCount">VAV/Term Unit Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.vavCount" name="vavCount" id="vavCount" type="number" class="form-control">
+                <span class="input-group-addon">units</span>
+              </div>
+            </div>
           </div><!-- /.scope-E -->
           <!-- End Scope Area -->
 
@@ -220,7 +163,7 @@
                   <a role="button" id="section-header-{{ name }}" data-toggle="collapse" data-parent="#accordian" href="#section-{{ name }}" aria-controls="section-{{ name }}">
                     {{ name }}
                   </a>&nbsp;
-                  <button class="btn btn-xs btn-warning" ng-click="editSection(name)">
+                  <button class="btn btn-sm btn-warning" ng-click="editSection(name)">
                     <span class="glyphicon glyphicon-pencil"></span>&nbsp;
                     Edit
                   </button>
@@ -262,18 +205,18 @@
             for (var key in $scope.section) {
               if ($scope.section.hasOwnProperty(key)) {
                 var _key = $("#" + key);
-                var _parent = _key.parent().parent().parent();  // wrapping scope
+                var _parent = _key.parent().parent().parent().parent();  // wrapping scope
                 var _parent_class = _parent[0].className;
-                var _item = _key.parent().parent();  // wrapping sectionItem div
-                var _item_id = _item[0].id;
+                var _item = _key.parent().parent().parent();  // wrapping sectionItem div
+                var _item_class = _item[0].className;
                 // if _parent_class is 'scope-*', _return[_item] = {};
                 if (_parent[0].id === 'wrapper') {  // DOM parent chain extended too far
-                  _return[_item_id] = $scope.section[key];
+                  _return[_item_class] = $scope.section[key];
                 } else if (_return[_parent_class] == undefined) {
                   _return[_parent_class] = {};
-                  _return[_parent_class][_item_id] = $scope.section[key];
+                  _return[_parent_class][_item_class] = $scope.section[key];
                 } else {
-                  _return[_parent_class][_item_id] = $scope.section[key];
+                  _return[_parent_class][_item_class] = $scope.section[key];
                 }
               }
             }
