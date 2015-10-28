@@ -58,7 +58,7 @@
 
           <!-- Begin Scope Area -->
           <div class="scope-sm">
-            <div class="sm-weight">
+            <div class="sm-stats">
               <label for="metalWeight">Sheet Metal Weight (w/o waist):</label>
               <div class="form-group">
                 <div class="input-group">
@@ -66,8 +66,6 @@
                   <span class="input-group-addon">lbs</span>
                 </div>
               </div>
-            </div><!-- /.sm-weight -->
-            <div class="sm-cost">
               <label for="metalCost">Sheet Metal Cost:</label>
               <div class="form-group">
                 <div class="input-group">
@@ -76,26 +74,33 @@
                   <span class="input-group-addon">.00</span>
                 </div>
               </div>
-            </div><!-- /.sm-cost -->
+            </div><!-- /.sm-stats -->
+            <!-- TODO: set option to input labor hours directly -->
+            <div class="sm-calc">
+              <!-- TODO: set options to calculate field/install -->
+            </div>
           </div><!-- /.scope-sm -->
 
           <!-- TODO: continue to implement scope div's -->
           <div class="scope-M">
-            <label for="airDeviceCount">Air Device Count:</label>
-            <div class="form-group">
-              <p class="small">Include grilles, registers, and diffusers</p>
-              <div class="input-group">
-                <input ng-model="section.airDeviceCount" name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
-                <span class="input-group-addon">pieces</span>
+            <div class="GRDs">
+              <label for="airDeviceCount">Air Device Count:</label>
+              <div class="form-group">
+                <p class="small">Include grilles, registers, and diffusers</p>
+                <div class="input-group">
+                  <input ng-model="section.airDeviceCount" name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
+                  <span class="input-group-addon">pieces</span>
+                </div>
               </div>
-            </div>
-            <label for="linearDiffLength">Linear Diffuser Length:</label>
-            <div class="form-group">
-              <div class="input-group">
-                <input ng-model="section.linearDiffLength" name="linearDiffLength" id="linearDiffLength" type="number" class="form-control">
-                <span class="input-group-addon">feet, 0"</span>
+              <label for="linearDiffLength">Linear Diffuser Length:</label>
+              <div class="form-group">
+                <div class="input-group">
+                  <input ng-model="section.linearDiffLength" name="linearDiffLength" id="linearDiffLength" type="number" class="form-control">
+                  <span class="input-group-addon">feet, 0"</span>
+                </div>
               </div>
-            </div>
+            </div><!-- /.GRDs -->
+            <div class="ductAccessories"></div>
             <label for="fsdCount">FSD Count:</label>
             <div class="form-group">
               <div class="input-group">
@@ -212,11 +217,13 @@
                 // if _parent_class is 'scope-*', _return[_item] = {};
                 if (_parent[0].id === 'wrapper') {  // DOM parent chain extended too far
                   _return[_item_class] = $scope.section[key];
-                } else if (_return[_parent_class] == undefined) {
-                  _return[_parent_class] = {};
-                  _return[_parent_class][_item_class] = $scope.section[key];
                 } else {
-                  _return[_parent_class][_item_class] = $scope.section[key];
+                  if (_return[_parent_class] == undefined) {
+                    _return[_parent_class] = {};
+                  } if (_return[_parent_class][_item_class] == undefined) {
+                    _return[_parent_class][_item_class] = {};
+                  }
+                  _return[_parent_class][_item_class][key] = $scope.section[key];
                 }
               }
             }
