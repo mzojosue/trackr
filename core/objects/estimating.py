@@ -415,6 +415,7 @@ class BidSheet(object):
 		:param revision: revision label or date
 		:return:
 		"""
+		self.label = label
 		self.date_created = date_created
 		if not date_created:
 			self.date_created = now()
@@ -438,17 +439,24 @@ class BidSheet(object):
 			return True
 
 	def calculate(self, output='hours', rate=None):
-		purch_cost = 0.0  # dynamically create variables based on output type
-		labor_hours = 0
-		sub_cost = 0.0  # subcontractor cost
+		_labor = 0  # dynamically create variables based on output type
+		_purch = 0.0
+		# sub_cost = 0.0  # subcontractor cost
 
 		for section in self.sections.itervalues():
-			section.calculate(output, rate)
-			pass
+			_calc = section.calculate(output, rate)
+			if hasattr(_calc, '__getitem__'):  # working with dollar and labor amounts
+				_labor += _calc[0]
+				_purch += _calc[1]
+			else:
+				_labor += _calc  # working with dollar amounts
 
 		# Calculate labor cost
 		# Return sum of all costs with profit markup
-		return NotImplemented
+		if _purch:
+			return (_labor, _purch)
+		else:
+			return _purch
 
 
 class BidSection(object):
@@ -461,8 +469,12 @@ class BidSection(object):
 		self.section = {}
 
 	def add_item(self, item):
-		if hasattr(item, 'calculate') and hasattr(item, 'name'):
+		# TODO: check scope
+		if hasattr(item, 'calculate') and hasattr(item, 'name'):  # assume that item passed is SectionItem object
 			self.section[item.name] = copy(item)  # make item in section independent from global item
+			return True
+		elif str(item) in SectionItem.available_items:
+			self.section[item] = copy(SectionItem.available_items[item])
 			return True
 
 	def del_item(self, item):
@@ -485,11 +497,22 @@ class BidSection(object):
 		:return:
 		"""
 		_return = 0
-		for item in self.section.itervalues():
-			_return += item.calculate(output, rate)
+		_cost = 0
 
+		for item in self.section.itervalues():
+			_calc = item.calculate(output, rate)
+			if hasattr(_calc, '__getitem__'):
+				_return += _calc[0]
+				_cost += _calc[1]
+			else:
+				_return += _calc
 		_return *= self.iterate
-		return _return
+		_cost *= self.iterate
+
+		if _cost:
+			return (_return, _cost)
+		else:
+			return _return
 
 
 class SectionItem(object):
@@ -522,7 +545,7 @@ class SectionItem(object):
 		self.correction_factor = correction_factor
 
 	def calculate(self, output='hours', rate=None):
-		""" Process value based on metric and output type while implementing cost and correction factor
+		""" Process value based on metric and output type while implementing cost and correction factor.
 		:param output: defines returned value. Can either be 'cost' or 'hours', defaults to 'hours'.
 		:param rate: used in conjunction with output when calculating total cost from labor hours.
 			The rate value should be passed down from the parent bid and BidSection.
@@ -534,8 +557,9 @@ class SectionItem(object):
 		if str(output) is 'cost' and rate:  # labor rate must be passed
 			_return *= rate       # convert labor hours to labor cost
 			_return += self.cost  # add item cost to output
-			pass
-		return _return
+			return _return
+		else:
+			return (_return, self.cost)
 
 	def __repr__(self):
 		_metric = self.metric

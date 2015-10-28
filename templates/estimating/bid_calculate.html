@@ -79,7 +79,6 @@
             <div class="sm-calc">
               <!-- TODO: set options to calculate field/install -->
             </div>
-          </div><!-- /.scope-sm -->
 
           <!-- TODO: continue to implement scope div's -->
           <div class="scope-M">
@@ -132,20 +131,40 @@
           </div><!-- /.scope-M -->
 
           <div class="scope-E">
-            <label for="ahuCount">AHU Count:</label>
-            <div class="form-group">
-              <div class="input-group">
-                <input ng-model="section.ahuCount" name="ahuCount" id="ahuCount" type="number" class="form-control">
-                <span class="input-group-addon">units</span>
-              </div>
-            </div>
-            <label for="vavCount">VAV/Term Unit Count:</label>
-            <div class="form-group">
-              <div class="input-group">
-                <input ng-model="section.vavCount" name="vavCount" id="vavCount" type="number" class="form-control">
-                <span class="input-group-addon">units</span>
-              </div>
-            </div>
+	          <div id="ahu" class="section-item well">
+		          <label for="ahuCount">AHU Count:</label>
+		          <div class="form-group">
+			          <div class="input-group">
+				          <input ng-model="section.ahuCount" name="ahuCount" id="ahuCount" type="number" class="form-control">
+				          <span class="input-group-addon">units</span>
+			          </div>
+		          </div>
+		          <label for="ahuCost">AHU Cost:</label>
+		          <div class="form-group">
+			          <div class="input-group">
+				          <span class="input-group-addon">$</span>
+				          <input ng-model="section.ahuCost" name="ahuCost" id="ahuCost" type="number" class="form-control">
+				          <span class="input-group-addon">.00</span>
+			          </div>
+		          </div>
+	          </div><!-- /.ahu -->
+	          <div id="vav" class="section-item well">
+							<label for="vavCount">VAV/Term Unit Count:</label>
+		          <div class="form-group">
+			          <div class="input-group">
+				          <input ng-model="section.vavCount" name="vavCount" id="vavCount" type="number" class="form-control">
+				          <span class="input-group-addon">units</span>
+			          </div>
+		          </div>
+		          <label for="vavCount">VAV/Term Unit Cost:</label>
+		          <div class="form-group">
+			          <div class="input-group">
+				          <span class="input-group-addon">$</span>
+				          <input ng-model="section.vavCost" name="vavCost" id="vavCost" type="number" class="form-control">
+				          <span class="input-group-addon">.00</span>
+			          </div>
+		          </div>
+	          </div><!-- /.vav -->
           </div><!-- /.scope-E -->
           <!-- End Scope Area -->
 
@@ -168,7 +187,7 @@
                   <a role="button" id="section-header-{{ name }}" data-toggle="collapse" data-parent="#accordian" href="#section-{{ name }}" aria-controls="section-{{ name }}">
                     {{ name }}
                   </a>&nbsp;
-                  <button class="btn btn-sm btn-warning" ng-click="editSection(name)">
+                  <button class="btn btn-xs btn-warning" ng-click="editSection(name)">
                     <span class="glyphicon glyphicon-pencil"></span>&nbsp;
                     Edit
                   </button>
@@ -210,10 +229,10 @@
             for (var key in $scope.section) {
               if ($scope.section.hasOwnProperty(key)) {
                 var _key = $("#" + key);
-                var _parent = _key.parent().parent().parent().parent();  // wrapping scope
+                var _parent = _key.parent().parent().parent();  // wrapping scope
                 var _parent_class = _parent[0].className;
-                var _item = _key.parent().parent().parent();  // wrapping sectionItem div
-                var _item_class = _item[0].className;
+                var _item = _key.parent().parent();  // wrapping sectionItem div
+                var _item_id = _item[0].id;
                 // if _parent_class is 'scope-*', _return[_item] = {};
                 if (_parent[0].id === 'wrapper') {  // DOM parent chain extended too far
                   _return[_item_class] = $scope.section[key];
