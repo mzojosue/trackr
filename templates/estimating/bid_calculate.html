@@ -50,7 +50,7 @@
             <div><!-- Wrapping div when collecting scope -->
               <label for="sectionName">Takeoff Section Name:</label>
               <div class="form-group">
-                <input  ng-model="section.sectionName" name="sectionName" id="sectionName" type="text" class="form-control">
+                <input  ng-model="section.sectionName" name="sectionName" id="sectionName" type="text" class="form-control" required>
               </div>
             </div>
           </div><!-- /.label -->
@@ -202,7 +202,7 @@
 
       'use strict';
 
-      angular.module('BidCalculateApp', [])
+      angular.module('BidCalculateApp', ['BidSectionController'])
 
       .controller('BidSectionController', ['$scope', '$log', '$http', function($scope, $log, $http) {
           $scope.section = {};   // Input form area
