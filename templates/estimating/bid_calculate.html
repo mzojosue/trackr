@@ -81,7 +81,6 @@
 	          </div>
           </div><!-- /.scope-sm -->
 
-          <!-- TODO: continue to implement scope div's -->
           <div class="scope-M">
             <div class="GRDs">
               <label for="airDeviceCount">Air Device Count:</label>
@@ -152,6 +151,14 @@
           </div><!-- /.scope-E -->
           <!-- End Scope Area -->
 
+          {% raw %}
+            <label for="selectedItem">Select new item to add:</label>
+            <select id="selectedItem" ng-model="selectedItem" ng-change="addItem()">
+              <optgroup label="{{ scope }}" ng-repeat="(scope, _items) in items">
+                <option value="({{ item }}, {{ vals }})"  ng-repeat="(item, vals) in _items">{{ item }}</option>
+              </optgroup>
+            </select>
+          {% endraw %}
 
           <button class="btn btn-lg btn-primary" type="submit">
             Save Section&nbsp;
@@ -202,11 +209,19 @@
 
       'use strict';
 
-      angular.module('BidCalculateApp', ['BidSectionController'])
-
-      .controller('BidSectionController', ['$scope', '$log', '$http', function($scope, $log, $http) {
+      angular.module('BidCalculateApp', [])
+        .controller('BidSectionController', ['$scope', '$log', '$http', function($scope, $log, $http) {
           $scope.section = {};   // Input form area
           $scope.sections = {};  // Holds bid sections for bid sheet
+
+          $http.get("{{ url_for('get_available_items', bid_num=bid.number) }}").
+            success(function(results) {
+              $scope.items = results;
+              $log.log(results);
+            }).
+          error(function (error) {
+            $log.log(error);
+          });
 
           $scope.createSection = function() {
             var _return = {};
@@ -244,11 +259,18 @@
                 $log.log(error);
               });
           };
+
           $scope.editSection = function(name) {
             // Update input form area with passed section label
             $scope.section = angular.copy($scope.sections[name]);
+          };
+
+          $scope.addItem = function() {
+            $log.log($scope.selectedItem);
+            // TODO: Add element to form using $scope.selectedItem
           }
-      }
+        }
+
 
       ]);
 
