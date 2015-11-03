@@ -343,6 +343,23 @@ def create_section(bid_num):
 	print _data
 	return "true"
 
+@app.route('/estimating/bid/<int:bid_num>/pricing/available_items')
+def get_available_items(bid_num):
+	""" Returns all available items with AngularJS hooks in a JSON format
+	:param bid_num:
+	"""
+	_return = {}
+	bid = EstimatingJob.find(bid_num)
+	for _scope in bid.scope:
+		_return[_scope] = {}
+		for key, obj in SectionItem.available_items[_scope].iteritems():
+			_return[_scope][key] = {'id': key,
+									'label': obj.label,
+									'metric': obj.metric,
+									'units': obj.units,
+									'value': obj.value}
+	return json.dumps(_return)
+
 
 # Misc Bid API Routes #
 

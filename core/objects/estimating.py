@@ -470,7 +470,7 @@ class BidSection(object):
 
 	def add_item(self, item):
 		# TODO: check scope
-		if hasattr(item, 'calculate') and hasattr(item, 'name'):  # assume that item passed is SectionItem object
+		if hasattr(item, 'calculate') and hasattr(item, 'id'):  # assume that item passed is SectionItem object
 			self.section[item.name] = copy(item)  # make item in section independent from global item
 			return True
 		elif str(item) in SectionItem.available_items:
@@ -479,12 +479,12 @@ class BidSection(object):
 
 	def del_item(self, item):
 		"""
-		:param item: could be item name str or object
+		:param item: could be item id str or object
 		:return: False if operation not completed
 		"""
-		if item in self.section:  # treat item as name str
+		if item in self.section:  # treat item as id str
 			del self.section[item]
-		elif hasattr(item, 'name'):  # treat item as SectionItem object
+		elif hasattr(item, 'id'):  # treat item as SectionItem object
 			del self.section[item.name]
 		else:
 			return False
@@ -520,15 +520,16 @@ class SectionItem(object):
 	Eg: 'labor cost per item plus cost', 'hours per foot', 'labor cost per pound'
 	"""
 	valid_scope = Job.valid_scope
-	valid_metrics = ('item', 'length', 'weight')
 	valid_outputs = ('cost', 'hours')
+	valid_metrics = ('count', 'length', 'weight')
+	default_metric = 'count'
 
 	available_items = {}  # organizes items by scope
 	for i in valid_scope:
 		available_items[i] = {}
 
-	def __init__(self, name, scope, amount=0, metric='item', value=0.0, cost=0.0, correction_factor=1.0):
-		self.name = name
+	def __init__(self, id, scope, label=None, amount=0, metric=default_metric, units=None, value=0.0, cost=0.0, correction_factor=1.0):
+		self.id = id
 		if scope in self.valid_scope:
 			self.scope = scope
 		elif scope[0].upper() in self.valid_scope:
@@ -536,10 +537,12 @@ class SectionItem(object):
 		else:
 			self.scope = None
 		if self.scope:  # add self to item storage
-			SectionItem.available_items[self.scope][self.name] = self
+			SectionItem.available_items[self.scope][self.id] = self
 
+		self.label = label
 		self.amount = amount
 		self.metric = metric
+		self.units = units  # used for UI. Should be plural string
 		self.value = value
 		self.cost = cost
 		self.correction_factor = correction_factor
@@ -563,7 +566,7 @@ class SectionItem(object):
 
 	def __repr__(self):
 		_metric = self.metric
-		_format = (float(self.amount), self.name, self.value)
+		_format = (float(self.amount), self.id, self.value)
 		if _metric is 'item':
 			return "%s %s(s) @ %s hours per item" % _format
 		elif _metric is 'length':
@@ -571,14 +574,16 @@ class SectionItem(object):
 		elif _metric is 'weight':
 			return "%s pounds of %s @ %s hours per pound" % _format
 
-# Default section items
-default_items = {
-	'sm_shop': SectionItem('sm_shop', metric='weight', value=30, scope='fabrication'),
-	'sm_field': SectionItem('sm_field', metric='weight', value=25, scope='install'),
-	'RGDs': SectionItem('RGD', metric='item', value=0.25, scope='materials'),
-	'RTUs':	SectionItem('RTU', metric='item', value=4, scope='equipment'),
-	'VAVs': SectionItem('VAV', metric='item', value=2.25, scope='equipment'),
-	'EFs': SectionItem('EF', metric='item', value=2.25, scope='equipment'),
-	'curbed_fans': SectionItem('curbed_fan', metric='item', value=2.25, scope='equipment'),
-	'louvers': SectionItem('louver', metric='item', value=0.5, scope='louvers')
-}
+# Create default section items
+SectionItem('sm_shop', label="Sheet Metal Fabrication", metric='weight', value=30, scope='fabrication')
+SectionItem('sm_field', label="Sheet Metal Installation",  metric='weight', value=25, scope='install')
+SectionItem('RGD', label="Air Device", units="pieces", value=0.25, scope='materials')
+SectionItem('linear', label="Linear Air Device", metric='length', value=0.25, scope='materials')  # TODO: fix labor value
+SectionItem('FSD', label="Fire/Smoke Damper", units="pieces", value=1, scope='materials')
+SectionItem('vol_damper', label="Volume Damper", units="pieces", value=.3, scope='materials')
+SectionItem('ceiling_fan', label="Ceiling Fan", units="fans", value=1.25, scope='equipment')
+SectionItem('curbed_fan',  label="Curbed Fan", units="fans", value=2.25, scope='equipment')
+SectionItem('louver', label="Louver", units="pieces", value=0.5, scope='louvers')
+SectionItem('RTU', label="Packaged Rooftop Unit", units="units", value=4, scope='equipment')
+SectionItem('VAV', label="Terminal/VAV Unit", units="units", value=2.25, scope='equipment')
+
