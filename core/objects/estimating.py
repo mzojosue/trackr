@@ -2,6 +2,7 @@ from operator import itemgetter
 import os
 from datetime import datetime
 from copy import copy
+import re
 
 # Import parent classes and methods for estimating objects
 import core.environment as env
@@ -179,6 +180,20 @@ class EstimatingJob(Job):
 					os.mkdir(os.path.join(self.path, 'Quotes', _scope))
 				except OSError:
 					pass  # assume quote folders already exist
+
+		_name = self._name
+		_name = _name.replace(' ', '_')  # normalize _name string as filename
+
+		_srch = ' '.join(os.listdir(self.path))  # enumerate all directories and file names
+		_patterns = ('proposal\.docx', 'pricing\.xlsx')
+		for doc in _patterns:
+			if not re.search('\w+\.%s' % doc, _srch):
+				_doc = doc.replace("\\", "")  # remove '\' from regex str
+				_doc = '%s.%s' % (_name, _doc)  # name to save template file as
+				## TODO: copy document from template folder using _doc
+		## TODO: check for proposal and pricing documents using regex '*.proposal.docx'
+		## TODO: import proposal and pricing documents
+
 
 		return True
 
