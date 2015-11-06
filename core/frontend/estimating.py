@@ -353,11 +353,13 @@ def get_available_items(bid_num):
 	for _scope in bid.scope:
 		_return[_scope] = {}
 		for key, obj in SectionItem.available_items[_scope].iteritems():
+
 			_return[_scope][key] = {'id': key,
 									'label': obj.label,
 									'metric': obj.metric,
 									'units': obj.units,
-									'value': obj.value}
+									'value': obj.value,
+									'scope': obj.scope}
 	return json.dumps(_return)
 
 
