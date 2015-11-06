@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from copy import copy
 import re
+import shutil
 
 # Import parent classes and methods for estimating objects
 import core.environment as env
@@ -184,16 +185,24 @@ class EstimatingJob(Job):
 		_name = self._name
 		_name = _name.replace(' ', '_')  # normalize _name string as filename
 
-		_srch = ' '.join(os.listdir(self.path))  # enumerate all directories and file names
-		_patterns = ('proposal\.docx', 'pricing\.xlsx')
-		for doc in _patterns:
-			if not re.search('\w+\.%s' % doc, _srch):
-				_doc = doc.replace("\\", "")  # remove '\' from regex str
-				_doc = '%s.%s' % (_name, _doc)  # name to save template file as
-				## TODO: copy document from template folder using _doc
-		## TODO: check for proposal and pricing documents using regex '*.proposal.docx'
-		## TODO: import proposal and pricing documents
-
+		_srch = ' '.join(os.listdir(self.path))                 # enumerate top-level file and dir names in project folder
+		_patterns = ('proposal\.docx', 'pricing\.xls')
+		_temp_dir = os.path.join(env.env_root, 'Templates')     # Document template directory
+		_templates = ' '.join(os.listdir(_temp_dir))            # Grab document template names
+		for _doc in _patterns:
+			if not re.search('\w+\.%s' % _doc, _srch):          # document not in project folder
+				doc = _doc.replace("\\", "")                    # exclude '\' from file name
+				doc = '%s.%s' % (_name, doc)                    # new document filename to save
+				template = re.search('\w+\.%s' % _doc, _templates)
+				if template:
+					template = template.group()                 # convert SRE_Match obj to str
+					template = os.path.join(env.env_root, 'Templates', template)
+					_dest = os.path.join(self.path, doc)
+					shutil.copyfile(template, _dest)
+				else:  # template does not exist in Template directory
+					print "WARNING: Template matching regex '%s' not found in '%s'" % (_doc, _temp_dir)
+			else:
+				print "NOTE: Template matching regex '%s' is already in project folder for %s" % (_doc, self.name)
 
 		return True
 
