@@ -177,7 +177,7 @@ class Worker(object):
 class Job(yaml.YAMLObject):
 	yaml_tag = u'!Job'
 	yaml_filename = 'db_storage.yaml'
-	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install')
+	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install', 'sm')
 
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
 	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML

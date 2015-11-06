@@ -590,8 +590,8 @@ class SectionItem(object):
 			return "%s pounds of %s @ %s hours per pound" % _format
 
 # Create default section items
-SectionItem('sm_shop', label="Sheet Metal Fabrication", metric='weight', value=30, scope='fabrication')
-SectionItem('sm_field', label="Sheet Metal Installation",  metric='weight', value=25, scope='install')
+SectionItem('sm_shop', label="Sheet Metal Fabrication", metric='weight', value=30, scope='sm')
+SectionItem('sm_field', label="Sheet Metal Installation",  metric='weight', value=25, scope='sm')
 SectionItem('RGD', label="Air Device", units="pieces", value=0.25, scope='materials')
 SectionItem('linear', label="Linear Air Device", metric='length', value=0.25, scope='materials')  # TODO: fix labor value
 SectionItem('FSD', label="Fire/Smoke Damper", units="pieces", value=1, scope='materials')
