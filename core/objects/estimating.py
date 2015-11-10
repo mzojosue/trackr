@@ -16,6 +16,7 @@ from core.log import logger
 today = datetime.today
 now = datetime.now
 
+
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
 	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
@@ -151,9 +152,6 @@ class EstimatingJob(Job):
 			_gc.append(str(i['gc']))
 		return _gc
 
-
-	# Quote Functions
-
 	def init_struct(self):
 		""" Rebuilds directory structure based off self.path, EstimatingJob._dir_folders, and self.scope
 		:return: False if global path error. Otherwise returns True
@@ -182,6 +180,7 @@ class EstimatingJob(Job):
 				except OSError:
 					pass  # assume quote folders already exist
 
+		# Import and rename template documents
 		_name = self._name
 		_name = _name.replace(' ', '_')  # normalize _name string as filename
 
@@ -205,6 +204,9 @@ class EstimatingJob(Job):
 				print "NOTE: Template matching regex '%s' is already in project folder for %s" % (_doc, self.name)
 
 		return True
+
+
+	# Quote Functions
 
 	@property
 	def quotes(self):
