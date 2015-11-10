@@ -566,10 +566,23 @@ class SectionItem(object):
 		self.label = label
 		self.amount = amount
 		self.metric = metric
-		self.units = units  # used for UI. Should be plural string
+		self._units = units  # used for UI. Should be plural string
 		self.value = value
 		self.cost = cost
 		self.correction_factor = correction_factor
+
+	@property
+	def units(self):
+		if hasattr(self, '_units') and self._units:
+			return self._units
+		else:
+			if self.metric is 'length':
+				return 'feet, 0"'
+			elif self.metric is 'weight':
+				return 'lbs'
+			else:  # assum self.metric == 'count'
+				return 'pieces'
+
 
 	def calculate(self, output='hours', rate=None):
 		""" Process value based on metric and output type while implementing cost and correction factor.

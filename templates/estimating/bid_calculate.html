@@ -155,7 +155,7 @@
             <label for="selectedItem">Select new item to add:</label>
             <select id="selectedItem" ng-model="selectedItem" ng-change="addItem()">
               <optgroup label="{{ scope }}" ng-repeat="(scope, _items) in items">
-                <option value="({{ item }}, {{ vals }})"  ng-repeat="(item, vals) in _items">{{ item }}</option>
+                <option value="{{ vals }}"  ng-repeat="(item, vals) in _items">{{ item }}</option>
               </optgroup>
             </select>
           {% endraw %}
@@ -266,25 +266,69 @@
           };
 
           $scope.addItem = function() {
-            $log.log($scope.selectedItem);
+            var selectedItem = JSON.parse($scope.selectedItem);
+            $log.log(selectedItem);
             // TODO: Add element to form using $scope.selectedItem
-            var id, label, metric, units, pieces, value, scope, forms;
-            if ($scope.selectedItem.scope.length > 2) {
-              scope = '#scope-' + $scope.selectedItem.scope[0];
-              scope = $(scope);  // find appropriate scope div
+            var id, label, metric, units, value, scope;  // values from $scope.selectedItem
+            id = selectedItem.id;
+            label = selectedItem.label;
+            metric = selectedItem.metric;
+            metric = metric.charAt(0).toUpperCase() + metric.substr(1);  // format metric string
+            units = selectedItem.units;
+            if (selectedItem.scope.length > 2) {
+              scope = '.scope-' + selectedItem.scope[0];
+            } else {
+              scope = '.scope-' + selectedItem.scope;
             }
+            scope = $(scope);  // find appropriate scope 'div' element
+
             var item = document.createElement('div');  // item div
             scope.append(item);
-            id = $scope.selectedItem.id;
-            item.setAttribute('class', id);  // set item class label
-            forms = ['value', 'cost'];  // input forms to create
+            item.setAttribute('class', id);     // denote item div element
+            var forms = ['value', 'cost'];          // input forms to create
             $(forms).each(function(val) {
-              // create label
+              val = forms[val];
               var form_group = document.createElement('div');
+
+              item.appendChild(form_group);          // associate each form with item element
               $(form_group).addClass('form-group');
-              // create input-group div
-              // create input element. append to input-group
-              // create span elements. append to input-group. add first '$' addon if val == 'cost'
+              $(form_group).addClass('col-xs-6');
+              var form_id = id.toLowerCase() + metric;        // create id attribute string
+
+              var label_element = document.createElement('label');
+              label_element.innerHTML = label + ' ' + val;
+              label_element.setAttribute('for', form_id);
+              form_group.appendChild(label_element);
+
+              var input_group, input_element;
+              input_group = document.createElement('div');      // input-group div
+              input_group.setAttribute('class', 'input-group');
+              form_group.appendChild(input_group);
+              input_element = document.createElement('input');  // input element
+              input_element.setAttribute('id', form_id);
+              input_element.setAttribute('class', 'form-control');
+              // set 'ng-model' attribute
+
+              if (val == 'cost') {
+                var span_addon = document.createElement('span');
+                span_addon.setAttribute('class', 'input-group-addon');
+                span_addon.innerHTML = '$';
+                input_group.appendChild(span_addon);
+
+                input_group.appendChild(input_element);
+
+                span_addon = document.createElement('span');
+                span_addon.setAttribute('class', 'input-group-addon');
+                span_addon.innerHTML = '.00';
+                input_group.appendChild(span_addon);
+              } else if (val == 'value') {
+                input_group.appendChild(input_element);
+
+                span_addon = document.createElement('span');
+                span_addon.setAttribute('class', 'input-group-addon');
+                span_addon.innerHTML = units;
+                input_group.appendChild(span_addon);
+              }// create span elements. append to input-group. add first '$' addon if val == 'cost'
             });
             // TODO: implement value editing
           }
