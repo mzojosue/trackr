@@ -1,9 +1,9 @@
 from operator import itemgetter
 import os
 from datetime import datetime
-
-today = datetime.today
-now = datetime.now
+from copy import copy
+import re
+import shutil
 
 # Import parent classes and methods for estimating objects
 import core.environment as env
@@ -12,6 +12,9 @@ from core.parsing.bid_log import *
 from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
 from core.log import logger
+
+today = datetime.today
+now = datetime.now
 
 
 class EstimatingJob(Job):
@@ -149,9 +152,6 @@ class EstimatingJob(Job):
 			_gc.append(str(i['gc']))
 		return _gc
 
-
-	# Quote Functions
-
 	def init_struct(self):
 		""" Rebuilds directory structure based off self.path, EstimatingJob._dir_folders, and self.scope
 		:return: False if global path error. Otherwise returns True
@@ -180,7 +180,33 @@ class EstimatingJob(Job):
 				except OSError:
 					pass  # assume quote folders already exist
 
+		# Import and rename template documents
+		_name = self._name
+		_name = _name.replace(' ', '_')  # normalize _name string as filename
+
+		_srch = ' '.join(os.listdir(self.path))                 # enumerate top-level file and dir names in project folder
+		_patterns = ('proposal\.docx', 'pricing\.xls')
+		_temp_dir = os.path.join(env.env_root, 'Templates')     # Document template directory
+		_templates = ' '.join(os.listdir(_temp_dir))            # Grab document template names
+		for _doc in _patterns:
+			if not re.search('\w+\.%s' % _doc, _srch):          # document not in project folder
+				doc = _doc.replace("\\", "")                    # exclude '\' from file name
+				doc = '%s.%s' % (_name, doc)                    # new document filename to save
+				template = re.search('\w+\.%s' % _doc, _templates)
+				if template:
+					template = template.group()                 # convert SRE_Match obj to str
+					template = os.path.join(env.env_root, 'Templates', template)
+					_dest = os.path.join(self.path, doc)
+					shutil.copyfile(template, _dest)
+				else:  # template does not exist in Template directory
+					print "WARNING: Template matching regex '%s' not found in '%s'" % (_doc, _temp_dir)
+			else:
+				print "NOTE: Template matching regex '%s' is already in project folder for %s" % (_doc, self.name)
+
 		return True
+
+
+	# Quote Functions
 
 	@property
 	def quotes(self):
@@ -215,7 +241,10 @@ class EstimatingJob(Job):
 				_scope_fulfilled += 1
 			else:
 				_quotes_needed += 1
-		_status = (float(_scope_fulfilled) / float(_scope_len))
+		try:
+			_status = (float(_scope_fulfilled) / float(_scope_len))
+		except ZeroDivisionError:
+			_status = 0.0
 		if _quotes_needed:
 			_need = 'Need quotes from %d vendors' % _quotes_needed
 		else:
@@ -397,4 +426,203 @@ class EstimatingQuote(Quote):
 		_path = os.path.join(self.bid.path, 'Quotes')
 		_path = os.path.join(_path, self.category)
 		return _path
+
+
+class BidSheet(object):
+	""" BidSheet manages the cost and collection of takeoff metrics, quote values, and GC scopes. """
+
+	valid_scope = Job.valid_scope
+
+	def __init__(self, label=None, date_created=now(), bid=None, revision=None, scope=valid_scope):
+		"""
+		:param label: string identify object
+		:param date_created: defaults to `now()`
+		:param bid: bid number, bid object or tuple( parent bid number, sub bid hash value )
+		:param revision: revision label or date
+		:return:
+		"""
+		self.label = label
+		self.date_created = date_created
+		if not date_created:
+			self.date_created = now()
+		self.bid = bid
+		self.scope = []
+		for i in scope:
+			if str(i) in self.valid_scope:
+				self.scope.append(str(i))
+
+		self.sections = {}  # container for storing bid sections with section label as key
+		self.subcontractors = {}  # container for storing subcontractor bid sections with arbitrary key
+
+	def add_section(self, section):
+		if hasattr(section, 'label'):
+			self.sections[section.label] = section
+			return self.sections
+
+	def del_sections(self, label):
+		if hasattr(self.sections, 'label'):
+			del self.sections[label]
+			return True
+
+	def calculate(self, output='hours', rate=None):
+		_labor = 0  # dynamically create variables based on output type
+		_purch = 0.0
+		# sub_cost = 0.0  # subcontractor cost
+
+		for section in self.sections.itervalues():
+			_calc = section.calculate(output, rate)
+			if hasattr(_calc, '__getitem__'):  # working with dollar and labor amounts
+				_labor += _calc[0]
+				_purch += _calc[1]
+			else:
+				_labor += _calc  # working with dollar amounts
+
+		# Calculate labor cost
+		# Return sum of all costs with profit markup
+		if _purch:
+			return (_labor, _purch)
+		else:
+			return _purch
+
+
+class BidSection(object):
+	""" BidSection manages the cost and collection of SectionItems. """
+	value_outputs = ('cost', 'hours')
+
+	def __init__(self, label, iterate=1):
+		self.label = label
+		self.iterate = int(iterate)
+		self.section = {}
+
+	def add_item(self, item):
+		# TODO: check scope
+		if hasattr(item, 'calculate') and hasattr(item, 'id'):  # assume that item passed is SectionItem object
+			self.section[item.name] = copy(item)  # make item in section independent from global item
+			return True
+		elif str(item) in SectionItem.available_items:
+			self.section[item] = copy(SectionItem.available_items[item])
+			return True
+
+	def del_item(self, item):
+		"""
+		:param item: could be item id str or object
+		:return: False if operation not completed
+		"""
+		if item in self.section:  # treat item as id str
+			del self.section[item]
+		elif hasattr(item, 'id'):  # treat item as SectionItem object
+			del self.section[item.name]
+		else:
+			return False
+
+	def calculate(self, output='hours', rate=None):
+		""" Sums the cost of each SectionItem in self.section.
+		:param output: defines returned value. Can either be 'cost' or 'hours', defaults to 'hours'.
+		:param rate: used in conjunction with output when calculating total cost from labor hours.
+			The rate value should be passed down from the parent bid.
+		:return:
+		"""
+		_return = 0
+		_cost = 0
+
+		for item in self.section.itervalues():
+			_calc = item.calculate(output, rate)
+			if hasattr(_calc, '__getitem__'):
+				_return += _calc[0]
+				_cost += _calc[1]
+			else:
+				_return += _calc
+		_return *= self.iterate
+		_cost *= self.iterate
+
+		if _cost:
+			return (_return, _cost)
+		else:
+			return _return
+
+
+class SectionItem(object):
+	""" Object that stores numeric values and methods of calculating cost based on given metric.
+	Eg: 'labor cost per item plus cost', 'hours per foot', 'labor cost per pound'
+	"""
+	valid_scope = Job.valid_scope
+	valid_outputs = ('cost', 'hours')
+	valid_metrics = ('count', 'length', 'weight')
+	default_metric = 'count'
+
+	available_items = {}  # organizes items by scope
+	for i in valid_scope:
+		available_items[i] = {}
+
+	def __init__(self, id, scope, label=None, amount=0, metric=default_metric, units=None, value=0.0, cost=0.0, correction_factor=1.0):
+		self.id = id
+		if scope in self.valid_scope:
+			self.scope = scope
+		elif scope[0].upper() in self.valid_scope:
+			self.scope = scope[0].upper()
+		else:
+			self.scope = None
+		if self.scope:  # add self to item storage
+			SectionItem.available_items[self.scope][self.id] = self
+
+		self.label = label
+		self.amount = amount
+		self.metric = metric
+		self._units = units  # used for UI. Should be plural string
+		self.value = value
+		self.cost = cost
+		self.correction_factor = correction_factor
+
+	@property
+	def units(self):
+		if hasattr(self, '_units') and self._units:
+			return self._units
+		else:
+			if self.metric is 'length':
+				return 'feet, 0"'
+			elif self.metric is 'weight':
+				return 'lbs'
+			else:  # assum self.metric == 'count'
+				return 'pieces'
+
+
+	def calculate(self, output='hours', rate=None):
+		""" Process value based on metric and output type while implementing cost and correction factor.
+		:param output: defines returned value. Can either be 'cost' or 'hours', defaults to 'hours'.
+		:param rate: used in conjunction with output when calculating total cost from labor hours.
+			The rate value should be passed down from the parent bid and BidSection.
+		:return: total amount of labor hours by calculating product of self.amount, self.value, and self.correction_factor.
+			If output=='cost' and a valid rate is given, labor cost is calculated by multiplying by rate passed, and adding the purchasing cost.
+		"""
+		_return = self.amount * self.value * self.correction_factor  # calculate labor hours
+
+		if str(output) is 'cost' and rate:  # labor rate must be passed
+			_return *= rate       # convert labor hours to labor cost
+			_return += self.cost  # add item cost to output
+			return _return
+		else:
+			return (_return, self.cost)
+
+	def __repr__(self):
+		_metric = self.metric
+		_format = (float(self.amount), self.id, self.value)
+		if _metric is 'item':
+			return "%s %s(s) @ %s hours per item" % _format
+		elif _metric is 'length':
+			return "%s feet of %s @ %s hours per foot" % _format
+		elif _metric is 'weight':
+			return "%s pounds of %s @ %s hours per pound" % _format
+
+# Create default section items
+SectionItem('sm_shop', label="Sheet Metal Fabrication", metric='weight', value=30, scope='sm')
+SectionItem('sm_field', label="Sheet Metal Installation",  metric='weight', value=25, scope='sm')
+SectionItem('RGD', label="Air Device", units="pieces", value=0.25, scope='materials')
+SectionItem('linear', label="Linear Air Device", metric='length', value=0.25, scope='materials')  # TODO: fix labor value
+SectionItem('FSD', label="Fire/Smoke Damper", units="pieces", value=1, scope='materials')
+SectionItem('vol_damper', label="Volume Damper", units="pieces", value=.3, scope='materials')
+SectionItem('ceiling_fan', label="Ceiling Fan", units="fans", value=1.25, scope='equipment')
+SectionItem('curbed_fan',  label="Curbed Fan", units="fans", value=2.25, scope='equipment')
+SectionItem('louver', label="Louver", units="pieces", value=0.5, scope='louvers')
+SectionItem('RTU', label="Packaged Rooftop Unit", units="units", value=4, scope='equipment')
+SectionItem('VAV', label="Terminal/VAV Unit", units="units", value=2.25, scope='equipment')
 

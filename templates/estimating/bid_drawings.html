@@ -37,16 +37,32 @@
           <th>Scope:</th>
 					<!--th>Uploaded By:</th-->
 				</tr>
-				{% for dwg in bid.drawings %}
+				{% for dwg, info in bid.drawings.iteritems() %}
 					<tr>
-						<td>{{ bid.drawings.keys().index(dwg) + 1 }}</td>
-						<td><a target="_blank"
-						       href="{{ url_for('bid_get_document', bid_num=bid.number, query=dwg) }}">
-                  {{ dwg }}
-								</a>
+						<td>
+              {{ bid.drawings.keys().index(dwg) + 1 }}
+            </td>
+
+						<td>
+							{% if path.isfile(info['path']) %}
+	              <a target="_blank"
+	                 href="{{ url_for('bid_get_document', bid_num=bid.number, query=info['sub_path']) }}">
+	                {{ dwg }}
+	              </a>
+	            {% elif path.isdir(info['path']) %}
+	              <a href="{{ url_for('bid_folder', bid_num=bid.number, dir=info['sub_path']) }}">
+	                {{ dwg }}
+	              </a>
+	            {% endif %}
 						</td>
-						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(bid.drawings[dwg]['path']))) }}</td>
-						<td>Mech</td>
+
+						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(info['path']))) }}</td>
+
+						<td>
+              Mech
+              <!-- TODO: deterimine drawing type -->
+            </td>
+
 					</tr>
 				{% endfor %}
 			</table>

@@ -163,7 +163,7 @@ class Worker(object):
 
 	def update(self):
 		"""
-		Calls self.dump_info
+		Calls self.dump_all
 		:return: None
 		"""
 		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
@@ -177,7 +177,7 @@ class Worker(object):
 class Job(yaml.YAMLObject):
 	yaml_tag = u'!Job'
 	yaml_filename = 'db_storage.yaml'
-	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install')
+	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install', 'sm')
 
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
 	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
@@ -342,19 +342,30 @@ class Job(yaml.YAMLObject):
 			return False
 
 	@classmethod
+	def storage(cls):
+		if hasattr(cls, 'default_sub_dir'):
+			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
+			return _filename
+
+
+	@classmethod
 	def dump_all(cls):
+		""" Iterates through class databases and saves all objects to YAML file
+		:return: None
+		"""
 		if hasattr(cls, '_dump_lock') and cls._dump_lock:
 			return None  # attribute to prevent object storage for testing purposes
-		_jobs = {}
+
+		_jobs = {}  # aggregate both current and past jobs
 		if hasattr(cls, 'completed_db'):
-			for num, obj in cls.completed_db.items():
+			for num, obj in cls.completed_db.iteritems():
 				_jobs[num] = obj
 		if hasattr(cls, 'db'):
-			for num, obj in cls.db.items():
+			for num, obj in cls.db.iteritems():
 				_jobs[num] = obj
 
 		if hasattr(cls, 'default_sub_dir'):
-			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
+			_filename = cls.storage()
 			stream = file(_filename, 'w')
 			print 'Saving %s' % _filename
 			yaml.dump(_jobs, stream)

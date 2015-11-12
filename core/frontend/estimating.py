@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from werkzeug import secure_filename
 
 from job import *
+from core.sorting import *
 
 
 ##############################
@@ -16,26 +15,33 @@ def estimating_home():
 	return render_template('estimating/estimating.html', usr=auth)
 
 
-@app.route('/estimating/bids/current')
-def current_bids():
+@app.route('/estimating/bids/current', defaults={'sort_by': 'number'})
+@app.route('/estimating/bids/current/sort/<sort_by>')
+def current_bids(sort_by):
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(EstimatingJob, 'db'):
 		_estimates = EstimatingJob.db.values()
+		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/current_bids.html', estimates=_estimates, usr=auth)
 
 
-@app.route('/estimating/bids/past')
-def past_bids():
+@app.route('/estimating/bids/past', defaults={'sort_by': 'number'})
+@app.route('/estimating/bids/past/sort/<sort_by>')
+def past_bids(sort_by):
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 
 	if hasattr(EstimatingJob, 'completed_db'):
-		_estimates = reversed(EstimatingJob.completed_db.values())
+		_estimates = EstimatingJob.completed_db.values()
+		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/past_bids.html', estimates=_estimates, usr=auth)
 
+@app.route('/estimating/analytics')
+def estimating_analytics():
+	return NotImplemented
 
 @app.route('/estimating/bid/<int:bid_num>/overview')
 def bid_overview(bid_num):
@@ -50,9 +56,17 @@ def bid_overview(bid_num):
 			return "Error: Bid does not exist."
 
 
-@app.route('/estimating/analytics')
-def estimating_analytics():
-	return NotImplemented
+@app.route('/estimating/bid/<int:bid_num>/calculate')
+def bid_calculate(bid_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth  # redirects to login
+	if hasattr(EstimatingJob, 'db'):
+		try:
+			_bid = EstimatingJob.find(bid_num)
+			return render_template('estimating/bid_calculate.html', bid=_bid, usr=auth)
+		except KeyError:
+			return "Error: Bid does not exist."
 
 
 @app.route('/estimating/bid/<int:bid_num>/dir/<path:dir>')
@@ -104,8 +118,8 @@ def bid_takeoffs(bid_num):
 			return "Error: Bid does not exist."
 
 
-######################
-#** API Functions **##
+#######################
+#** Estimating API **##
 
 
 @app.route('/estimating/create', methods=['GET', 'POST'])
@@ -189,7 +203,7 @@ def delete_bid(bid_num):
 		return redirect(url_for('current_bids'))
 
 
-# Sub Bid Pages #
+# Sub Bid API #
 
 @app.route('/estimating/bid/<int:bid_num>/sub/create', methods=['POST'])
 def create_sub_bid(bid_num):
@@ -260,7 +274,7 @@ def update_sub_bid(bid_num, sub_hash):
 	return redirect(request.referrer)
 
 
-# Bid Quote Pages #
+# Bid Quote API #
 
 @app.route('/estimating/<int:bid_num>/quote/<scope>/<int:q_hash>')
 def bid_quote(bid_num, scope, q_hash):
@@ -321,6 +335,36 @@ def delete_bid_quote(bid_num, q_hash):
 	return NotImplemented
 
 
+# Bid Pricing API #
+
+@app.route('/estimating/<int:bid_num>/pricing/section/create', methods=['POST'])
+def create_section(bid_num):
+	_data = json.loads(request.data.decode())
+	print _data
+	return "true"
+
+@app.route('/estimating/bid/<int:bid_num>/pricing/available_items')
+def get_available_items(bid_num):
+	""" Returns all available items with AngularJS hooks in a JSON format
+	:param bid_num:
+	"""
+	_return = {}
+	bid = EstimatingJob.find(bid_num)
+	for _scope in bid.scope:
+		_return[_scope] = {}
+		for key, obj in SectionItem.available_items[_scope].iteritems():
+
+			_return[_scope][key] = {'id': key,
+									'label': obj.label,
+									'metric': obj.metric,
+									'units': obj.units,
+									'value': obj.value,
+									'scope': obj.scope}
+	return json.dumps(_return)
+
+
+# Misc Bid API Routes #
+
 @app.route('/estimating/bids/json')
 def estimating_serialized_overview():
 	""" Aggregates current bids based on due_dates via JSON. Used for Bootstrap Calender.
@@ -370,6 +414,6 @@ def bid_get_document(bid_num, query):
 		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	doc = os.path.join(_bid.path, query)
-	print doc
+	print os.path.isfile(doc)
 	if os.path.isfile(doc):
 		return send_from_directory(*os.path.split(doc))
