@@ -41,10 +41,19 @@
 
 		<div class="row">
 			<form method="post" id="bidSection" class="col-xs-7"
-        role="form" ng-submit="createSection()">
+        role="form" ng-submit="createSection()" ng-model="section">
         <div id="wrapper" class="col-xs-9">
 
           <h4>New Section:</h4>
+
+          {% raw %}
+            <label for="selectedItem">Select new item to add:</label>
+            <select id="selectedItem" ng-model="selectedItem" ng-change="addItem()">
+              <optgroup label="{{ scope }}" ng-repeat="(scope, _items) in items">
+                <option value="{{ vals }}"  ng-repeat="(item, vals) in _items">{{ item }}</option>
+              </optgroup>
+            </select>
+          {% endraw %}
 
           <div class="section-label">
             <div><!-- Wrapping div when collecting scope -->
@@ -151,15 +160,6 @@
           </div><!-- /.scope-E -->
           <!-- End Scope Area -->
 
-          {% raw %}
-            <label for="selectedItem">Select new item to add:</label>
-            <select id="selectedItem" ng-model="selectedItem" ng-change="addItem()">
-              <optgroup label="{{ scope }}" ng-repeat="(scope, _items) in items">
-                <option value="{{ vals }}"  ng-repeat="(item, vals) in _items">{{ item }}</option>
-              </optgroup>
-            </select>
-          {% endraw %}
-
           <button class="btn btn-lg btn-primary" type="submit">
             Save Section&nbsp;
             <span class="glyphicon glyphicon-floppy-open"></span>
@@ -212,6 +212,7 @@
       angular.module('BidCalculateApp', [])
         .controller('BidSectionController', ['$scope', '$log', '$http', function($scope, $log, $http) {
           $scope.section = {};   // Input form area
+
           $scope.sections = {};  // Holds bid sections for bid sheet
 
           $http.get("{{ url_for('get_available_items', bid_num=bid.number) }}").
@@ -225,7 +226,7 @@
 
           $scope.createSection = function() {
             var _return = {};
-            for (var key in $scope.section) {
+            for (var key in $scope.section) {  // parse scope for each value
               if ($scope.section.hasOwnProperty(key)) {
                 var _key = $("#" + key);
                 var _parent = _key.parent().parent().parent().parent();  // wrapping scope
@@ -238,7 +239,7 @@
                 } else {
                   if (_return[_parent_class] == undefined) {
                     _return[_parent_class] = {};
-                  } if (_return[_parent_class][_item_class] == undefined) {
+                } if (_return[_parent_class][_item_class] == undefined) {
                     _return[_parent_class][_item_class] = {};
                   }
                   _return[_parent_class][_item_class][key] = $scope.section[key];
@@ -268,7 +269,6 @@
           $scope.addItem = function() {
             var selectedItem = JSON.parse($scope.selectedItem);
             $log.log(selectedItem);
-            // TODO: Add element to form using $scope.selectedItem
             var id, label, metric, units, value, scope;  // values from $scope.selectedItem
             id = selectedItem.id;
             label = selectedItem.label;
@@ -282,6 +282,7 @@
             }
             scope = $(scope);  // find appropriate scope 'div' element
 
+            // Create and format input elements
             var item = document.createElement('div');  // item div
             scope.append(item);
             item.setAttribute('class', id);     // denote item div element
@@ -289,11 +290,11 @@
             $(forms).each(function(val) {
               val = forms[val];
               var form_group = document.createElement('div');
-
               item.appendChild(form_group);          // associate each form with item element
+
               $(form_group).addClass('form-group');
               $(form_group).addClass('col-xs-6');
-              var form_id = id.toLowerCase() + metric;        // create id attribute string
+              var form_id = id.toLowerCase() + metric + '_' + val;        // create id attribute string
 
               var label_element = document.createElement('label');
               label_element.innerHTML = label + ' ' + val;
@@ -304,11 +305,15 @@
               input_group = document.createElement('div');      // input-group div
               input_group.setAttribute('class', 'input-group');
               form_group.appendChild(input_group);
+
               input_element = document.createElement('input');  // input element
               input_element.setAttribute('id', form_id);
+              input_element.setAttribute('name', form_id);
+              input_element.setAttribute('type', 'number');
               input_element.setAttribute('class', 'form-control');
-              // set 'ng-model' attribute
+              input_element.setAttribute('ng-model', 'section.' + form_id);
 
+              // add Bootstrap 'input-group-addon' decorators to forms
               if (val == 'cost') {
                 var span_addon = document.createElement('span');
                 span_addon.setAttribute('class', 'input-group-addon');
@@ -328,7 +333,7 @@
                 span_addon.setAttribute('class', 'input-group-addon');
                 span_addon.innerHTML = units;
                 input_group.appendChild(span_addon);
-              }// create span elements. append to input-group. add first '$' addon if val == 'cost'
+              }
             });
             // TODO: implement value editing
           }
