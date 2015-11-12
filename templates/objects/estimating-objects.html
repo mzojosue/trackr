@@ -1,0 +1,226 @@
+{# templates/objects/estimating-objects.html #}
+
+
+
+{# LAYOUT OBJECTS #}
+
+{% macro sidebar(active_link) %}
+
+  {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
+  {% set links = [('estimating_home', 'Overview', 'eye-open'),
+                  ('estimating_analytics', 'Analytics', 'stats'),
+                  ('current_bids', 'Current Bids', 'piggy-bank'),
+                  ('past_bids', 'Past Bids')] %}
+
+	<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar">
+      {% for _link in links %}
+        {% if _link[0] == active_link %}
+          <li class="active">
+        {% else %}
+          <li>
+        {% endif %}
+
+          <a href="{{ url_for(_link[0]) }}">
+
+            {% if _link[2] %}
+              <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
+            {% endif %}
+
+            {{ _link[1] }}
+          </a>
+        </li>
+      {% endfor %}
+		</ul>
+	</div><!-- /.sidebar -->
+
+{% endmacro %}
+
+
+{% macro bid_sidebar(active_link, bid, usr=None) %}
+
+  {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
+  {% if usr and usr.role == 'admin' %}
+    {% set links = [('bid_overview', 'View Bid', 'eye-open'), ('bid_calculate', 'Calculate', 'scale')] %}
+  {% else %}
+    {% set links = [('bid_overview', 'View Bid', 'eye-open')] %}
+  {% endif %}
+
+	<div class="col-sm-3 col-md-2 sidebar bid-sidebar">
+    <ul class="nav nav-sidebar">
+      {%- for _link in links %}
+        {%- if _link[0] == active_link -%}
+          <li class="active">
+        {%- else -%}
+          <li>
+        {%- endif -%}
+
+      <a href="{{ url_for(_link[0], bid_num=bid.number) }}">
+
+        {%- if _link[2] -%}
+          <span class="glyphicon glyphicon-{{ _link[2] }}"></span>&nbsp;
+        {%- endif -%}
+
+        {{- _link[1] -}}
+      </a>
+      </li>
+      {% endfor -%}
+    </ul>
+
+		<h4>
+			<span class="glyphicon glyphicon-folder-open"></span>&nbsp;
+			File Browser:
+		</h4>
+    <ul class="nav nav-sidebar">
+      {%- for _file, attr in bid.dump_folder('').iteritems() -%}
+        <li {% if active_link == _file %}class="active"{% endif %}>
+          {% if path.isfile(attr['path']) %}
+            <a target="_blank"
+               href="{{ url_for('bid_get_document', bid_num=bid.number, query=attr['sub_path']) }}">
+              {{ _file }}
+            </a>
+          {% elif path.isdir(attr['path']) %}
+            <a href="{{ url_for('bid_folder', bid_num=bid.number, dir=attr['sub_path']) }}">
+              {{ _file }}
+            </a>
+          {% endif %}
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    {# Enclose restricted element #}
+    {% if usr and usr.role == 'admin' %}
+      <a href="{{ url_for('delete_bid', bid_num=bid.number) }}" id="delete-bid" class="btn btn-danger">
+        <span class="glyphicon glyphicon-trash"></span>&nbsp;
+        Delete Bid
+      </a>
+    {% endif %}
+	</div><!-- /.sidebar -->
+
+{% endmacro %}
+
+
+{% macro quote_modal(bid=False) %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
+		Upload Quote
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="uploadModalLabel">
+		        Upload Bid Quote
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+					<form id="uploadForm" action="{{ url_for('upload_bid_quote', bid_num=bid.number) }}" enctype="multipart/form-data" method="post">
+            <input type="file" name="quote" id="fileUpload">
+            <div class="form-group">
+              <label for="scopeSelect">
+                Quote Scope:
+              </label>
+              <select name="scope" id="scopeSelect" class="form-control">
+                {% for i in bid.scope %}
+                  <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+              </select>
+            </div>
+						<div class="form-group">
+							<label for="vendName">Vendor:</label>
+							<input type="text" name="vendor" id="vendName" class="form-control" placeholder="Vendor Name">
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="quotePrice">Quoted Price:</label>
+							<div class="input-group" id="quotePrice">
+								<span class="input-group-addon">
+									<span class="glyphicon glyphicon-usd"></span>
+								</span>
+								<input type="text" name="quotePrice" class="form-control" value="0.0">
+							</div>
+						</div>
+					</form>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="uploadForm">Finalize Upload</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro sub_bid_modal(bid=False) %}
+
+	<!-- Modal -->
+	<div class="modal fade" id="subBidModal" tabindex="-1" role="dialog" aria-labelledby="subBidModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="subBidModalLabel">
+		        Create new Sub Bid
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+					<form id="subBidForm" action="{{ url_for('create_sub_bid', bid_num=bid.number) }}" enctype="multipart/form-data" method="post">
+						<div class="form-group">
+							<label for="gcName">GC:</label>
+							<input type="text" name="gcName" id="gcName" class="form-control" placeholder="GC Name">
+						</div>
+						<div class="form-group">
+							<label for="gcContact">GC Contact:</label>
+							<input type="text" name="gcContact" id="gcContact" class="form-control" placeholder="GC Contact Name">
+						</div>
+						<div class="form-group">
+							<label for="scopeArea">Vendor Scope:</label>
+							<div id="scopeArea" class="form-group">
+		            <label class="checkbox-inline">
+		              <input name=materialsScope value=True type="checkbox">M
+		            </label>
+		            <label class="checkbox-inline">
+		              <input name=equipmentScope value=True type="checkbox">E
+		            </label>
+		            <label class="checkbox-inline">
+		              <input name=insulationScope value=True type="checkbox">I
+		            </label>
+		            <label class="checkbox-inline">
+		              <input name=balancingScope value=True type="checkbox">B
+		            </label>
+		          </div><!-- /#scopeArea -->
+						</div><!-- /.form-group -->
+						<div class="form-group">
+							<label class="control-label" for="bidDate">Bid Due Date:</label>
+							<input type="date" name="bidDate" id="bidDate" class="form-control">
+						</div>
+					</form>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="subBidForm">Finalize Upload</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-warning btn-sm pull-right" data-toggle="modal" data-target="#subBidModal">
+		<span class="glyphicon glyphicon-plus"></span>&nbsp;
+		New
+	</button>
+
+{% endmacro %}

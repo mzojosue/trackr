@@ -58,56 +58,6 @@ function addMaterialItem() {
 
 }
 
-
-function newTimecardRow() {
-
-  var tableArea = document.getElementById('timecardTable');
-  var numi = document.getElementById('workerCounter');
-  var num = (document.getElementById('workerCounter').value -1)+ 2;
-  numi.value = num;
-
-  // Create new row
-  var newRow = document.createElement('tr');
-  var newRowLineID = 'timecardLineID-'+num;
-  newRow.setAttribute('id', newRowLineID);
-
-  // Create worker name table cell
-  var workerNameCell = document.createElement('td');
-  // Create and populate worker name input element
-  var workerNameInput = document.createElement('input');
-  var workerLabelName = 'workerName'+num;
-  workerNameInput.setAttribute('name', workerLabelName);
-  workerNameInput.setAttribute('type', 'text');
-  workerNameInput.setAttribute('class', 'form-control');
-  // Append input element to table-cell
-  workerNameCell.appendChild(workerNameInput);
-  // Append table-cell to row
-  newRow.appendChild(workerNameCell);
-
-  // Set variable for days of the week
-  var daysOfWeek = ['mon', 'tue', 'wed', 'thurs', 'fri', 'sat'];
-  var weekLength = daysOfWeek.length;
-
-  // Iterate over array and create new data cells
-  for (var i=0; i<weekLength; i++) {
-    var dayInputCell = document.createElement('td');
-    var inputDay = document.createElement('input');
-    var inputName = daysOfWeek[i] + 'Hours' + num;
-    inputDay.setAttribute('name', inputName);
-    inputDay.setAttribute('type', 'number');
-    inputDay.setAttribute('class', 'form-control');
-    // Add input element to table-cell
-    dayInputCell.appendChild(inputDay);
-    // Add table-cell to row
-    newRow.appendChild(dayInputCell);
-  }
-
-  // Append new row to table
-  tableArea.appendChild(newRow);
-
-}
-
-
 function removeMaterialItem(divNum) {
 
   var d = document.getElementById('itemizedMaterialArea');
@@ -117,21 +67,88 @@ function removeMaterialItem(divNum) {
 
 }
 
-// window.addEventListener('paste', ... or
-document.onpaste = function(event) {
-    var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-    console.log(JSON.stringify(items)); // will give you the mime types
-    var blob = items[0].getAsFile();
-    var reader = new FileReader();
-    reader.onload = function (event) {
-        console.log(event.target.result);
-    }; // data url!
-    reader.readAsDataURL(blob);
-};
 
 function update_mat_list(selfID, matListID) {
 
   var jobNum = document.getElementById(selfID).value;
   $(matListID).load("/dynamic/j/" + jobNum + "/materials");
 
+}
+
+
+function unlock_job_for_editing(jobNum) {
+    document.getElementById('jobAddress').readOnly = false;
+    document.getElementById('jobDesc').readOnly = false;
+    document.getElementById('foremanName').readOnly = false;
+    document.getElementById('foremanPhone').readOnly = false;
+    document.getElementById('foremanEmail').readOnly = false;
+    document.getElementById('poPre').readOnly = false;
+
+    //document.getElementById('unlockBtn').onclick = "document.forms['jobInfo'].submit();";
+    //document.getElementById('unlockBtn').href = '/j/' + jobNum + '/update';
+
+    var updateInfo = document.createElement('button');
+    updateInfo.setAttribute('class', 'btn btn-sm btn-success');
+    updateInfo.setAttribute('type', 'submit');
+    updateInfo.setAttribute('form', 'jobInfo');
+    updateInfo.innerHTML = 'Update';
+    document.getElementById('jobHeader').appendChild(updateInfo);
+}
+
+function add_quote_doc(job_num, m_hash, q_hash) {
+    // set form action
+    var url = '/j/' + job_num + '/material/' + m_hash + '/quote/' + q_hash + '/update/doc';
+    var inputElement = document.getElementById('fileUpload-' + q_hash);
+    inputElement.setAttribute('form', 'quoteUpdate');
+    var fileForm = document.getElementById('quoteUpdate');
+    fileForm.setAttribute('action', url);
+    // submit form
+    fileForm.submit();
+    // refresh page
+    //location.reload();
+}
+
+function unlock_table_for_editing() {
+  // TODO:iterate over array to change object types
+  var dataTypes = [['price-input', 'text'],
+                   ['date-input', 'date']];
+  //for (var i=0; i < dataTypes.length; i++) {
+  //  var showCells = document.getElementsByClassName(dataTypes[i[0]]);
+  //  for (var s=0; s < showCells.length; s++) {
+  //    showCells[s].setAttribute('type', dataTypes[i[1]]);
+  //  }
+  //}
+
+  var priceCells = document.getElementsByClassName('price-input');
+  for (var i=0; i < priceCells.length; i++) {
+    priceCells[i].setAttribute('type', 'text');
+  }
+  var dateCells = document.getElementsByClassName('date-input');
+  for (var i=0; i < dateCells.length; i++) {
+    dateCells[i].setAttribute('type', 'date');
+  }
+  var priceInputs = document.getElementsByClassName('hide-value');
+  for (var i=0; i < priceInputs.length; i++) {
+    priceInputs[i].style.display = 'none';
+  }
+}
+
+//function update_po_attr(job_number, po_num, attr)
+
+function unlock_sub_bids_for_editing() {
+  var elements = [['due-date-label', 'date-input'],
+      ['contact-label', 'gc_contact-input'],
+      ['gc-label', 'gc-input']];
+
+  for (var i=0; i < elements.length; i++) {
+    var labels = document.getElementsByClassName(elements[i][0]);
+    for (var z=0; z < labels.length; z++) {
+      labels[z].style.display = 'none';        // Hide all label elements
+    }
+
+    var inputs = document.getElementsByClassName(elements[i][1]);
+    for (var z=0; z < inputs.length; z++) {
+      inputs[z].style.display = 'block';        // Show all input elements
+    }
+  }
 }

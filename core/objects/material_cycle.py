@@ -1,11 +1,21 @@
-from objects import *
+import traceback
+import os
+from datetime import datetime
+
+today = datetime.today
+now = datetime.now
+
+from core.parsing.po_log import add_po_to_log, update_po_in_log
+from core.log import logger
+from core.scheduler import scheduler
+
 
 class MaterialList(object):
 	# Class/Instance variables under watch by MaterialList._listener
 	listeners = ('sent_out', 'po', 'delivered')
 	_steps = ('send_out', 'assess_quotes', 'send_po', 'receive_delivery', 'complete')
 
-	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True):
+	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True, user=None):
 		"""
 		Initializes a representational object for a material list document.
 		:param job: AwardedJob that material list is for
@@ -19,7 +29,10 @@ class MaterialList(object):
 		:param task: Boolean. If True, SHOULD create a Todo object linked to self
 		:return: None
 		"""
-		self.hash = abs(hash(str(now())))
+		if doc:
+			self.hash = abs(hash(str(doc)))  # hash attribute is derived from document title
+		else:     # create _hash attribute if it doesn't exist
+			self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 
 		self.job = job
 		self.items = items
@@ -33,24 +46,33 @@ class MaterialList(object):
 		self.label = label
 		self.comments = comments
 
+		self.job.add_mat_list(self)
+
 		self.quotes = {}
 		self.tasks = {}
 		self.rentals = {}
-		self.job.add_mat_list(self)
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
 		self.delivery = None    # Stores Delivery object
+		self.backorders = {}
 
-		# TODO:set listener to delete todo object associated with sending self out to vendors
+		# TODO: set listener to delete todo object associated with sending self out to vendors
 		self.sent_out = False   # Is set to true once list is given out for pricing
 		self.po = None
 
+		self.update()
+
 
 	def __setattr__(self, key, value):
+		# do not update yaml file or call self.update() if self is still initializing
+		_caller = traceback.extract_stack(None, 2)[0][2]
+		if _caller is not '__init__':
+			self.update()
+			update_po_in_log(self, key, value)
 		_return = super(MaterialList, self).__setattr__(key, value)
-		if key in MaterialList.listeners:
-			self._listen(key, value)
-		self.update()
+		# TODO: automate Task completion via variable listeners
+		#if key in MaterialList.listeners:
+		#	self._listen(key, value)
 		return _return
 
 	def __repr__(self):
@@ -62,6 +84,12 @@ class MaterialList(object):
 			return '"%s" from %s' % (self.label, dt)
 		else:
 			return "List from %s @ %s, from %s" % (self.foreman, self.job.name, dt)
+
+	def __len__(self):
+		try:
+			return len(self.items)
+		except TypeError:
+			return 0
 
 	@property
 	def age(self):
@@ -80,22 +108,30 @@ class MaterialList(object):
 
 	@property
 	def doc(self):
-		if type(self._doc) is not str:
-			try:
-				return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
-			except TypeError:
-				pass
-		elif self._doc:
-			return (os.path.join(self.job.sub_path, 'Materials'), self._doc)
+		if hasattr(self, '_doc') and self._doc:
+			_path = os.path.join(self.job.path, 'Materials')
+			return _path, self._doc
 		else:
 			return False
 
 	def update(self):
-		if hasattr(MaterialList, 'db'):
-			MaterialList.db[self.hash] = self
+		if hasattr(self, 'db') and hasattr(self, 'hash'):
 			if hasattr(self, 'job'):
 				self.job.add_mat_list(self)
 		return None
+
+	def upgrade_quote(self, quote, **kwargs):
+		""" Creates a MaterialListQuote belonging to self from `quote`
+		:quote: Quote object to convert
+		:**kwargs: Arguments to be passed to MaterialListQuote.__init__
+		:return:
+		"""
+		if type(quote) == Quote:
+			# TODO: verify that quote.doc document file still exists
+			q_obj = MaterialListQuote(self, doc=quote.doc, **kwargs)
+			return q_obj
+		else:
+			raise TypeError
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
@@ -103,14 +139,32 @@ class MaterialList(object):
 		self.update()
 		return None
 
+	def del_quote(self, quote_obj):
+		if type(quote_obj) != int:
+			_hash = quote_obj.hash
+		else:
+			_hash = quote_obj
+		del self.quotes[_hash]
+		self.update()
+		return None
+
 	def add_po(self, po_obj):
 		self.po = po_obj
+		self.job.add_po(po_obj)
 		self.fulfilled = True
 		self.update()
 		return None
 
+	def del_po(self, po_obj):
+		return NotImplemented
+
 	def add_task(self, task_obj=None):
 		self.tasks[task_obj.hash] = task_obj
+		self.update()
+		return None
+
+	def del_task(self, task_hash):
+		del self.tasks[task_hash]
 		self.update()
 		return None
 
@@ -123,21 +177,11 @@ class MaterialList(object):
 		# return unique object id
 		return NotImplemented
 
-	def del_quote(self, quote_obj):
-		del self.quotes[quote_obj.hash]
-		self.update()
-		return None
-
-	def del_task(self, task_hash):
-		del self.tasks[task_hash]
-		self.update()
-		return None
-
-	def issue_po(self, quote_obj):
+	def issue_po(self, quote_obj, user=None):
 		quote_obj.awarded = True
 		self.fulfilled = True
 		self.sent_out = True
-		_obj = PO(self.job, quote=quote_obj, mat_list=self)
+		_obj = PO(self.job, quote=quote_obj, mat_list=self, user=user)
 		self.update()
 		return _obj
 
@@ -163,46 +207,89 @@ class MaterialList(object):
 				pass
 		return None
 
-	@staticmethod
-	def find(mlist_hash):
-		if hasattr(MaterialList, 'db'):
-			return MaterialList.db[int(mlist_hash)]
-
 
 class Quote(object):
-	def __init__(self, vend, price=0.0, doc=None):
-		self.hash = abs(hash(now()))
+	def __init__(self, vend, price=0.0, date_uploaded=None, doc=None):
 		self.vend = vend
 		try:
-			self.price = float(price)
-		except ValueError:
-			self.price = 0.0
+			self._price = float(price)
+		except (TypeError, ValueError):
+			logger.warning("Error parsing price for Quote %s. Defaulted to $0.0" % self.hash)
+			self._price = 0.0
 		self._doc = doc
 
-		self.date_uploaded = now()
+		if not date_uploaded:
+			self.date_uploaded = now()
+		else:
+			self.date_uploaded = date_uploaded
 		self.awarded = False
 
 	@property
+	def hash(self):
+		if hasattr(self, 'doc') and self.doc:
+			return abs(hash(str(self.doc)))  # hash attribute is derived from document title
+		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
+			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+		return self._hash
+
+
+	@property
 	def doc(self):
-		if self._doc:
-			return (os.path.join( ENV_ROOT, self._doc[0] ), self._doc[1])
-		return False
+		if self.path and self._doc:
+			return self.path, self._doc
+		elif self._doc:  # self has no path
+			return True
+		else:
+			return False
 
 	def __repr__(self):
-		return "Quote uploaded %s from %s" % (self.date_uploaded, self.vend)
+		return "Quote from %s" % self.vend
+
+	def update(self):
+		return NotImplemented
+
+	@property
+	def path(self):
+		if hasattr(self, 'job') and hasattr(self.job, 'path'):
+			_path = os.path.join(self.job.path, 'Quotes')
+			return _path
+		elif hasattr(self, '_path'):
+			_path = os.path.join(self._path, 'Quotes')
+			return _path
+
+		else:
+			return False
+
+	@property
+	def price(self):
+		return self._price
+
+	@price.setter
+	def price(self, value):
+		self._price = float(value)
+		self.update()
 
 
 class MaterialListQuote(Quote):
-	def __init__(self, mat_list, vend, price=0.0, doc=None):
-		super(MaterialListQuote, self).__init__(vend, price, doc)
+	def __init__(self, mat_list, vend, price=0.0, date_uploaded=None, doc=None):
+		super(MaterialListQuote, self).__init__(vend, price, date_uploaded, doc)
 		self.mat_list = mat_list
-		self._doc = doc  # document target path/name
 		self.mat_list.job.add_quote(self)
+
+		self.update()
+
+	@property
+	def job(self):
+		return self.mat_list.job
 
 	def __setattr__(self, key, value):
 		_return = super(MaterialListQuote, self).__setattr__(key, value)
-		if hasattr(self, 'mat_list'):
-			self.mat_list.add_quote(self)
+
+		# do not update yaml file if self is still initializing
+		_caller = traceback.extract_stack(None, 2)[0][2]
+		if _caller is not '__init__':
+			#scheduler.add_job(update_po_in_log, args=[self, key, value])
+			self.update()
 		return _return
 
 	def update(self):
@@ -215,24 +302,23 @@ class MaterialListQuote(Quote):
 
 class PO(object):
 	def __init__(self, job, mat_list=None, date_issued=today(),
-	             quote=None, desc=None, deliveries=None, po_num=None, po_pre=None):
+	             quote=None, desc=None, delivery=None, po_num=None, po_pre=None, update=True, user=None):
 		if not po_num:
-			self.num = job.next_po
+			self.number = job.next_po
 		else:
-			self.num = int(po_num)
+			self.number = int(po_num)
 		self.job = job
 		self.mat_list = mat_list
 		self.date_issued = date_issued
 		self.quote = quote
-		self.deliveries = deliveries  # stores initial delivery date
+		self.delivery = delivery  # stores initial delivery date
+		self.backorders = []          # stores any backorder delivery dates
 		self.desc = str(desc)
-		self.deliveries = []
+		self.user = user
 		if po_pre:
 			self.po_pre = str(po_pre)
 
-		self.backorders = None  # stores any backorder delivery dates
-
-		# update job object
+		# update jobs object
 		self.job.add_po(self)
 		# update material list object
 		self.mat_list.add_po(self)
@@ -240,13 +326,33 @@ class PO(object):
 		self.quote.awarded = True
 		self.quote.update()
 
+		if update:
+			try:
+				scheduler.add_job(add_po_to_log, args=[self])
+			except TypeError:
+				logger.warning('There was an error adding PO to the log.')
+				print "There was an error adding PO to log. Possibly no spreadsheet for jobs??"
+
 	@property
 	def name(self):
-		_num = '%03d' % self.num
+		_num = '%03d' % self.number
 		if hasattr(self, 'po_pre'):
 			return '-'.join([str(self.po_pre), _num])
 		else:
 			return '-'.join([str(self.job.po_pre), _num])
+
+	@property
+	def vend(self):
+		return self.quote.vend
+
+	@property
+	def price(self):
+		return self.quote.price
+
+	@price.setter
+	def price(self, value):
+		self.quote.price = value
+		self.quote.update()
 
 	def __repr__(self):
 		return self.name
@@ -264,7 +370,7 @@ class Delivery(object):
 	"""
 	def __init__(self, mat_list, expected=None, destination='shop'):
 
-		# TODO:add object to job.deliveries
+		# TODO:add object to jobs.deliveries
 
 		self.hash = abs(hash(str(mat_list)))
 		self.mat_list = mat_list
@@ -281,14 +387,26 @@ class Delivery(object):
 		if hasattr(Delivery, 'db'):
 			return Delivery.db[q_hash]
 
+	def __repr__(self):
+		if self.mat_list.label:
+			return '%s delivery for %s expected %s' % (self.mat_list.label, self.job, self.expected)
+		elif len(self.mat_list):
+			return 'Delivery for %s containing %d item(s)' % (self.job, len(self.mat_list))
+		else:
+			return 'Delivery for %s ordered by %s' % (self.job, self.mat_list.po.user)
+
 	def __setattr__(self, key, value):
 		_return = super(Delivery, self).__setattr__(key, value)
 		if hasattr(Delivery, 'db'):
 			Delivery.db[self.hash] = self
-		if hasattr(self, 'job'):
+		if hasattr(self, 'jobs'):
 			self.po.job.deliveries[self.hash] = self
 			self.job.update()
 		return _return
+
+	@property
+	def label(self):
+		return self.__repr__()
 
 	@property
 	def job(self):
@@ -305,3 +423,8 @@ class Delivery(object):
 	@property
 	def countdown(self):
 		return (self.expected - today()).days
+
+	@property
+	def timestamp(self):
+		epoch = datetime(1969, 12, 31)  # why does this work???
+		return (self.expected - epoch).total_seconds() * 1000

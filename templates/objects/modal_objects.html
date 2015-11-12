@@ -1,0 +1,395 @@
+{% macro dir_upload() %}
+
+<!-- TODO:implement directory upload -->
+
+	<form action="{{ url_for('upload_directory') }}" enctype="multipart/form-data" method="post">
+		<input type="file" name="file"  webkitdirectory="" directory="">
+		<input type="submit">
+	</form>
+
+{% endmacro %}
+
+
+{% macro upload_modal(job=False, obj=None, meth='material') %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
+		{% if meth == 'material' %}
+	    Upload Doc
+		{% else %}
+			Upload Quote
+		{% endif %}
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="uploadModalLabel">
+		        {% if meth == 'material' %}
+		          Upload Material List
+		        {% elif meth == 'quote' %}
+		          Upload Material Quote
+		        {% endif %}
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+
+	        {% if meth == 'material' %}
+
+		        <form id="uploadForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
+			        <div class="form-group itemLineDiv">
+				        <label for="listLabel">
+					        Label for Material List:
+				        </label>
+				        <input type="text" id="listLabel" class="form-control" name="listLabel" placeholder="Descriptive Label">
+				      </div>
+							<input type="file" name="file" id="fileUpload">
+			        <div class="form-group">
+				        <label for="dateSubmitted">
+					        Date Submitted:
+				        </label>
+				        <input type="date" name="dateSubmitted" id="dateSubmitted" class="form-control" value="{{ today().date() }}">
+			        </div>
+			        <div class="form-group">
+				        <label for="dateRequired">
+					        Date Required:
+				        </label>
+				        <input type="date" name="dateRequired" id="dateRequired" class="form-control">
+			        </div>
+						</form>
+
+		      {% elif meth == 'quote' %}
+
+						<form id="uploadForm" action="{{ url_for('quote', job_num=job.number, m_hash=obj.hash) }}" enctype="multipart/form-data" method="post">
+							<input type="hidden" name="materialList" value="{{ obj.hash }}">
+							<input type="file" name="quote" id="fileUpload">
+							<div class="form-group">
+								<label for="vendName">Vendor:</label>
+								<input type="text" name="vendor" id="vendName" class="form-control" placeholder="Vendor Name">
+							</div>
+							<div class="form-group">
+								<label class="control-label" for="quotePrice">Quoted Price:</label>
+								<div class="input-group" id="quotePrice">
+									<span class="input-group-addon">
+										<span class="glyphicon glyphicon-usd"></span>
+									</span>
+									<input type="text" name="quotePrice" class="form-control" value="0.0">
+								</div>
+							</div>
+						</form>
+
+		      {% endif %}
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="uploadForm">Finalize Upload</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro item_modal(job=False, obj=None, meth='material') %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#itemModal">
+	  Input Items
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="itemModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="itemModalLabel">
+		        {% if meth == 'material' %}
+		          Entering Items
+		        {% elif meth == 'quote' %}
+		          Upload Material Quote
+		        {% endif %}
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+
+	        {% if meth == 'material' %}
+						<!-- TODO:create input for naming material list -->
+		        <form id="itemizedMaterialForm" action="{{ url_for('job_materials', job_num=job.number) }}" enctype="multipart/form-data" method="post">
+							<input type="hidden" value="0" id="itemCounter" name="itemCounter">
+			        <div class="form-group itemLineDiv">
+				        <label for="listLabel">
+					        Label for Material List:
+				        </label>
+				        <a class="pull-right" href="javascript:;" onclick="addMaterialItem();">
+					        <span class="glyphicon glyphicon-plus"></span>
+				        </a>
+				        <input type="text" id="listLabel" class="form-control" name="listLabel" placeholder="Descriptive Label">
+				      </div>
+			        <label for="itemizedMaterialArea">
+				        Items:
+			        </label>
+			        <div id="itemizedMaterialArea" class="row">
+				        {# Item line elements will be populated here #}
+			        </div>
+			        <div class="form-group">
+				        <label for="dateRequired">
+					        Date Required:
+				        </label>
+				        <input type="date" name="dateRequired" id="dateRequired" class="form-control">
+			        </div>
+						</form>
+
+		      {% endif %}
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="itemizedMaterialForm">Upload</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro list_modal(job=False, obj=None) %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-info" data-toggle="modal" data-target="#listModal">
+	  View Item List
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="listModal" tabindex="-1" role="dialog" aria-labelledby="listModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="listModalLabel">
+		        {{ obj }}
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+		      {% if obj.items is not string %}
+            <ul class="list-group">
+				      {% for item in obj.items %}
+				        <li class="list-group-item">{{ item }}</li>
+				      {% endfor %}
+            </ul>
+          {% else %}
+            {# usually executes if material list was imported from PO log #}
+            <span>{{ obj.items }}</span>
+          {% endif %}
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary">Edit</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro inventory_item_modal() %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#invModal">
+	  New Item List
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="invModal" tabindex="-1" role="dialog" aria-labelledby="invModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="invModalLabel">
+		        New Inventory Item
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+          <form action="{{ url_for('new_inventory_item') }}" name="itemIDForm" id="itemIDForm" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="itemID">
+                Item ID:
+              </label>
+              <input id="itemID" name="itemID" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="itemLabel">
+                Item Label:
+              </label>
+              <input id="itemLabel" name="itemLabel" type="text" class="form-control">
+            </div>
+          </form>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="itemIDForm">Submit</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro inventory_order_modal() %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#invOrderModal">
+	  Input Order
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="invOrderModal" tabindex="-1" role="dialog" aria-labelledby="invOrderModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="invOrderModalLabel">
+		        New Inventory Item
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+          <form action="{{ url_for('inventory_item_order') }}" name="itemOrderForm" id="itemOrderForm" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="itemOrderID">
+                Item ID:
+              </label>
+              <input id="itemOrderID" name="itemOrderID" type="text" class="form-control">
+              <p class="user_help-block">Input item name or ID</p>
+            </div>
+            <div class="form-group">
+              <label for="vendorName">
+                Vendor:
+              </label>
+              <input id="vendorName" name="vendorName" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="orderPrice">
+                Order Price
+              </label>
+              <input id="orderPrice" name="orderPrice" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="orderAmount">
+                Order Amount
+              </label>
+              <!-- TODO:create javascript to listen on #itemOrderID to change input type based on the items unit of measure -->
+              <input id="orderAmount" name="orderAmount" type="text" class="form-control">
+            </div>
+          </form>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="itemOrderForm">Submit</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+
+
+{% macro timesheet_input_modal(jobs) %}
+
+	<!-- Button trigger modal -->
+	<button type="button" class="btn btn-success" data-toggle="modal" data-target="#timesheetModal">
+	  New Timesheet
+	</button>
+
+	<!-- Modal -->
+	<div class="modal fade" id="timesheetModal" tabindex="-1" role="dialog" aria-labelledby="timesheetModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="timesheetModalLabel">
+		        New Timesheet
+	        </h4>
+	      </div>
+
+	      <div class="modal-body">
+          <form action="{{ url_for('upload_timesheet') }}" name="timesheetUploadForm" id="timesheetUploadForm" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="jobSelect">
+                Select a job:
+              </label>
+              <select name="jobSelect" id="jobSelect" class="form-control">
+                {% for job in jobs %}
+	              <option value="{{ job.number }}">{{ job.name }}</option>
+	              {% else %}
+	              <option>No jobs available</option>
+	              {% endfor %}
+	              <option selected>Please select a job</option>
+              </select>
+            </div>
+	          <div class="form-group">
+		          <label for="weekEnding">
+			          Week Ending: <small>(Wednesday)</small>
+		          </label>
+		          <input name="weekEnding" id="weekEnding" class="form-control" type="date">
+	          </div>
+	          <input type="hidden" value="0" id="workerCounter" name="workerCounter">
+            <table class="table table-condensed timecardTable">
+              <tbody id="timecardTable">
+                <tr class="tableHeadings">
+                  <th class="workerFormName">
+	                  <a href="javascript:;" onclick="newTimecardRow();">
+		                  <span class="glyphicon glyphicon-plus"></span>&nbsp;
+	                  </a>
+	                  Worker Name
+                  </th>
+                  <th>Mon</th>
+                  <th>Tue</th>
+                  <th>Wed</th>
+                  <th>Thur</th>
+                  <th>Fri</th>
+                  <th>Sat</th>
+                </tr>
+                {# Rows are added here #}
+              </tbody>
+            </table>
+          </form>
+	      </div>
+
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="submit" class="btn btn-primary" form="timesheetUploadForm">Submit</button>
+	      </div>
+
+	    </div>
+	  </div>
+	</div>
+
+{% endmacro %}
+

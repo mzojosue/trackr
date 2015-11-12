@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	Campano Estimating
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+ {{ layout.navbar_links('estimating_home', usr=usr) }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.sidebar('') }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h1 class="page-header">
+       Creating new bid
+    </h1>
+    {%- with messages = get_flashed_messages(with_categories=True) -%}
+      {%- if messages -%}
+        {%- for category, message in message -%}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endwith -%}
+
+		<div class="row">
+			<form enctype="multipart/form-data" method="POST">
+
+				<div id="bidInfo" class="col-sm-4">
+					<div class="form-group">
+						<label for="newBidName">Project Name:</label>
+						<input name="newBidName" type="text" class="form-control"
+									 id="newBidName" placeholder="Enter Bid Name" value="">
+					</div>
+					<div class="form-group">
+						<label for="jobAddress">
+							Job Address:
+						</label>
+						<textarea name="jobAddress" id="jobAddress" class="form-control" rows="1"></textarea>
+					</div>
+					<div class="form-group">
+						<label for="jobDesc">
+							Job Desc/Comments:
+						</label>
+						<textarea name="jobDesc" id="jobDesc" class="form-control" rows="2"></textarea>
+					</div>
+				</div>
+
+				<div id="bidGC" class="col-xs-2">
+					<div class="form-group">
+						<label for="gcSelect">
+							GC:
+						</label>
+						<select name="gc" class="form-control" id="gcSelect" onchange="update_gc_input(this.value)">
+							<!-- Input element gets renamed to 'gcSelect' update_gc_input based on id attribute -->
+							<!-- TODO: dynamically enumerate GCs to database instead of hard-coding values -->
+							<option value="Falasca">Falasca Mechanical</option>
+							<option value="McCloskey">McCloskey Mechanical</option>
+							<option value="Gary Gardner">Gary F. Gardner</option>
+							<option value="show_other">Other GC</option><!-- TODO: create text input when "Other" is selected -->
+						</select>
+					</div>
+					<div class="form-group" id="otherGCDiv" style="display: none">
+						<label for="gcName">
+							Other GC Name:
+						</label>
+						<input name="gcName" id="otherGC" type="text" class="form-control">
+						<!-- Input element gets renamed to 'gc' by update_gc_input based on id attribute -->
+					</div>
+					<div class="form-group">
+						<label for="gcContact">
+							Contact Name
+						</label>
+						<input name="gcContact" type="text" class="form-control" id="gcContact" placeholder="">
+					</div><!-- /.form-control -->
+				</div>
+
+				<div class="col-xs-3 form-group">
+					<div class="form-group">
+						<label for="scopeArea">Scope of Work:</label>
+						<div id="scopeArea">
+							<label class="checkbox-inline">
+								<input name=materialsScope value=True type="checkbox">M
+							</label>
+							<label class="checkbox-inline">
+								<input name=equipmentScope value=True type="checkbox">E
+							</label>
+							<label class="checkbox-inline">
+								<input name=insulationScope value=True type="checkbox">I
+							</label>
+							<label class="checkbox-inline">
+								<input name=balancingScope value=True type="checkbox">B
+							</label>
+						</div>
+          </div>
+          <div class="form-group">
+						<label for="bid_date">
+							Bid Date:
+						</label>
+						<input name="bid_date" type="date" id="bid_date" class="form-control">
+					</div>
+				</div>
+
+				<div class="clearfix visible-lg-block"></div>
+
+				<button class="btn btn-success btn-lg pull-right" type="submit">Create job</button>
+			</form>
+		</div>
+	</div><!-- /.row -->
+
+{% endblock %}
+
+
+{% block post_script %}
+
+<script type="text/javascript">
+	function update_gc_input(selVal) {
+		// Displays and hides otherGC based on selVal
+		// selectID contains id string of GC select element
+		// holderID contains id string of div placeholder for appending input to
+		if (selVal == "show_other") {
+			$("#gcSelect").attr({'name': "gcSelect"});  // renames old select element
+			$("#otherGC").attr({'name': "gc"});  // renames new input element to 'gc'
+			$("#otherGCDiv").attr({'style': 'display: block'});
+		}
+		else {
+			$("#gcSelect").attr({'name': "gc"});  // renames old select element back to 'gc'
+			$("#otherGC").attr({'name': "gcName"});  // renames new input element back to 'gcName'
+			$("#otherGCDiv").attr({'style': 'display: none'});  // hides other GC text input again
+		}
+	}
+</script>
+
+{% endblock %}

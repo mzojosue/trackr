@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+{{ job.name }} - Overview
+{% endblock %}
+
+
+{% block styles %}
+
+<link href="{{ url_for('static', filename='css/job.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+  {{ layout.navbar_links('all_jobs', usr=usr) }}
+{% endblock %}
+
+
+{% block body %}
+
+{{ layout.job_sidebar('job_overview', job_num=job.number) }}
+
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <h1 class="page-header" id="jobHeader">
+        {{ job.name }}&nbsp;
+    </h1>
+
+    <div class="row">
+
+        {{ objects.delivery_widget(job=job) }}
+
+        {{ objects.materials_widget(job=job) }}
+
+        {{ objects.task_widget(todos=todos, job=job) }}
+
+    </div>
+</div><!-- /.main -->
+
+{% endblock %}

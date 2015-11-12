@@ -13,39 +13,25 @@
 
 
 {% block nav_links %}
-	<li>
-		<a href="{{ url_for('home') }}">Dashboard</a>
-	</li>
-	<li>
-		<a href="#">Estimating</a>
-	</li>
-	<li>
-		<a href="{{ url_for('all_jobs') }}">Jobs</a>
-	</li>
-	<li>
-		<a href="#">Settings</a>
-	</li>
-	<li>
-		<a href="#">Help</a>
-	</li>
+	{{ layout.navbar_links('home', usr=usr) }}
 {% endblock %}
 
 
 {% block body %}
 
-	{{ objects.sidebar_links('inventory') }}
+	{{ layout.sidebar_links('timesheets', usr=usr) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
-			Shop Inventory&nbsp;
-			<!-- TODO:implement link to unlock and edit job -->
+			Job timesheets&nbsp;
+			<!-- TODO:implement link to unlock and edit jobs -->
 			<a href="" class="btn btn-default btn-sm">
 				Unlock for Editing
 			</a>
 		</h1>
 
     <div class="widgetWell">
-      {{ objects.timesheet_input_modal() }}
+      {{ modal.timesheet_input_modal(jobs) }}
     </div>
 
 		<div class="row">
@@ -55,6 +41,7 @@
 					<th>Job Name:</th>
           <th>Week Finished:</th>
           <th>On Field:</th>
+					<th>Hours:</th>
           <th>Timesheet Document:</th>
 					<th>Del:</th>
 					<!--th>Ordered By:</th-->
@@ -62,9 +49,10 @@
 				{% for ts in timesheets %}
 					<tr>
 						<td>{{ ts.job }}</td>
-            <td>{{ ts.end_date }}</td>
+            <td>{{ ts.end_date.date() }}</td>
             <td>{{ ts.bodies_on_field() }}</td>
-            <td>(( ts.doc ))</td>
+						<td>{{ ts.hours }}</td>
+            <td>{{ ts.doc }}</td>
 						<td>
               <!-- TODO: implement delete function to timesheet element -->
 							<a href="#">
@@ -78,5 +66,68 @@
 
 		</div><!-- /.row -->
 	</div><!-- /.main -->
+
+{% endblock %}
+
+
+{% block post_script %}
+<script type="text/javascript">
+function newTimecardRow() {
+
+  var tableArea = document.getElementById('timecardTable');
+  var numi = document.getElementById('workerCounter');
+  var num = (document.getElementById('workerCounter').value -1)+ 2;
+  numi.value = num;
+
+  // Create new row
+  var newRow = document.createElement('tr');
+  var newRowLineID = 'timecardLineID_'+num;
+  newRow.setAttribute('id', newRowLineID);
+
+  // Create worker name table cell
+  var workerNameCell = document.createElement('td');
+  // Create and populate worker name input element
+  var workerNameInput = document.createElement('input');
+  var workerLabelName = 'workerName_'+num;
+  workerNameInput.setAttribute('name', workerLabelName);
+  workerNameInput.setAttribute('type', 'text');
+  workerNameInput.setAttribute('class', 'form-control');
+  // Append input element to table-cell and then to row
+  workerNameCell.appendChild(workerNameInput);
+  newRow.appendChild(workerNameCell);
+
+  // Set variable for days of the week
+  var daysOfWeek = ['mon', 'tue', 'wed', 'thurs', 'fri', 'sat'];
+  var weekLength = daysOfWeek.length;
+
+  // Iterate over array and create new data cells
+  for (var i=0; i<weekLength; i++) {
+    var dayInputCell = document.createElement('td');
+
+    // create hidden input to store job value
+    var hiddenIn = document.createElement('input');
+    var hiddenName = daysOfWeek[i] + '_Job_' + num
+    hiddenIn.setAttribute('name', hiddenName);
+    hiddenIn.setAttribute('type', 'hidden');
+
+    var inputDay = document.createElement('input');
+    var inputName = daysOfWeek[i] + '_Hours_' + num;
+    inputDay.setAttribute('name', inputName);
+    inputDay.setAttribute('type', 'text');
+    inputDay.setAttribute('class', 'form-control');
+    inputDay.setAttribute('value', 0);
+
+    // Add input elements to table-cell
+    dayInputCell.appendChild(hiddenIn);
+    dayInputCell.appendChild(inputDay);
+    // Add table-cell to row
+    newRow.appendChild(dayInputCell);
+  }
+
+  // Append new row to table
+  tableArea.appendChild(newRow);
+
+}
+</script>
 
 {% endblock %}

@@ -1,5 +1,3 @@
-from objects import *
-
 class Todo(object):
 	""" Represents tasks to-do
 	:param
@@ -39,10 +37,10 @@ class Todo(object):
 					pass
 				else:
 					raise KeyError
-		if hasattr(self, 'job'):
+		if hasattr(self, 'jobs'):
 			try:
 				self.job.del_task(self.hash)
-				print "deleted task from job.tasks"
+				print "deleted task from jobs.tasks"
 			except KeyError:
 				# assume partially deleted object
 				pass
@@ -76,7 +74,7 @@ class Todo(object):
 	def update(self):
 		if hasattr(Todo, 'db') and hasattr(self, 'hash'):
 			Todo.db[self.hash] = self
-		if hasattr(self, 'job'):
+		if hasattr(self, 'jobs'):
 			self.job.add_task(self)
 		if hasattr(self, 'target'):
 			self.target.add_task(self)

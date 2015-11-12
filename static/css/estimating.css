@@ -1,0 +1,61 @@
+
+/* sidebar coloring for page */
+.nav-sidebar > .active > a {
+  background-color: #5cb85c;
+}
+
+.nav-sidebar > li > a {
+  color: #4cae4c;
+}
+
+.bid-status > .label > a > small,
+.bid-status > .label > a > span {
+  color: #FFF;
+}
+
+.bid-status {
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+.award-button:hover {
+  color: #fff !important;
+  background-color: #5cb85c !important;
+  content: "Award Bid!" !important;
+}
+
+.bid-sidebar > #delete-bid {
+  bottom: 0;
+  position: fixed;
+  margin-bottom: 10px;
+}
+
+
+/* Sub Bid Classes */
+
+.sub-bid-btn {
+  margin-top: -5px;
+  margin-right: -10px;
+}
+
+.date-input {
+  width: 60% !important;
+}
+
+.gc_contact-input {
+  width: 80% !important;
+}
+
+.gc-input {
+  width: 80% !important;
+}
+/* End Sub Bid Classes */
+
+
+#subBidModal {
+  color: #4E4E4E;
+}
+
+#scopeArea {
+  padding: 6px 12px;
+}

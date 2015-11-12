@@ -13,33 +13,19 @@
 
 
 {% block nav_links %}
-	<li>
-		<a href="{{ url_for('home') }}">Dashboard</a>
-	</li>
-	<li>
-		<a href="#">Estimating</a>
-	</li>
-	<li class="active">
-		<a href="{{ url_for('all_jobs') }}">Jobs</a>
-	</li>
-	<li>
-		<a href="#">Settings</a>
-	</li>
-	<li>
-		<a href="#">Help</a>
-	</li>
+	{{ layout.navbar_links('all_jobs', usr=usr) }}
 {% endblock %}
 
 
 {% block body %}
 
-  {{ objects.job_sidebar('job_materials', job_num=job.number) }}
+  {{ layout.job_sidebar('job_materials', job_num=job.number) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
 			{{ job.name }}&nbsp;
-			<!-- TODO:implement link to unlock and edit job -->
-			<a href="" class="btn btn-default btn-sm">
+			<!-- TODO:implement link to unlock and edit jobs -->
+			<a href="javascript:" class="btn btn-default btn-sm" onclick="unlock_table_for_editing();">
 				Unlock for Editing
 			</a>
 		</h1>
@@ -57,43 +43,6 @@
 		</ul>
 
 		<div class="row">
-
-			<!-- TODO:save file under job folder directory structure -->
-			<div class="col-xs-8 widgetWell">
-        {% if not mlist.po %}
-				  {{ objects.upload_modal(job=job, obj=mlist, meth='quote') }}
-				{% endif %}
-				{% if mlist.items %}
-					{{ objects.list_modal(job=job, obj=mlist) }}
-				{% endif %}
-				{% if mlist.doc %}
-					<a href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=mlist.hash) }}" target="_blank" class="btn btn-info">
-	          View Material Document
-					</a>
-				{% endif %}
-        {% if mlist.delivery %}
-          <a href="{{ url_for('accept_delivery', job_num=job.number, d_hash=124) }}" class="btn btn-success">Accept Delivery</a>
-        {% endif %}
-			</div>
-
-      {% if not mlist.sent_out %}
-        <div class="well col-xs-4 widgetWell">
-          <!-- TODO:convert form/checkbox to http link -->
-          <form class="form-inline" action="{{ url_for('update_material_list', m_hash=mlist.hash) }}" method="post">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" name="sentOut" value="True" {% if mlist.sent_out %}checked{% endif %}>
-                Sent to appropriate vendors
-              </label>
-            </div>
-            <button type="submit" class="btn btn-default">Update</button>
-          </form>
-        </div>
-      {% elif mlist.po and not mlist.delivery %}
-        {{ objects.delivery_widget(job=job, obj=mlist) }}
-      {% else %}
-        <div class="clearfix visible-lg-block"></div>
-      {% endif %}
 
 			<h3 id="listStatus">
 				{%- if not mlist.sent_out %}
@@ -115,6 +64,7 @@
 				{% endif -%}
 			</h3>
 
+      <form method="post" id="quoteUpdate" enctype="multipart/form-data"></form>
 			<label for="quoteTable">Associated Quotes:</label>
 			<table class="table table-striped" id="quoteTable">
 				<tr id="tableHeader">
@@ -130,7 +80,7 @@
 				</tr>
 				{% for i in mlist.quotes.itervalues() %}
 				<!-- TODO:style rows based on age -->
-					<tr class="{% if i.awarded %}success{% endif %}">
+					<tr {% if i.awarded %}class="success"{% endif %}>
 						<td id="{{ i.hash }}">
 							{% if not i.awarded %}
 								{% if not mlist.fulfilled %}
@@ -152,16 +102,30 @@
 						<td>
 							{{ i.hash }}
 							{% if i.doc %}
-								<a target="_blank" href="{{ url_for('job_quote_doc', job_num=job.number, doc_hash=i.hash) }}">
+								<a target="_blank" href="{{ url_for('material_quote_doc', job_num=job.number, m_hash=mlist.hash, q_hash=i.hash) }}">
 									<span class="glyphicon glyphicon-paperclip"></span>
 								</a>
+              {% else %}
+                <a href="javascript:" class="fileSelect">
+                  <span class="glyphicon glyphicon-open"></span>
+                  <input type="file" id="fileUpload-{{ i.hash }}" name="fileUpload" onchange="add_quote_doc({{ job.number }}, {{ mlist.hash }}, {{ i.hash }});" multiple>
+                </a>
 							{% endif %}
 						</td>
 						<td>{{ i.vend }}</td>
-						<td>{{ i.date_recvd.date() }}</td>
-						<td>{{ i.price }}</td>
+						<td>
+							{% if hasattr(i.date_issued, 'date') %}
+	              {% set _date_issued = i.date_issued.date() %}
+	            {% else %}
+	              {% set _date_issued = i.date_issued %}
+	            {% endif %}
+							{{ _date_issued }}
+						</td>
+						<td>
+							<input type="hidden" class="form-control price-input" name="quotePrice" id="priceUpdate-{{ i.hash }}" placeholder="{{ i.price }}" onchange="update_quote_price({{ mlist.hash }}, {{ i.hash }})">
+							<span class="hide-value">{{ i.price }}</span>
+						</td>
 						<!-- TODO:show appropriate styling for completed lists -->
-						<!-- TODO:add button for deleting material list -->
 						<td>
 							<a href="{{ url_for('delete_job_quote', doc_hash=i.hash, job_num=i.mat_list.job.number) }}">
 								<span class="glyphicon glyphicon-trash"></span>
@@ -170,6 +134,43 @@
 					</tr>
 				{% endfor %}
 			</table>
+
+			<!-- TODO:save file under jobs folder directory structure -->
+			<div class="col-xs-8 widgetWell">
+        {% if not mlist.po %}
+				  {{ modal.upload_modal(job=job, obj=mlist, meth='quote') }}
+				{% endif %}
+				{% if mlist.items %}
+					{{ modal.list_modal(job=job, obj=mlist) }}
+				{% endif %}
+				{% if mlist.doc %}
+					<a href="{{ url_for('job_material_doc', job_num=job.number, doc_hash=mlist.hash) }}" target="_blank" class="btn btn-info">
+	          View Material Document
+					</a>
+				{% endif %}
+        {% if mlist.delivery and not mlist.delivery.delivered %}
+          <a href="{{ url_for('accept_delivery', job_num=job.number, d_hash=mlist.delivery.hash) }}" class="btn btn-success">Accept Delivery</a>
+        {% endif %}
+			</div>
+
+      {% if not mlist.sent_out %}
+        <div class="well col-xs-4 widgetWell">
+          <!-- TODO:convert form/checkbox to http link -->
+          <form class="form-inline" action="{{ url_for('update_material_list', job_num=job.number, m_hash=mlist.hash) }}" method="post">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="sentOut" value="True" {% if mlist.sent_out %} checked {% endif %}>
+                Sent to appropriate vendors
+              </label>
+            </div>
+            <button type="submit" class="btn btn-default">Update</button>
+          </form>
+        </div>
+      {% elif mlist.po and not mlist.delivered %}
+        {{ objects.delivery_widget(job=job, obj=mlist) }}
+      {% else %}
+        <div class="clearfix visible-lg-block"></div>
+      {% endif %}
 
 		</div>
 	</div><!-- /.main -->

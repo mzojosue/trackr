@@ -1,12 +1,16 @@
 from config import *
 
+
 @app.route('/dynamic/j/<int:job_num>/materials')
 @app.route('/dynamic/j/<int:job_num>/materials/<query>')
 def get_mat_lists(job_num, query=None):
 	""" Populates <select> object contents for displaying the material lists for `job_num`
-	:param job_num: specifies job number to iterate over
+	:param job_num: specifies jobs number to iterate over
 	:return:
 	"""
+	auth = check_login()
+	if not auth:
+		return auth  # redirects to login
 	_job = AwardedJob.find(job_num)
 	_return = []
 	if hasattr(_job, 'materials') and _job.materials:
@@ -30,13 +34,17 @@ def get_mat_lists(job_num, query=None):
 	elif hasattr(_job, 'materials'):
 		_return.append('<option>No material lists available</option>')
 
+
 @app.route('/dynamic/j/has_open_lists')
 def job_with_open_list():
+	auth = check_login()
+	if not auth:
+		return auth  # redirects to login
 	_return = []
 	if hasattr(AwardedJob, 'db'):
-		_return.append('<option>Please select a job</option>')
+		_return.append('<option>Please select a jobs</option>')
 		for job in AwardedJob.db.itervalues():
-			_open = job.has_open_lists
+			_open = len(job.has_open_lists)
 			if _open:
 				_opt = '<option value="%s">%s  (%d open lists)</option>' % (job.number, job, _open)
 				_return.append(_opt)

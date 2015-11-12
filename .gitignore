@@ -15,3 +15,7 @@ __pycache__/
 .anjuta*
 .ropeproject    # rope symbol db
 *~              # auto-saved files
+
+# WebApp configuration file
+config.yaml
+.config.yaml
