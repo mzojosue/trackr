@@ -58,7 +58,7 @@ class TestWorker(unittest.TestCase):
 		"""
 		return NotImplemented
 
-	def add_labor(self):
+	def test_add_labor(self):
 		""" Calls add_labor with hardcoded values. Tests date_worked, week_end, and job.
 		"""
 		return NotImplemented
@@ -102,11 +102,8 @@ class TestJob(unittest.TestCase):
 		if os.path.isdir('../../tests'):  # checks if in tests/.job_sandbox
 			_escape = '../..'  # escape tests/.job_sandbox
 			_delete = 'tests/.job_sandbox'
-		else:
-			_escape = '..'
-			_delete = '.job_sandbox'
-		os.chdir(_escape)
-		shutil.rmtree(_delete)
+			os.chdir(_escape)
+			shutil.rmtree(_delete, ignore_errors=True)
 
 	def testInit(self):
 		""" Tests all attributes creating during initialization as well as class attributes
