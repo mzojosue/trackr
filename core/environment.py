@@ -144,7 +144,7 @@ class Environment(object):
 			_path = globals()[obj].storage      # grab YAML storage path for each object type
 			m = hashlib.md5()
 			m.update(file(_path).read())
-		_hash = m.hexdigest()                   # compute md5 digest of _path
+			_hash = m.hexdigest()                   # compute md5 digest of _path
 
 			if not _value or not (str(_value['hash']) == _hash):    # execute update_func and schedule database update
 				f = globals()[update_func]
