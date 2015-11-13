@@ -46,8 +46,6 @@ class MaterialList(object):
 		self.label = label
 		self.comments = comments
 
-		self.job.add_mat_list(self)
-
 		self.quotes = {}
 		self.tasks = {}
 		self.rentals = {}
@@ -115,8 +113,7 @@ class MaterialList(object):
 			return False
 
 	def update(self):
-		if hasattr(self, 'db') and hasattr(self, 'hash'):
-			if hasattr(self, 'job'):
+		if hasattr(self, 'hash') and hasattr(self, 'job'):
 				self.job.add_mat_list(self)
 		return None
 
