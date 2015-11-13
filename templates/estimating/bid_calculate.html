@@ -1,0 +1,343 @@
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	{{ bid }}
+{% endblock %}
+
+{% block html_attributes %}
+  {%- raw -%}
+    ng-app="BidCalculateApp"
+  {%- endraw -%}
+{% endblock %}
+
+{% block body_attributes %}
+  {%- raw -%}
+    ng-controller="BidSectionController"
+  {%- endraw -%}
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+  {{ layout.navbar_links('estimating_home', usr=usr) }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.bid_sidebar('bid_calculate', bid=bid, usr=usr) }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h2 class="page-header">
+			{{ bid.name }}&nbsp;
+		</h2>
+
+		<div class="row">
+			<form method="post" id="bidSection" class="col-xs-7"
+        role="form" ng-submit="createSection()">
+        <div id="wrapper" class="col-xs-9">
+
+          <h4>New Section:</h4>
+
+          <div class="section-label">
+            <div><!-- Wrapping div when collecting scope -->
+              <label for="sectionName">Takeoff Section Name:</label>
+              <div class="form-group">
+                <input  ng-model="section.sectionName" name="sectionName" id="sectionName" type="text" class="form-control" required>
+              </div>
+            </div>
+          </div><!-- /.label -->
+
+
+          <!-- Begin Scope Area -->
+          <div class="scope-sm">
+            <div class="sm-stats">
+              <div class="form-group">
+	              <label for="metalWeight">Sheet Metal Weight (w/o waist):</label>
+	              <div class="input-group">
+                  <input ng-model="section.metalWeight" name="metalWeight" id="metalWeight" type="number" class="form-control">
+                  <span class="input-group-addon">lbs</span>
+                </div>
+              </div>
+              <div class="form-group">
+	              <label for="metalCost">Sheet Metal Cost:</label>
+	              <div class="input-group">
+                  <span class="input-group-addon">$</span>
+                  <input ng-model="section.metalCost" name="metalCost" id="metalCost" type="number" class="form-control">
+                  <span class="input-group-addon">.00</span>
+                </div>
+              </div>
+            </div><!-- /.sm-stats -->
+	          <!-- TODO: set option to input labor hours directly -->
+	          <div class="sm-calc">
+		          <!-- TODO: set options to calculate field/install -->
+	          </div>
+          </div><!-- /.scope-sm -->
+
+          <div class="scope-M">
+            <div class="GRDs">
+              <label for="airDeviceCount">Air Device Count:</label>
+              <div class="form-group">
+                <p class="small">Include grilles, registers, and diffusers</p>
+                <div class="input-group">
+                  <input ng-model="section.airDeviceCount" name="airDeviceCount" id="airDeviceCount" type="number" class="form-control">
+                  <span class="input-group-addon">pieces</span>
+                </div>
+              </div>
+              <label for="linearDiffLength">Linear Diffuser Length:</label>
+              <div class="form-group">
+                <div class="input-group">
+                  <input ng-model="section.linearDiffLength" name="linearDiffLength" id="linearDiffLength" type="number" class="form-control">
+                  <span class="input-group-addon">feet, 0"</span>
+                </div>
+              </div>
+            </div><!-- /.GRDs -->
+
+            <div class="ductAccessories">
+	            <label for="fsdCount">FSD Count:</label>
+	            <div class="form-group">
+		            <div class="input-group">
+			            <input ng-model="section.fsdCount" name="fsdCount" id="fsdCount" type="number" class="form-control">
+			            <span class="input-group-addon">pieces</span>
+		            </div>
+	            </div>
+	            <label for="volDamperCount">Volume Damper Count:</label>
+	            <div class="form-group">
+		            <div class="input-group">
+			            <input ng-model="section.volDamperCount" name="volDamperCount" id="volDamperCount" type="number" class="form-control">
+			            <span class="input-group-addon">pieces</span>
+		            </div>
+              </div>
+            </div><!-- /.ductAccessories -->
+
+            <label for="curbEfCount">Curbed Fan Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.curbEfCount" name="curbEfCount" id="curbEfCount" type="number" class="form-control">
+                <span class="input-group-addon">fans</span>
+              </div>
+            </div>
+            <label for="efCount">Ceiling Fan Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.efCount" name="efCount" id="efCount" type="number" class="form-control">
+                <span class="input-group-addon">fans</span>
+              </div>
+            </div>
+          </div><!-- /.scope-M -->
+
+          <div class="scope-E">
+            <label for="ahuCount">AHU Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.ahuCount" name="ahuCount" id="ahuCount" type="number" class="form-control">
+                <span class="input-group-addon">units</span>
+              </div>
+            </div>
+            <label for="vavCount">VAV/Term Unit Count:</label>
+            <div class="form-group">
+              <div class="input-group">
+                <input ng-model="section.vavCount" name="vavCount" id="vavCount" type="number" class="form-control">
+                <span class="input-group-addon">units</span>
+              </div>
+            </div>
+          </div><!-- /.scope-E -->
+          <!-- End Scope Area -->
+
+          {% raw %}
+            <label for="selectedItem">Select new item to add:</label>
+            <select id="selectedItem" ng-model="selectedItem" ng-change="addItem()">
+              <optgroup label="{{ scope }}" ng-repeat="(scope, _items) in items">
+                <option value="{{ vals }}"  ng-repeat="(item, vals) in _items">{{ item }}</option>
+              </optgroup>
+            </select>
+          {% endraw %}
+
+          <button class="btn btn-lg btn-primary" type="submit">
+            Save Section&nbsp;
+            <span class="glyphicon glyphicon-floppy-open"></span>
+          </button>
+        </div><!-- /#wrapper -->
+			</form>
+
+			<div class="col-xs-5">
+				<h4>Takeoff Sections:</h4>
+        {% raw %}
+          <div class="well panel-group" id="accordian" role="tablist" aria-multiselectable="true">
+
+            <div class="panel panel-success" ng-repeat="(name, val) in sections">
+              <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                  <a role="button" id="section-header-{{ name }}" data-toggle="collapse" data-parent="#accordian" href="#section-{{ name }}" aria-controls="section-{{ name }}">
+                    {{ name }}
+                  </a>&nbsp;
+                  <button class="btn btn-sm btn-warning" ng-click="editSection(name)">
+                    <span class="glyphicon glyphicon-pencil"></span>&nbsp;
+                    Edit
+                  </button>
+                </h4>
+              </div>
+              <div class="panel-collapse collapse in" id="section-{{ name }}" role="tabpanel">
+                <div class="panel-body">
+                  {{ val }}
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /.well.panel-group -->
+        {% endraw %}
+			</div>
+
+		</div><!-- /.row -->
+	</div><!-- /.main -->
+
+{% endblock %}
+
+
+{% block post_script %}
+
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.min.js"></script>
+  <script type="text/javascript" language="javascript">
+    (function () {
+
+      'use strict';
+
+      angular.module('BidCalculateApp', [])
+        .controller('BidSectionController', ['$scope', '$log', '$http', function($scope, $log, $http) {
+          $scope.section = {};   // Input form area
+          $scope.sections = {};  // Holds bid sections for bid sheet
+
+          $http.get("{{ url_for('get_available_items', bid_num=bid.number) }}").
+            success(function(results) {
+              $scope.items = results;
+              $log.log(results);
+            }).
+          error(function (error) {
+            $log.log(error);
+          });
+
+          $scope.createSection = function() {
+            var _return = {};
+            for (var key in $scope.section) {
+              if ($scope.section.hasOwnProperty(key)) {
+                var _key = $("#" + key);
+                var _parent = _key.parent().parent().parent().parent();  // wrapping scope
+                var _parent_class = _parent[0].className;
+                var _item = _key.parent().parent().parent();  // wrapping sectionItem div
+                var _item_class = _item[0].className;
+                // if _parent_class is 'scope-*', _return[_item] = {};
+                if (_parent[0].id === 'wrapper') {  // DOM parent chain extended too far
+                  _return[_item_class] = $scope.section[key];
+                } else {
+                  if (_return[_parent_class] == undefined) {
+                    _return[_parent_class] = {};
+                  } if (_return[_parent_class][_item_class] == undefined) {
+                    _return[_parent_class][_item_class] = {};
+                  }
+                  _return[_parent_class][_item_class][key] = $scope.section[key];
+                }
+              }
+            }
+            $log.log(_return);
+            $http.post('{{ url_for('create_section', bid_num=bid.number) }}',
+              _return ).
+              success(function(results) {
+                if ('sectionName' in $scope.section) {
+                  $scope.sections[$scope.section['sectionName']] = angular.copy($scope.section);
+                  $log.log("HTTP request returned: " + results);
+                  $scope.section = {};
+                }
+              }).
+              error(function(error) {
+                $log.log(error);
+              });
+          };
+
+          $scope.editSection = function(name) {
+            // Update input form area with passed section label
+            $scope.section = angular.copy($scope.sections[name]);
+          };
+
+          $scope.addItem = function() {
+            var selectedItem = JSON.parse($scope.selectedItem);
+            $log.log(selectedItem);
+            // TODO: Add element to form using $scope.selectedItem
+            var id, label, metric, units, value, scope;  // values from $scope.selectedItem
+            id = selectedItem.id;
+            label = selectedItem.label;
+            metric = selectedItem.metric;
+            metric = metric.charAt(0).toUpperCase() + metric.substr(1);  // format metric string
+            units = selectedItem.units;
+            if (selectedItem.scope.length > 2) {
+              scope = '.scope-' + selectedItem.scope[0];
+            } else {
+              scope = '.scope-' + selectedItem.scope;
+            }
+            scope = $(scope);  // find appropriate scope 'div' element
+
+            var item = document.createElement('div');  // item div
+            scope.append(item);
+            item.setAttribute('class', id);     // denote item div element
+            var forms = ['value', 'cost'];          // input forms to create
+            $(forms).each(function(val) {
+              val = forms[val];
+              var form_group = document.createElement('div');
+
+              item.appendChild(form_group);          // associate each form with item element
+              $(form_group).addClass('form-group');
+              $(form_group).addClass('col-xs-6');
+              var form_id = id.toLowerCase() + metric;        // create id attribute string
+
+              var label_element = document.createElement('label');
+              label_element.innerHTML = label + ' ' + val;
+              label_element.setAttribute('for', form_id);
+              form_group.appendChild(label_element);
+
+              var input_group, input_element;
+              input_group = document.createElement('div');      // input-group div
+              input_group.setAttribute('class', 'input-group');
+              form_group.appendChild(input_group);
+              input_element = document.createElement('input');  // input element
+              input_element.setAttribute('id', form_id);
+              input_element.setAttribute('class', 'form-control');
+              // set 'ng-model' attribute
+
+              if (val == 'cost') {
+                var span_addon = document.createElement('span');
+                span_addon.setAttribute('class', 'input-group-addon');
+                span_addon.innerHTML = '$';
+                input_group.appendChild(span_addon);
+
+                input_group.appendChild(input_element);
+
+                span_addon = document.createElement('span');
+                span_addon.setAttribute('class', 'input-group-addon');
+                span_addon.innerHTML = '.00';
+                input_group.appendChild(span_addon);
+              } else if (val == 'value') {
+                input_group.appendChild(input_element);
+
+                span_addon = document.createElement('span');
+                span_addon.setAttribute('class', 'input-group-addon');
+                span_addon.innerHTML = units;
+                input_group.appendChild(span_addon);
+              }// create span elements. append to input-group. add first '$' addon if val == 'cost'
+            });
+            // TODO: implement value editing
+          }
+        }
+
+
+      ]);
+
+    }());
+  </script>
+
+{% endblock %}

@@ -13,11 +13,14 @@ import core.environment as env
 today = datetime.today
 
 
-class User(object):
+class User(yaml.YAMLObject):
+	yaml_tag = u'!User'
 	_yaml_filename = 'users.yaml'
-	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created')
+	_yaml_attr = ('username', 'email', 'salt', 'passwd', 'date_created', 'role')
 
-	def __init__(self, name, username, email, passwd, salt=None, date_created=today()):
+	_user_roles = ('admin', 'estimator')
+
+	def __init__(self, name, username, email, passwd, role='admin', salt=None, date_created=today()):
 		self.name = name
 		self.username = username
 		self.email = email
@@ -29,10 +32,12 @@ class User(object):
 			self.passwd = passwd
 			self.salt = salt
 
-		if hasattr(self, 'db'):
-			self.db[self.hash] = self
+		if role in self._user_roles:
+			self.role = role
+		else:
+			self.role = None
 
-		self.dump_info()
+		self.update()
 
 	def __setattr__(self, key, value):
 		_return = super(User, self).__setattr__(key, value)
@@ -41,13 +46,23 @@ class User(object):
 			self.update()
 		return _return
 
+	def __repr__(self):
+		return "'%s', %s" % (self.username, self.role)
+
 	@staticmethod
 	def find(query):
+		"""
+		:param query: string representing username or hash value
+		:return: first object matching query
+		"""
 		if hasattr(User, 'db'):
-			for i in User.db.values():
-				if i.username == str(query):
-					return i
-			return False
+			for _key, obj in User.db.iteritems():
+				# TODO: detect multiple objects matching query
+				if _key == query:
+					return obj
+				elif obj.username == str(query):
+					return obj
+		return False
 
 	@staticmethod
 	def load_users():
@@ -57,9 +72,13 @@ class User(object):
 			with open(fname, 'r') as _file_dump:
 				_file_dump = yaml.load(_file_dump)
 				try:
-					for _uname, _attr in _file_dump.iteritems():
-						_attr['name'] = _uname
-						User(**_attr)
+					for _hash, obj in _file_dump.iteritems():
+						try:
+							obj['name'] = _hash  # old yaml file. assume _hash is name attribute
+							User(**obj)
+						except TypeError:
+							if hasattr(User, 'db'):
+								User.db[obj.hash] = obj
 				except AttributeError:
 					return False
 			logger.info('Successfully imported users.yaml')
@@ -67,30 +86,21 @@ class User(object):
 			pass
 		return True
 
-	def dump_info(self):
-		_filename = os.path.join(env.env_root, self._yaml_filename)
-		try:
-			with open(_filename, 'r') as _data_file:
-				_dump = yaml.load(_data_file)
-				try:
-					if self.name in _dump:
-						# TODO: update object instead of quitting
-						return True
-				except TypeError:
-					pass
-		except IOError:
-			pass
-		_data = {}
-		for i in self._yaml_attr:
-			try:
-				_val = self.__getattribute__(i)
-				_data[i] = _val
-			except AttributeError:
-				continue
-		_data = {self.name: _data}
+	@classmethod
+	def dump_all(cls):
+		""" Iterates through class database and saves objects to YAML file
+		:return: None
+		"""
+		users = {}  # values to save to file
+		if hasattr(cls, 'db'):
+			for _hash, obj in cls.db.iteritems():
+				users[_hash] = obj
 
-		with open(_filename, 'a') as _data_file:
-			yaml.dump(_data, _data_file, default_flow_style=False)
+
+		_filename = os.path.join(env.env_root, cls._yaml_filename)
+		with open(_filename, 'w') as stream:
+			print 'Updating %s' % _filename
+			yaml.dump(users, stream, default_flow_style=False)
 
 	def update(self):
 		"""
@@ -99,6 +109,7 @@ class User(object):
 		"""
 		if hasattr(User, 'db') and hasattr(self, 'hash'):
 			User.db[self.hash] = self
+			self.dump_all()
 		return None
 
 

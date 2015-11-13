@@ -1,6 +1,8 @@
 import time
+import subprocess
 import pymongo
 from mongodict import *
+from pymongo.errors import ConnectionFailure
 
 from core.scheduler import scheduler
 from environment import *
@@ -45,9 +47,8 @@ def import_po_log(log=environment.get_po_log):
 				if _mat_list.age > 5:
 					_mat_list.delivered = True
 
-		AwardedJob.db.values()[0].dump_all()  # create yaml database
-
 	del AwardedJob._dump_lock
+	AwardedJob.db.values()[0].dump_all()  # create yaml database
 	_elapsedTime = time.time() - _startTime
 	print "Finished importing Jobs and POs from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
@@ -83,9 +84,8 @@ def import_estimating_log(log=environment.get_estimating_log):
 
 				_bid.add_sub(add_to_log=False, **obj)
 
-		EstimatingJob.db.values()[0].dump_all()
-
 	del EstimatingJob._dump_lock
+	EstimatingJob.db.values()[0].dump_all()
 	_elapsedTime = time.time() - _startTime
 	print "Finished EstimatingJob import from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
@@ -119,6 +119,24 @@ def disconnect_db():
 
 	# User Database
 	User.db = {}
+
+
+def start_db():
+	""" Attempts to start MongoDB from hardcoded path. Passes db path, and 'quiet' arguments.
+	"""
+	try:
+		pymongo.MongoClient()
+		return True  # daemon already running
+	except ConnectionFailure:
+		_paths = ('C:\\Program Files\\MongoDB 2.6 Standard\\bin\\mongod', 'C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod')
+		for path in _paths:
+			try:
+				subprocess.Popen([path, '--dbpath', 'C:\\data\\db', '--quiet'])
+				print "Successfully started MongoDB"
+				return True
+			except OSError:
+				continue  # continue iterating down possible paths
+		print "All attempts to start MongoDB failed."
 
 
 def init_db(db='trackr_db'):
@@ -171,9 +189,38 @@ def clear_db(db='trackr_db'):
 		print "Couldn't connect to database"
 		logger.debug('Couldnt connect to database')
 
-	set_po_log_hash('')
 	init_db(db)
 
+	return True
+
+
+def check_db(db='trackr_db'):
+	""" Ensures database is updated by comparing hashes of YAML storage objects with values in database.
+	YAML storage is re-imported if database is not up to date.
+	:param db: Mongo database to iterate through
+	:return: True if operation complete
+	"""
+	client = pymongo.MongoClient("localhost", 27017)
+	_db = client[db]['environment']
+	hashes = _db.yaml_hashes
+	stores = [['bid_storage', get_estimating_log, 'import_estimating_log'],
+			  ['job_storage', get_po_log, 'import_po_log']]  # TODO: implement User and Worker db checking
+	for _id, _path, update_func in stores:
+		_value = hashes.find_one({'_id': _id})
+
+		m = hashlib.md5()
+		m.update( file(_path).read() )
+		_hash = m.hexdigest()  # compute md5 digest of _path
+
+		if not _value or not (str(_value['hash']) == _hash):  # execute update_func and schedule database update
+			f = globals()[update_func]
+			scheduler.add_job(f)
+			_value = {'_id': _id, 'hash': _hash, 'date_modified': datetime.now()}
+			hashes.update({'_id': _id}, _value, upsert=True)
+			print "Updating %s" % _id
+		else:
+			print "%s up-to-date" % _id
+	scheduler.start()
 	return True
 
 
@@ -183,14 +230,10 @@ def reset_db(db='trackr_db'):
 	# TODO: reinitialize logger
 	#remove(environment.get_log_file)
 
-	clear_db()
 	User.load_users()
-	if True: #not check_po_log():
-		#scheduler.add_job(import_estimating_log)
-		#scheduler.add_job(import_po_log)
-		#scheduler.start()
-		import_estimating_log()
-		import_po_log()
+
+	start_db()
+	check_db()
 
 	Worker.load_workers()
 	os.chdir(_cwd)  # Ensure that directories haven't been changed

@@ -65,7 +65,7 @@
 
 		      {% elif meth == 'quote' %}
 
-						<form id="uploadForm" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
+						<form id="uploadForm" action="{{ url_for('quote', job_num=job.number, m_hash=obj.hash) }}" enctype="multipart/form-data" method="post">
 							<input type="hidden" name="materialList" value="{{ obj.hash }}">
 							<input type="file" name="quote" id="fileUpload">
 							<div class="form-group">

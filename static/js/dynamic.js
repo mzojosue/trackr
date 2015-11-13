@@ -58,7 +58,7 @@ function addMaterialItem() {
 
 }
 
-function removeMaterialItem(divNum) {s
+function removeMaterialItem(divNum) {
 
   var d = document.getElementById('itemizedMaterialArea');
   var getID = 'itemID-' + divNum;
@@ -136,16 +136,19 @@ function unlock_table_for_editing() {
 //function update_po_attr(job_number, po_num, attr)
 
 function unlock_sub_bids_for_editing() {
+  var elements = [['due-date-label', 'date-input'],
+      ['contact-label', 'gc_contact-input'],
+      ['gc-label', 'gc-input']];
 
-  // Hide all labels
-  var dateLabels = document.getElementsByClassName('due-date-label');
-  for (var i=0; i < dateLabels.length; i++) {
-    dateLabels[i].style.display = 'none';
-  }
+  for (var i=0; i < elements.length; i++) {
+    var labels = document.getElementsByClassName(elements[i][0]);
+    for (var z=0; z < labels.length; z++) {
+      labels[z].style.display = 'none';        // Hide all label elements
+    }
 
-  // Show all input elements
-  var dateInputs = document.getElementsByClassName('date-input');
-  for (var i=0; i < dateInputs.length; i++) {
-    dateInputs[i].style.display = 'block';
+    var inputs = document.getElementsByClassName(elements[i][1]);
+    for (var z=0; z < inputs.length; z++) {
+      inputs[z].style.display = 'block';        // Show all input elements
+    }
   }
 }

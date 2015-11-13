@@ -8,11 +8,10 @@ import core
 class TestWorker(unittest.TestCase):
 	def setUp(self):
 		core.disconnect_db()  # ensure database objects aren't interfered with
+		core.AwardedJob._dump_lock = True  # prevent object storage
 		self.name = 'test worker'
-		self.job = core.AwardedJob(1, 'test_job')
+		self.job = core.AwardedJob(1, 'test_job', init_struct=False)
 		self.object = core.Worker(self.name, self.job)
-
-		self.job._dump_lock = True  # prevent object storage
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.job_sandbox'
@@ -70,7 +69,7 @@ class TestWorker(unittest.TestCase):
 		return NotImplemented
 
 	def test_dump_info(self):
-		""" Creates arbitrary Worker objects then verifies contents written to disk by dump_info.
+		""" Creates arbitrary Worker objects then verifies contents written to disk by dump_all.
 		Tests with/w/o db attribute.
 		"""
 		return NotImplemented
@@ -84,9 +83,10 @@ class TestWorker(unittest.TestCase):
 class TestJob(unittest.TestCase):
 	def setUp(self):
 		core.disconnect_db()  # ensure database objects aren't interfered with
+		core.Job._dump_lock = True  # prevent object storage
+
 		self.name = 'test_job'
 		self.job = core.Job(self.name)
-		core.Job._dump_lock = True  # prevent object storage
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.job_sandbox'
@@ -363,6 +363,8 @@ class TestAwardedJob(unittest.TestCase):
 	def test_add_quote(self):
 		""" Creates a MaterialList and Quote linked to self.object.
 		"""
+		self.object._path = os.getcwd()  # set path attribute to current directory
+		os.mkdir('Quotes')
 		_mat_list_obj = core.MaterialList(self.object)  # add_mat_list is called during MaterialList.update
 		_quote_obj = core.MaterialListQuote(_mat_list_obj, 'Test Vendor @ Test')
 
@@ -372,6 +374,8 @@ class TestAwardedJob(unittest.TestCase):
 	def test_del_quote(self):
 		""" Creates a MaterialList and Quote linked to self.object then calls del_quote.
 		"""
+		self.object._path = os.getcwd()  # set path attribute to current directory
+		os.mkdir('Quotes')
 		_mat_list_obj = core.MaterialList(self.object)  # add_mat_list is called during MaterialList.update
 		_quote_obj = core.MaterialListQuote(_mat_list_obj, 'Test Vendor @ Test')
 

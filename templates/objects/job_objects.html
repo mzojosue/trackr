@@ -300,7 +300,7 @@
 			</div><!-- /.panel-heading -->
 			{# TODO:check if material list iterable is >0 #}
 			<div class="panel-body" id="quoteUpload">
-				<form class="form-horizontal" action="{{ url_for('quote') }}" enctype="multipart/form-data" method="post">
+				<form class="form-horizontal" action="{{ url_for('quote', job_num=job.number) }}" enctype="multipart/form-data" method="post">
 					{% if not job %}
 						<div class="form-group col-xs-12">
 							<label for="openJobSelect">

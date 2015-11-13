@@ -17,23 +17,17 @@ def root():
 @app.route('/home')
 def home():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
-	if hasattr(Todo, 'db') and hasattr(MaterialList, 'db') and hasattr(AwardedJob, 'db'):
-		_todos = Todo.db.itervalues()
-		_completed = Todo.completed_db.itervalues()
-		_jobs = AwardedJob.db.itervalues()
-		_lists = MaterialList.db.itervalues()
-		return render_template('dashboard.html', jobs=_jobs, lists=_lists, todos=_todos, completed=_completed)
-	else:
-		# TODO:display db error on page
-		return render_template('dashboard.html')
+	elif auth.role == 'estimator':
+		return redirect(url_for('estimating_home'))
+	return render_template('dashboard.html', usr=auth)
 
 @app.route('/overview/json')
 def serialized_overview():
 	""" Sums up all events occuring within given timestamps. Pulls upcoming deliveries, bid due dates, and other key dates. """
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 
 	# Grab 'from' and 'to' GET requests
@@ -82,16 +76,16 @@ def serialized_overview():
 @app.route('/inventory')
 def inventory():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(InventoryItem, 'db'):
 		_inventory = InventoryItem.db.itervalues()
-		return render_template('inventory.html', inventory=_inventory)
+		return render_template('inventory.html', inventory=_inventory, usr=auth)
 
 @app.route('/inventory/item', methods=['POST'])
 def new_inventory_item():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_item_id = request.form['itemID']
 	_item_label = request.form['itemLabel']
@@ -101,7 +95,7 @@ def new_inventory_item():
 @app.route('/inventory/order', methods=['POST'])
 def inventory_item_order():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_item = InventoryItem.find(request.form['itemOrderID'])
 	_vend_name = request.form['vendorName']
@@ -113,7 +107,7 @@ def inventory_item_order():
 @app.route('/inventory/<int:item_hash>/del')
 def del_inventory_item(item_hash):
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	_item = InventoryItem.find(item_hash)
 	if _item.orders and hasattr(InventoryOrder, 'db'):
@@ -129,12 +123,12 @@ def del_inventory_item(item_hash):
 @app.route('/timesheets')
 def timesheets():
 	auth = check_login()
-	if auth is not True:
+	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if hasattr(Timesheet, 'db'):
 		_jobs = sort_jobs(AwardedJob.db.values())
 		_timesheets = Timesheet.db.itervalues()
-		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs)
+		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs, usr=auth)
 
 @app.route('/timesheets/upload', methods=('POST', 'GET'))
 def upload_timesheet():

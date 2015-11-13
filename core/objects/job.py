@@ -163,7 +163,7 @@ class Worker(object):
 
 	def update(self):
 		"""
-		Calls self.dump_info
+		Calls self.dump_all
 		:return: None
 		"""
 		if hasattr(Worker, 'db') and hasattr(self, 'hash'):
@@ -177,7 +177,7 @@ class Worker(object):
 class Job(yaml.YAMLObject):
 	yaml_tag = u'!Job'
 	yaml_filename = 'db_storage.yaml'
-	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install')
+	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install', 'sm')
 
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
 	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
@@ -247,68 +247,49 @@ class Job(yaml.YAMLObject):
 		else:
 			return False
 
-	@property
-	def addendums(self):
-		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
+	def dump_folder(self, dir):
+		""" Iterates through contents of given dir and returns file-names, paths, and last modified times
 		:return:
 		"""
+		# TODO: update docstring
 		if self.path:
-			_dir = os.path.join(self.path, 'Addendums')
+			_dir = os.path.join(self.path, dir)
 			if os.path.isdir(_dir):
-				_adds = os.listdir(_dir)
+				_files = os.listdir(_dir)
 				_return = {}
-				for add in _adds:
-					_path = os.path.join(_dir, add)
+				for f in _files:
+					_path = os.path.join(_dir, f)
 					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[add] = [_path, _mod_time]
+					# TODO: process file type
+					_sub_path = os.path.join(dir, f)
+					_return[f] = {'path': _path, 'sub_path': _sub_path, 'mod_time': _mod_time}
 				return _return
 			else:
 				# TODO: log directory error
 				pass
 		# TODO: log attribute error
 		return {}  # catchall
+
+	@property
+	def addendums(self):
+		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
+		:return: self.dump_folder
+		"""
+		return self.dump_folder('Addendums')
 
 	@property
 	def drawings(self):
 		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
-		:return:
+		:return: self.dump_folder
 		"""
-		if self.path:
-			_dir = os.path.join(self.path, 'Drawings')
-			if os.path.isdir(_dir):
-				_dwgs = os.listdir(_dir)
-				_return = {}
-				for dwg in _dwgs:
-					_path = os.path.join(_dir, dwg)
-					_mod_time = os.stat(_path)
-					# TODO: process dwg type
-					_return[dwg] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		return self.dump_folder('Drawings')
 
 	@property
 	def documents(self):
-		if self.path:
-			_dir = os.path.join(self.path, 'Documents')
-			if os.path.isdir(_dir):
-				_docs = os.listdir(_dir)
-				_return = {}
-				for doc in _docs:
-					_path = os.path.join(_dir, doc)
-					_mod_time = os.stat(_path)
-					# TODO: process doc type
-					_return[doc] = [_path, _mod_time]
-				return _return
-			else:
-				# TODO: log directory error
-				pass
-		# TODO: log attribute error
-		return {}  # catchall
+		""" Iterates through contents of Documents folder and returns file-names, paths, and last modified times
+		:return: self.dump_folder
+		"""
+		return self.dump_folder('Documents')
 
 	@property
 	def has_drawings(self):
@@ -340,6 +321,7 @@ class Job(yaml.YAMLObject):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__' and _caller is not 'load_info':
+			log.logger.info('In %s, updated "%s" attribute to %s')
 			self.update()
 		return _return
 
@@ -359,20 +341,33 @@ class Job(yaml.YAMLObject):
 		else:
 			return False
 
-	def dump_all(self):
-		if hasattr(self, '_dump_lock') and self._dump_lock:
+	@classmethod
+	def storage(cls):
+		if hasattr(cls, 'default_sub_dir'):
+			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
+			return _filename
+
+
+	@classmethod
+	def dump_all(cls):
+		""" Iterates through class databases and saves all objects to YAML file
+		:return: None
+		"""
+		if hasattr(cls, '_dump_lock') and cls._dump_lock:
 			return None  # attribute to prevent object storage for testing purposes
-		_jobs = {}
-		if hasattr(self, 'completed_db'):
-			for num, obj in self.completed_db.items():
+
+		_jobs = {}  # aggregate both current and past jobs
+		if hasattr(cls, 'completed_db'):
+			for num, obj in cls.completed_db.iteritems():
 				_jobs[num] = obj
-		if hasattr(self, 'db'):
-			for num, obj in self.db.items():
+		if hasattr(cls, 'db'):
+			for num, obj in cls.db.iteritems():
 				_jobs[num] = obj
 
-		if hasattr(self, 'default_sub_dir'):
-			_filename = os.path.join(env.env_root, self.default_sub_dir, self.yaml_filename)
+		if hasattr(cls, 'default_sub_dir'):
+			_filename = cls.storage()
 			stream = file(_filename, 'w')
+			print 'Saving %s' % _filename
 			yaml.dump(_jobs, stream)
 
 
@@ -439,7 +434,7 @@ class AwardedJob(Job):
 		""" Initializes project directory hierarchy. """
 		# TODO:initialize documents w/ jobs information
 		try:
-			os.mkdir(os.path.join(env.env_root, self.sub_path))
+			os.makedirs(self.path)
 			log.logger.debug('Created project directory for "%s"' % self.name)
 		except OSError:
 			log.logger.warning("...project folder already exists")

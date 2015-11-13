@@ -2,7 +2,6 @@ from os import path
 import time
 
 from flask import *
-from werkzeug import secure_filename
 
 from core.objects import *
 
@@ -16,7 +15,8 @@ UPLOAD_FOLDER = 'C:/Users/campano/Documents/GitHub/trackr/uploads/'
 ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'png', 'jpg'}
 
 app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLDER)
-app.secret_key = "!campanohvac_2015"
+# generate random private key for encrypting client-side sessions
+app.secret_key = str(hash( ''.join(["!campanohvac_2015", str(now()), os.urandom(4)]) ))
 
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo
@@ -28,49 +28,78 @@ app.jinja_env.globals['today'] = today
 app.jinja_env.globals['hasattr'] = hasattr
 app.jinja_env.globals['getmtime'] = path.getmtime
 app.jinja_env.globals['time'] = time
+app.jinja_env.globals['path'] = os.path
+
 
 def allowed_file(filename):
 	return '.' in filename and \
 		filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
+@app.template_filter()
+def friendly_time(dt, past_="ago", future_="from now", default="just now"):
 	"""
-	Accepts a file via POST named 'file' and saves to core.UPLOAD_FOLDER
-	:return: redirect to uploaded file if successful. otherwise redirects back to referrer page with error status.
+	Returns string representing "time since"
+	or "time until" e.g.
+	3 days ago, 5 hours from now etc.
 	"""
-	if request.method == 'POST':
-		# TODO:accept arbitrary http post key name and save destination
-		_file = request.files['file']
-		if _file and allowed_file(_file.filename):
-			filename = secure_filename(_file.filename)
-			_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-			return redirect(url_for('uploaded_file', filename=filename))
-		else:
-			# TODO:show error status on redirect
-			return redirect(request.referrer)
+
+	now = datetime.utcnow()
+	if now > dt:
+		diff = now - dt
+		dt_is_past = True
+	else:
+		diff = dt - now
+		dt_is_past = False
+
+	periods = (
+		(diff.days / 365, "year", "years"),
+		(diff.days / 30, "month", "months"),
+		(diff.days / 7, "week", "weeks"),
+		(diff.days, "day", "days"),
+		(diff.seconds / 3600, "hour", "hours"),
+		(diff.seconds / 60, "minute", "minutes"),
+		(diff.seconds, "second", "seconds"),
+	)
+
+	for period, singular, plural in periods:
+
+		if period:
+			return "%d %s %s" % (period,
+				singular if period == 1 else plural,
+				past_ if dt_is_past else future_)
+
+	return default
 
 
 def check_login():
 	""" Checks login and keeps track of user activity. """
 	# TODO:implement a debug mode to bypass login check and return True
 	try:
-		if session['logged_in'] and session['hash_id']:
-			usr = User.find(session['hash_id'])
-			return True
-		return redirect(url_for('login'))
-	except KeyError:
-		return redirect(url_for('login'))
-
-
-def get_user():
-	try:
+		# TODO: merge with user_permissions
 		if session['logged_in'] and session['hash_id']:
 			usr = User.find(session['hash_id'])
 			return usr
+		return redirect(url_for('login'))
 	except KeyError:
 		return redirect(url_for('login'))
+
+@app.before_request
+def user_permissions(*args, **kwargs):
+	if request.endpoint != 'login' and 'static' not in request.path:  # restrict redirects on neutral paths
+		try:
+			# TODO: merge with check_login
+			if session['logged_in'] and session['hash_id']:  # ensure logged in
+				usr = User.find(session['hash_id'])
+				_table = {'/estimating': ('admin', 'estimator'),
+						  '/j/': ('admin')}  # dict object containing restricted statements and allowed user types
+				for restricted, allowed in _table.iteritems():
+					if restricted in request.path and usr.role not in allowed:
+						# TODO: log user permission error
+						print "%s tried illegally accessing %s" % (usr.name, request.url)
+						return redirect(url_for('home'))
+		except KeyError:
+			return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])

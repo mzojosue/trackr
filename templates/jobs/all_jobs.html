@@ -1,12 +1,18 @@
 {% extends "layout.html" %}
 
 {% block title %}
-Current Campano Jobs
+
+  Current Campano Jobs
+
 {% endblock %}
 
+
 {% block nav_links %}
-{{ layout.navbar_links('all_jobs') }}
+
+  {{ layout.navbar_links('all_jobs', usr=usr) }}
+
 {% endblock %}
+
 
 {% block body %}
 

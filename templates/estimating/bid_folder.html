@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% import "objects/estimating-objects.html" as estimating %}
+
+{% block title %}
+	{{ bid }}
+{% endblock %}
+
+
+{% block styles %}
+
+	<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+  {{ layout.navbar_links('estimating_home', usr=usr) }}
+{% endblock %}
+
+
+{% block body %}
+
+  {{ estimating.bid_sidebar(current_page, bid=bid, usr=usr) }}
+
+	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<h2 class="page-header">
+			{{ bid.name }}&nbsp;
+		</h2>
+
+		<div class="row">
+
+			<table class="table table-striped">
+				<tr id="tableHeadings">
+          <th>Project Name:</th>
+          <th>Date Added</th>
+          <th>Scope:</th>
+					<!--th>Uploaded By:</th-->
+				</tr>
+				{% for _file, attr in dir.iteritems() %}
+					<tr>
+						<td>
+              {% if path.isfile(attr['path']) %}
+                <a target="_blank"
+                   href="{{ url_for('bid_get_document', bid_num=bid.number, query=attr['sub_path']) }}">
+                  {{ _file }}
+                </a>
+              {% elif path.isdir(attr['path']) %}
+                <a href="{{ url_for('bid_folder', bid_num=bid.number, dir=attr['sub_path']) }}">
+                  {{  _file }}
+                </a>
+              {% endif %}
+            </td>
+						<td>{{ time.strftime("%m.%d.%y", time.gmtime(getmtime(attr['path']))) }}</td>
+						<td>Mech</td>
+					</tr>
+				{% endfor %}
+			</table>
+
+		</div><!-- /.row -->
+	</div><!-- /.main -->
+
+{% endblock %}
