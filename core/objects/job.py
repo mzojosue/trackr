@@ -429,6 +429,8 @@ class AwardedJob(Job):
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
 
+		self.update()
+
 
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
