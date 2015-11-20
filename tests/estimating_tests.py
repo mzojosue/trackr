@@ -18,23 +18,23 @@ class TestEstimatingJob(unittest.TestCase):
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.bid_sandbox'
+			try:
+				os.mkdir(_dir)  # create sandbox directory
+			except OSError:
+				pass
+			os.chdir(_dir)  # enter sandbox directory
 		else:
-			_dir = '.bid_sandbox'
-		try:
-			os.mkdir(_dir)  # create sandbox directory
-		except OSError:
-			pass
-		os.chdir(_dir)  # enter sandbox directory
+			raise OSError('Not started from program root')
 
 	def tearDown(self):
-		if os.path.isdir('../../tests'):  # checks if in tests/.job_sandbox
+		if os.path.isdir('../../tests'):  # checks if in project directory in tests/.job_sandbox
 			_escape = '../..'  # escape tests/.job_sandbox
 			_delete = 'tests/.bid_sandbox'
 		else:
 			_escape = '..'
 			_delete = '.bid_sandbox'
 		os.chdir(_escape)
-		shutil.rmtree(_delete)
+		shutil.rmtree(_delete, ignore_errors=True)
 
 	def testInit(self):
 		""" Tests all attributes creating during initialization as well as class attributes

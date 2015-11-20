@@ -52,7 +52,7 @@ def job_materials(job_num=None):
 					_date_due  = None
 				_label = request.form['listLabel']
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label, user=auth)
-			return redirect(url_for('material_list', m_hash=__obj.hash))
+			return redirect(url_for('material_list', job_num=job_num, m_hash=__obj.hash))
 		return render_template('jobs/job_materials.html', job=_job, usr=auth)
 	except KeyError:
 		flash('Error! AwardedJob does not exist.', 'danger')
@@ -169,7 +169,8 @@ def accept_delivery(job_num, d_hash):
 
 # Quote Pages #
 @app.route('/j/<int:job_num>/material/quote', methods=['GET', 'POST'])
-def quote(job_num):
+@app.route('/j/<int:job_num>/material/<int:m_hash>/quote', methods=['GET', 'POST'])
+def quote(job_num, m_hash=None):
 	""" Used for uploading and associating a quote with a material list via HTTP POST methods
 	:param:
 	:return:
@@ -180,7 +181,11 @@ def quote(job_num):
 	if request.method == 'POST':
 		##TODO:correctly implement document upload
 		_job = AwardedJob.find(job_num)
-		_list = _job.materials[int(request.form['materialList'])]
+		if m_hash:
+			_list = _job.materials[m_hash]
+		else:
+			_list = _job.materials[int(request.form['materialList'])]
+
 
 		__price = request.form['quotePrice']
 		__vend = request.form['vendor']

@@ -20,7 +20,7 @@ def import_po_log(log=environment.get_po_log):
 	_startTime = time.time()  # used for timing function duration
 	AwardedJob._dump_lock = True  # set lock on object to restrict yaml overwriting
 
-	_file = os.path.join(env_root, AwardedJob.default_sub_dir, 'db_storage.yaml')
+	_file = AwardedJob.storage()
 	if os.path.isfile(_file):  # check to see if YAML global storage was created
 		_method = 'yaml storage'
 		_stream = file(_file, 'r')
@@ -57,7 +57,7 @@ def import_estimating_log(log=environment.get_estimating_log):
 	_startTime = time.time()  # used for timing function duration
 	EstimatingJob._dump_lock = True  # set lock on object to restrict yaml overwriting
 
-	_file = os.path.join(env_root, EstimatingJob.default_sub_dir, 'db_storage.yaml')
+	_file = EstimatingJob.storage()
 	if os.path.isfile(_file):  # check to see if YAML global storage was created
 		_method = 'yaml storage'
 		_stream = file(_file, 'r')
@@ -242,3 +242,20 @@ def reset_db(db='trackr_db'):
 	logger.info("Database was successfully reset")
 
 	return True
+
+
+def backup_globals():
+	_globals = (AwardedJob, EstimatingJob)  # backup both global db's
+	for obj in _globals:
+		_backup = obj.storage()
+		if os.path.isfile(_backup):
+			# TODO: call Environment method to get backup directory
+			_name = getattr(obj, 'yaml_filename')            # create descriptive filename
+			_name = parse('{}.yaml', _name)[0]
+			_name = '_'.join([_name, datetime.now().strftime('%m-%d-%Y_%H%M')]) + '.yaml'
+			_path = os.path.join(env.env_root, 'backups', _name)    # backup path directory
+			shutil.copyfile(_backup, _path)
+			# log backup
+			pass
+		else:
+			print "%s doesn't exist" % _backup

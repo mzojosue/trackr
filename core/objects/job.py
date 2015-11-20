@@ -373,6 +373,7 @@ class Job(yaml.YAMLObject):
 
 class AwardedJob(Job):
 	yaml_tag = u'!AwardedJob'
+	yaml_filename = 'job_storage.yaml'
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
@@ -429,6 +430,8 @@ class AwardedJob(Job):
 
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
 
+		self.update()
+
 
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
@@ -444,7 +447,7 @@ class AwardedJob(Job):
 					'Drawings', 'Materials', 'Quotes', 'RFIs', 'Specs', 'Submittals')
 		for _folder in _folders:
 			try:
-				os.mkdir(os.path.join(env.env_root, self.sub_path, _folder))
+				os.mkdir(os.path.join(self.path, _folder))
 				log.logger.debug('Created sub directory, \'%s\', for \'%s\'' % (_folder, self.name))
 			except OSError:
 				log.logger.warning('Sub directory, "%s", for %s already exists!' % (_folder, self.name))
@@ -565,7 +568,7 @@ class AwardedJob(Job):
 		:param quote_obj: quote object to add to self
 		:return: None
 		"""
-		_mat_list = quote_obj.mat_list.hash
+		_mat_list = quote_obj.mat_list.hash  # grab material list hash from object
 		self._materials[_mat_list].add_quote(quote_obj)
 		self.update()
 
