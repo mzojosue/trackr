@@ -1,6 +1,7 @@
 import os
 import shutil
 import unittest
+from parse import parse
 
 import core
 
@@ -13,9 +14,7 @@ class TestMaterialListMethods(unittest.TestCase):
 		num = core.get_job_num()
 		self.job = core.AwardedJob(num, 'test_job', init_struct=False)
 
-		doc = core.os.path.join(self.job.sub_path, 'Materials')
-		self._doc = (doc, 'doc.file')
-		self.object = core.MaterialList(self.job, doc=self._doc)
+		self.object = core.MaterialList(self.job)
 
 		# Enter the Sandbox
 		if os.path.isdir('tests'):
@@ -24,34 +23,89 @@ class TestMaterialListMethods(unittest.TestCase):
 				os.mkdir(_dir)  # create sandbox directory
 			except OSError:
 				pass
-			os.chdir(_dir)  # enter sandbox directory
+			os.chdir(_dir)  	# have execution stack enter sandbox directory
+			self.job._path = os.getcwd()	# put object in sandbox
 		else:
 			raise OSError('Not started from program root')
 
 	def tearDown(self):
 		if os.path.isdir('../../tests'):  # checks if in project directory in tests/.job_sandbox
 			_escape = '../..'  # escape tests/.job_sandbox
-			_delete = 'tests/.bid_sandbox'
+			_delete = 'tests/.job_sandbox'
 		else:
 			_escape = '..'
-			_delete = '.bid_sandbox'
+			_delete = '.job_sandbox'
 		os.chdir(_escape)
 		shutil.rmtree(_delete, ignore_errors=True)
 
 	def test__init__(self):
-		_test = [
-			('quotes')
-		]
+		""" Tests that the appropriate attributes are added to the Material List `self.object`
+		:return:
+		"""
+		_tests = ('job', 'items', '_doc', 'foreman', 'date_sent', 'date_due',
+				  'label', 'comments', 'quotes', 'tasks', 'rentals', 'fulfilled',
+				  'delivered', 'delivery', 'backorders', 'sent_out', 'po')
+		for _test in _tests:
+			self.assertEqual(hasattr(self.object, _test), True)
 		return NotImplemented
-
 
 	def test__setattr__(self):
 		""" Tests that update_po_in_log is correctly implemented """
+		# store `__init__` function
+		# override `__init__` with arbitrary function that sets a value to any attribute
+		# test that `update` was called
+		# test that `super(##).__setattr__(##)` was called
+		return NotImplemented
+
+	def test__repr__(self):
+		""" Tests that __repr__ function incorporates datetime object and `label` correctly
+		:return:
+		"""
+		return NotImplemented
+
+	def test__len__(self):
+		""" Tests that `__len__` does not crash on error and that correct value is returned
+		:return:
+		"""
+		# Test with no items
+		self.object.items = None
+		self.assertEqual(len(self.object), 0)
+
+		# Test with 4 items
+		self.object.items = (1, 2, 3, 4)
+		self.assertEqual(len(self.object), 4)
+
+	def testAge(self):
+		""" Tests age property with and without date_due attribute.
+		:return:
+		"""
 		return NotImplemented
 
 	def testDoc(self):
+		self.assertEqual(self.object._doc, None)  # `self.object._doc` attribute should be empty
+		self.assertEqual(self.object.doc, False)  # empty doc should return False
+
+		_doc = 'test.txt'
+		_path = os.path.join(self.job.path, 'Materials', _doc)
+		self.job.init_struct()	# initialize directory structure before creating file
+		open(_path, 'a').close()
+
+		self.object.doc = _doc  					# test setter function
+		self.assertEqual(self.object.doc[1], _doc)  # test getter function
 		## manually create dummy file in self.job project folder
 		## verify returned path exists
+		return NotImplemented
+
+	def testUpdate(self):
+		"""	Tests that `self.job.mat_lists` attribute is updated
+		:return:
+		"""
+		return NotImplemented
+
+	def testUpgradeQuote(self):
+		""" Tests that functions successfully returns a MaterialListQuote object of `self`
+		:return:
+		"""
 		return NotImplemented
 
 	def testAddQuote(self):
@@ -61,11 +115,22 @@ class TestMaterialListMethods(unittest.TestCase):
 		## verify that self.object.sent_out is True
 		return NotImplemented
 
+	def testDelQuote(self):
+		## manually create Quote
+		## verify that quote was deleted
+		return NotImplemented
+
 	def testAddPO(self):
 		## manually create po
 		## verify that PO was added to self.object.po
 		## verify that Job object has PO
 		## verify that self.object.fulfilled is True
+		return NotImplemented
+
+	def testDelPO(self):
+		""" Tests that passed object or hash is successfully deleted.
+		:return:
+		"""
 		return NotImplemented
 
 	def testAddTask(self):
@@ -79,11 +144,6 @@ class TestMaterialListMethods(unittest.TestCase):
 		return NotImplemented
 
 	def testAddRental(self):
-		return NotImplemented
-
-	def testDelQuote(self):
-		## manually create Quote
-		## verify that quote was deleted
 		return NotImplemented
 
 	def testDelTask(self):
