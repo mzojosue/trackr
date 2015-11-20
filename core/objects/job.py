@@ -373,6 +373,7 @@ class Job(yaml.YAMLObject):
 
 class AwardedJob(Job):
 	yaml_tag = u'!AwardedJob'
+	yaml_filename = 'job_storage.yaml'
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,

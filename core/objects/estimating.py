@@ -19,6 +19,7 @@ now = datetime.now
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
+	yaml_filename = 'bid_storage.yaml'
 	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
 	default_sub_dir = 'Preconstruction'
 
