@@ -56,7 +56,7 @@ class MaterialList(object):
 
 		# TODO: set listener to delete todo object associated with sending self out to vendors
 		self.sent_out = False   # Is set to true once list is given out for pricing
-		self.po = None
+		self.po = None			# Stores PO object
 
 		self.update()
 
@@ -64,9 +64,9 @@ class MaterialList(object):
 	def __setattr__(self, key, value):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
+		forbidden = ('__init__', '')
 		if _caller is not '__init__':
 			self.update()
-			update_po_in_log(self, key, value)
 		_return = super(MaterialList, self).__setattr__(key, value)
 		# TODO: automate Task completion via variable listeners
 		#if key in MaterialList.listeners:
@@ -112,6 +112,19 @@ class MaterialList(object):
 		else:
 			return False
 
+	@doc.setter
+	def doc(self, val):
+		if val:
+			_path = os.path.join(self.job.path, 'Materials')
+			_path = os.path.join(_path, val)
+			if os.path.isfile(_path):
+				self._doc = val
+				# TODO: return hash of document?
+				return True
+			else:
+				print "Document doesn't exist"
+				return False
+
 	def update(self):
 		if hasattr(self, 'hash') and hasattr(self, 'job'):
 				self.job.add_mat_list(self)
@@ -132,8 +145,7 @@ class MaterialList(object):
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
-		self.sent_out = True
-		self.update()
+		self.sent_out = True	# update is called
 		return None
 
 	def del_quote(self, quote_obj):
@@ -271,7 +283,7 @@ class MaterialListQuote(Quote):
 	def __init__(self, mat_list, vend, price=0.0, date_uploaded=None, doc=None):
 		super(MaterialListQuote, self).__init__(vend, price, date_uploaded, doc)
 		self.mat_list = mat_list
-		self.mat_list.job.add_quote(self)
+		self.job.add_quote(self)
 
 		self.update()
 
