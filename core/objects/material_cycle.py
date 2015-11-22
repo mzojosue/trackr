@@ -64,7 +64,6 @@ class MaterialList(object):
 	def __setattr__(self, key, value):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
-		forbidden = ('__init__', '')
 		if _caller is not '__init__':
 			self.update()
 		_return = super(MaterialList, self).__setattr__(key, value)
@@ -187,11 +186,10 @@ class MaterialList(object):
 		return NotImplemented
 
 	def issue_po(self, quote_obj, user=None):
+		_obj = PO(self.job, quote=quote_obj, mat_list=self, user=user)
 		quote_obj.awarded = True
 		self.fulfilled = True
 		self.sent_out = True
-		_obj = PO(self.job, quote=quote_obj, mat_list=self, user=user)
-		self.update()
 		return _obj
 
 	def return_rental(self, obj_id):

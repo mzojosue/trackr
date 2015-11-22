@@ -16,24 +16,46 @@ Database initialization functions should go here
 """
 
 
-def import_po_log(log=environment.get_po_log):
+def import_po_log(method='iter', src=None):
+	"""
+	Imports AwardedJob objects based on `method` and `src`
+	:param method: Method to import objects. If 'iter', function iterates through project directories and imports YAML,
+	 if 'backup', function imports YAML file from `src`.
+	 If not 'iter' or 'backup', function defaults to importing PO log worksheet
+	:param src: path to object storage file
+	:return:
+	"""
 	_startTime = time.time()  # used for timing function duration
 	AwardedJob._dump_lock = True  # set lock on object to restrict yaml overwriting
 
-	_file = AwardedJob.storage()
-	if os.path.isfile(_file):  # check to see if YAML global storage was created
-		_method = 'yaml storage'
-		_stream = file(_file, 'r')
-		for _dump in yaml.load_all(_stream):
-			for num, obj in _dump.items():
-				AwardedJob.db[num] = obj
-				obj.init_struct()  # insure directory structure is created
+	if method == 'iter':
+		_method = 'file hierarchy'
+		_path = os.path.join(env_root, AwardedJob.default_sub_dir)
+		for _store in iter_project_dir(_path, AwardedJob.yaml_filename):
+			_store = open(_store)
+			obj = yaml.load(_store)
+			AwardedJob.db[obj.number] = obj
 
-			# TODO: sort between completed and active jobs
+	elif method == 'backup':
+		if os.path.isdir(src):
+			_file = src
+			_method = 'yaml backup'
+			_stream = file(_file, 'r')
+			for _dump in yaml.load_all(_stream):
+				for num, obj in _dump.items():
+					AwardedJob.db[num] = obj
+					obj.init_struct()  # insure directory structure is created
+
+				# TODO: sort between completed and active jobs
+		else:
+			print "Invalid directory '%s'" % src
+			return None
 
 	else:  # default to parsing Excel workbook
 		_method = 'PO Log'
-		_obj_content = parse_po_log(log)  # creates generator from Excel Workbook
+		if not src:
+			src = environment.get_po_log
+		_obj_content = parse_po_log(src)  # creates generator from Excel Workbook
 
 		for _type, _content in _obj_content:
 			if _type == 'job':
@@ -48,30 +70,55 @@ def import_po_log(log=environment.get_po_log):
 					_mat_list.delivered = True
 
 	del AwardedJob._dump_lock
-	AwardedJob.db.values()[0].dump_all()  # create yaml database
+	# TODO: backup db
 	_elapsedTime = time.time() - _startTime
 	print "Finished importing Jobs and POs from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
 
-def import_estimating_log(log=environment.get_estimating_log):
+def import_estimating_log(method='iter', src=None):
+	"""
+	Imports EstimatingJob objects based on `method` and `src`
+	:param method: Method to import objects. If 'iter', function iterates through project directories and imports YAML,
+	 if 'backup', function imports YAML file from `src`.
+	 If not 'iter' or 'backup', function defaults to importing Estimating log worksheet
+	:param src: path to object storage file
+	:return:
+	"""
 	_startTime = time.time()  # used for timing function duration
 	EstimatingJob._dump_lock = True  # set lock on object to restrict yaml overwriting
 
-	_file = EstimatingJob.storage()
-	if os.path.isfile(_file):  # check to see if YAML global storage was created
-		_method = 'yaml storage'
-		_stream = file(_file, 'r')
-		for _dump in yaml.load_all(_stream):
-			for num, obj in _dump.items():
-				if not obj.completed:
-					EstimatingJob.db[num] = obj
-				else:
-					EstimatingJob.completed_db[num] = obj
-				obj.init_struct()  # insure directory structure is created
+	if method == 'iter':
+		_method = 'file hierarchy'
+		_path = os.path.join(env_root, EstimatingJob.default_sub_dir)
+		for _store in iter_project_dir(_path, EstimatingJob.yaml_filename):
+			_store = open(_store)
+			obj = yaml.load(_store)
+			if not obj.completed:
+				EstimatingJob.db[obj.number] = obj
+			else:
+				EstimatingJob.completed_db[obj.number] = obj
+	elif method == 'backup':
+		# TODO: implement import from backup
+		if os.path.isdir(src):
+			_file = src
+			_method = 'yaml storage'
+			_stream = file(_file, 'r')
+			for _dump in yaml.load_all(_stream):
+				for num, obj in _dump.items():
+					if not obj.completed:
+						EstimatingJob.db[num] = obj
+					else:
+						EstimatingJob.completed_db[num] = obj
+					obj.init_struct()  # insure directory structure is created
+		else:
+			print "Invalid directory '%s'" % src
+			return None
 
 	else:  # default to parsing Excel workbook
 		_method = 'Estimating Log'
-		_row_content = parse_est_log(log)  # creates generator from Excel Workbook
+		if not src:
+			src = environment.get_estimating_log
+		_row_content = parse_est_log(src)  # creates generator from Excel Workbook
 
 		for _type, obj in _row_content:
 			if _type == 'bid':
@@ -85,7 +132,7 @@ def import_estimating_log(log=environment.get_estimating_log):
 				_bid.add_sub(add_to_log=False, **obj)
 
 	del EstimatingJob._dump_lock
-	EstimatingJob.db.values()[0].dump_all()
+	# TODO: backup db
 	_elapsedTime = time.time() - _startTime
 	print "Finished EstimatingJob import from %s. Operation took %s seconds." % (_method, _elapsedTime)
 
@@ -194,32 +241,58 @@ def clear_db(db='trackr_db'):
 	return True
 
 
+def iter_project_dir(path, filename):
+	""" A generator function that iterates through the directory `path` and yields paths that contain `filename`
+	:param path: folder path to iterate through
+	:param filename: search query to look for in directories
+	:return: yields folder paths that contain a file `filename`
+	"""
+	if os.path.isdir(path):
+		_dirs = os.listdir(path)	# get all folders in subdirectory
+		for _folder in _dirs:
+			try:
+				_folder = os.path.join(path, _folder)
+				_dump = os.listdir(_folder)
+				if filename in _dump:
+					_path = os.path.join(_folder, filename)
+					print "Found '%s'" % _path
+					yield _path		# return project path
+			except OSError:			# `_folder` is not a directory
+				continue
+
+
 def check_db(db='trackr_db'):
-	""" Ensures database is updated by comparing hashes of YAML storage objects with values in database.
+	""" Ensures database is updated by computing all yaml storage files in project directories,
+	then compares hash with stored hash in database.
 	YAML storage is re-imported if database is not up to date.
 	:param db: Mongo database to iterate through
 	:return: True if operation complete
 	"""
+
 	client = pymongo.MongoClient("localhost", 27017)
 	_db = client[db]['environment']
 	hashes = _db.yaml_hashes
-	stores = [['bid_storage', get_estimating_log, 'import_estimating_log'],
-			  ['job_storage', get_po_log, 'import_po_log']]  # TODO: implement User and Worker db checking
-	for _id, _path, update_func in stores:
+
+	stores = [[EstimatingJob, 'import_estimating_log'],		# objects and their parsing functions
+			  [AwardedJob, 'import_po_log']]  # TODO: implement User and Worker db checking
+	for _obj, update_func in stores:
+		_path = os.path.join(env_root, _obj.default_sub_dir)
+		_hash = ''					# hash placeholder
+		for _store in iter_project_dir(_path, _obj.yaml_filename):
+			m = hashlib.md5()
+			m.update( _hash + open(_store).read() )		# compute hash based on previous hashed value
+			_hash = m.hexdigest()			# compute md5 digest of _path
+
+		_id = _obj.yaml_filename
 		_value = hashes.find_one({'_id': _id})
-
-		m = hashlib.md5()
-		m.update( file(_path).read() )
-		_hash = m.hexdigest()  # compute md5 digest of _path
-
-		if not _value or not (str(_value['hash']) == _hash):  # execute update_func and schedule database update
+		if not _value or not (str(_value['hash']) == _hash):  # schedule database update
 			f = globals()[update_func]
 			scheduler.add_job(f)
 			_value = {'_id': _id, 'hash': _hash, 'date_modified': datetime.now()}
 			hashes.update({'_id': _id}, _value, upsert=True)
 			print "Updating %s" % _id
 		else:
-			print "%s up-to-date" % _id
+			print "%s up-to-date \n\n" % _id
 	scheduler.start()
 	return True
 
@@ -233,6 +306,7 @@ def reset_db(db='trackr_db'):
 	User.load_users()
 
 	start_db()
+	init_db()
 	check_db()
 
 	Worker.load_workers()
