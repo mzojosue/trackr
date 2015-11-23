@@ -232,6 +232,9 @@ class TestQuoteMethods(unittest.TestCase):
 
 class TestMaterialListQuoteMethods(unittest.TestCase):
 	def setUp(self):
+		core.disconnect_db()		# ensure database objects aren't interfered with
+		core.Job._dump_lock = True	# prevent object storage
+
 		num = core.get_job_num()
 		self.job = core.AwardedJob(num, 'Test Job')
 		self.mat_list = core.MaterialList(self.job)
@@ -268,12 +271,50 @@ class TestMaterialListQuoteMethods(unittest.TestCase):
 
 class TestPOMethods(unittest.TestCase):
 	def setUp(self):
-		## create _job
-		## create _mat_list
-		## create _quote
-		## self.po = core.MaterialListQuote(update=False)
+		core.disconnect_db()		# ensure database objects aren't interfered with
+		core.Job._dump_lock = True	# prevent local object storage
+
+		num = core.get_job_num()
+		self.job = core.AwardedJob(num, 'Test Job')
+		self.mat_list = core.MaterialList(self.job)
+		self.quote = core.MaterialListQuote(self.mat_list, 'Test Vend')
+
+		self.po = core.PO(self.job, self.mat_list, self.quote, update=False)
 		return None
 
+	def tearDown(self):
+		return NotImplemented
+
+	def test__init__(self):
+		_attr = ('number', 'job', 'mat_list', 'date_issued', 'quote', 'delivery', 'backorders', 'desc', 'user')
+		for _test in _attr:
+			self.assertTrue(hasattr(self.po, _test))
+
+		self.assertIn(self.po, self.job.POs.values())	# verify `PO.job.POs` was updated
+		self.assertEqual(self.po, self.mat_list.po)		# verify `PO.mat_list.po` was updated
+		self.assertTrue(self.quote.awarded)				# verify `PO.quote.awarded` was updated
+
+	def testName(self):
+		""" Tests that `PO.name` correctly represents PO instance in the following format:
+				"##-xxxx-###"
+				 eg: '27-21 Jump St-777'
+		"""
+		return NotImplemented
+
+	def testVend(self):
+		""" Tests that 'PO.vend' property returns correct value
+		"""
+		return NotImplemented
+
+	def testPrice(self):
+		""" Tests `PO.price` w/ and w/o `PO.quote.price`. Tests both getter and setter methods.
+		"""
+		return NotImplemented
+
+	def test__repr__(self):
+		""" Tests `PO.__repr__` method, ensuring that `PO.name` is returned
+		"""
+		self.assertEqual(self.po.__repr__(), self.po.name)
 
 class TestDeliveryMethods(unittest.TestCase):
 	def setUp(self):

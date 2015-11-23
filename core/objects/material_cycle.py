@@ -304,8 +304,8 @@ class MaterialListQuote(Quote):
 
 
 class PO(object):
-	def __init__(self, job, mat_list=None, date_issued=today(),
-	             quote=None, desc=None, delivery=None, po_num=None, po_pre=None, update=True, user=None):
+	def __init__(self, job, mat_list=None, quote=None,
+				 date_issued=today(), desc=None, delivery=None, po_num=None, po_pre=None, update=True, user=None):
 		if not po_num:
 			self.number = job.next_po
 		else:
@@ -314,8 +314,8 @@ class PO(object):
 		self.mat_list = mat_list
 		self.date_issued = date_issued
 		self.quote = quote
-		self.delivery = delivery  # stores initial delivery date
-		self.backorders = []          # stores any backorder delivery dates
+		self.delivery = delivery    # stores initial delivery date
+		self.backorders = []        # stores any backorder delivery dates
 		self.desc = str(desc)
 		self.user = user
 		if po_pre:
@@ -327,7 +327,6 @@ class PO(object):
 		self.mat_list.add_po(self)
 		# update quote object
 		self.quote.awarded = True
-		self.quote.update()
 
 		if update:
 			try:
