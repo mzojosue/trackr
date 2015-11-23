@@ -42,11 +42,11 @@ class TestMaterialListMethods(unittest.TestCase):
 		""" Tests that the appropriate attributes are added to the Material List `self.object`
 		:return:
 		"""
-		_tests = ('job', 'items', '_doc', 'foreman', 'date_sent', 'date_due',
+		_attr = ('job', 'items', '_doc', 'foreman', 'date_sent', 'date_due',
 				  'label', 'comments', 'quotes', 'tasks', 'rentals', 'fulfilled',
 				  'delivered', 'delivery', 'backorders', 'sent_out', 'po')
-		for _test in _tests:
-			self.assertEqual(hasattr(self.object, _test), True)
+		for _test in _attr:
+			self.assertTrue(hasattr(self.object, _test))
 		return NotImplemented
 
 	def test__setattr__(self):
@@ -167,22 +167,102 @@ class TestMaterialListMethods(unittest.TestCase):
 		return NotImplemented
 
 
+class TestQuoteMethods(unittest.TestCase):
+	def setUp(self):
+		self.quote = core.Quote('test vendor')
+
+		# Enter the Sandbox
+		if os.path.isdir('tests'):
+			_dir = 'tests/.material_sandbox'
+			try:
+				os.mkdir(_dir)  # create sandbox directory
+			except OSError:
+				pass
+			os.chdir(_dir)  	# have execution stack enter sandbox directory
+		else:
+			raise OSError('Not started from program root')
+
+	def tearDown(self):
+		if os.path.isdir('../../tests'):  # checks if in project directory in tests/.material_sandbox
+			_escape = '../..'  # escape tests/.material_sandbox
+			_delete = 'tests/.material_sandbox'
+		else:
+			_escape = '..'
+			_delete = '.material_sandbox'
+		os.chdir(_escape)
+		shutil.rmtree(_delete, ignore_errors=True)
+
+	def test__init__(self):
+		""" Tests `Quote.__init__` method by checking that all attributes were added
+		"""
+		_attr = ('vend', '_price', '_doc', 'date_uploaded', 'awarded')
+		for _test in _attr:
+			self.assertTrue(hasattr(self.quote, _test))
+
+	def testHash(self):
+		""" Tests hash property by calling method w/ and w/o 'doc' and '_hash' attributes.
+		Ensures that `Quote._hash` property is created.
+		"""
+		# test w/o 'doc'/'_doc'
+		# call `self.quote.hash`
+		# check to see that `self.quote._hash` was created
+		# TODO: check returned value when document is added after `self.quote._hash` is created
+		return NotImplemented
+
+	def testDoc(self):
+		""" Tests that the document path is returned successfully and in the correct format.
+		"""
+		return NotImplemented
+
+	def test__repr__(self):
+		""" Tests that `Quote.__repr__` method correctly represents value.
+		"""
+		return NotImplemented
+
+	def testPath(self):
+		""" Tests `Quote.path` property w/ and w/o 'job', 'job.path', and '_path' attributes
+		"""
+		return NotImplemented
+
+	def testPrice(self):
+		""" Tests both the 'price' setter and getter methods, using both correct and incorrect value types.
+		"""
+		return NotImplemented
+
+
 class TestMaterialListQuoteMethods(unittest.TestCase):
 	def setUp(self):
-		## create _job
-		## create _mat_list
-		## self.object = core.MaterialListQuote
-		return None
+		num = core.get_job_num()
+		self.job = core.AwardedJob(num, 'Test Job')
+		self.mat_list = core.MaterialList(self.job)
+		self.quote = core.MaterialListQuote(self.mat_list, 'Test Vend')
 
-	def testSetAttr(self):
+	def tearDown(self):
+		return NotImplemented
+
+	def test__init__(self):
+		_attr = ('vend', '_price', '_doc', 'date_uploaded', 'awarded',	# attributes inherited from `Quote`
+				 'mat_list')
+
+		for _test in _attr:
+			self.assertTrue(hasattr(self.quote, _test))
+
+	def testJob(self):
+		""" Tests `MaterialListQuote.job` property by comparing attribute with stored AwardedJob object
+		"""
+		self.assertEqual(self.job, self.quote.job)
+
+	def test__setattr__(self):
+		""" Ensures that `MaterialListQuote.update` is called when updating an attribute.
+		"""
 		# create faux po log
 		# populate log
 		# verify that __setattr__ updates po log
 		return NotImplemented
 
-	def testPath(self):
-		## manually create dummy file in self.job project folder
-		## verify returned path exists
+	def testUpdate(self):
+		""" Tests that MaterialList object is successfully updated.
+		"""
 		return NotImplemented
 
 

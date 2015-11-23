@@ -230,8 +230,9 @@ class Quote(object):
 
 	@property
 	def hash(self):
+		# TODO: manage returned value when document is added after `self._hash` is created
 		if hasattr(self, 'doc') and self.doc:
-			return abs(hash(str(self.doc)))  # hash attribute is derived from document title
+			return abs(hash(str(self.doc)))  # hash attribute is derived from document filename
 		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
 			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		return self._hash
@@ -242,15 +243,12 @@ class Quote(object):
 		if self.path and self._doc:
 			return self.path, self._doc
 		elif self._doc:  # self has no path
-			return True
+			return self._doc
 		else:
 			return False
 
 	def __repr__(self):
 		return "Quote from %s" % self.vend
-
-	def update(self):
-		return NotImplemented
 
 	@property
 	def path(self):
@@ -271,7 +269,8 @@ class Quote(object):
 	@price.setter
 	def price(self, value):
 		self._price = float(value)
-		self.update()
+		if hasattr(self, 'update'):
+			self.update()
 
 
 class MaterialListQuote(Quote):
