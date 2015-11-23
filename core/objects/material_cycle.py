@@ -118,11 +118,8 @@ class MaterialList(object):
 			_path = os.path.join(_path, val)
 			if os.path.isfile(_path):
 				self._doc = val
-				# TODO: return hash of document?
-				return True
 			else:
 				print "Document doesn't exist"
-				return False
 
 	def update(self):
 		if hasattr(self, 'hash') and hasattr(self, 'job'):

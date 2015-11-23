@@ -82,8 +82,8 @@ class TestMaterialListMethods(unittest.TestCase):
 		return NotImplemented
 
 	def testDoc(self):
-		self.assertEqual(self.object._doc, None)  # `self.object._doc` attribute should be empty
-		self.assertEqual(self.object.doc, False)  # empty doc should return False
+		self.assertEqual(self.object._doc, None)	# `self.object._doc` attribute should be empty
+		self.assertFalse(self.object.doc)			# empty doc should return False
 
 		_doc = 'test.txt'
 		_path = os.path.join(self.job.path, 'Materials', _doc)
@@ -97,7 +97,7 @@ class TestMaterialListMethods(unittest.TestCase):
 		return NotImplemented
 
 	def testUpdate(self):
-		"""	Tests that `self.job.mat_lists` attribute is updated
+		"""	Tests that `self.job.object` attribute is updated
 		:return:
 		"""
 		return NotImplemented
@@ -109,27 +109,42 @@ class TestMaterialListMethods(unittest.TestCase):
 		return NotImplemented
 
 	def testAddQuote(self):
-		## manually create quote
-		## verify that quote was added to self.object.quotes
-		## verify that quote was added to self.object.job.quotes
-		## verify that self.object.sent_out is True
-		return NotImplemented
+		""" Tests `MaterialList.add_quote` method by creating a MaterialListQuote object,
+		Then checking that hash key is in `MaterialList.quotes` and `AwardedJob.quotes`
+		"""
+		quote = core.MaterialListQuote(self.object, vend='Test Vend')
+		self.assertIn(quote.hash, self.object.quotes.keys())	# quote was added to self.object.quotes
+		self.assertIn(quote.hash, self.job.quotes.keys())# quote was added to self.object.job.quotes
+		self.assertTrue(quote.mat_list.sent_out)
 
 	def testDelQuote(self):
-		## manually create Quote
-		## verify that quote was deleted
-		return NotImplemented
+		""" Tests `MaterialList.del_quote` by passing a MaterialListQuote object as well as a hash value
+		:return:
+		"""
+		# test by passing object
+		quote = core.MaterialListQuote(self.object, vend='Test Vend')
+		self.object.del_quote(quote)
+		self.assertNotIn(quote, self.object.quotes.values())
+
+		# test by passing hash integer
+		quote = core.MaterialListQuote(self.object, vend='Test Vend')
+		self.object.del_quote(quote.hash)
+		self.assertNotIn(quote, self.object.quotes.values())
 
 	def testAddPO(self):
-		## manually create po
-		## verify that PO was added to self.object.po
-		## verify that Job object has PO
-		## verify that self.object.fulfilled is True
+		""" Tests that `MaterialList.add_po` adds PO object to `self.object.po` and `self.job.POs`
+		by creating a `MaterialListQuote` and `PO` instance.
+		"""
+		quote = core.MaterialListQuote(self.object, vend='Test Vend')
+		po = core.PO(self.job, self.object, quote=quote)
+
+		self.assertEqual(po, self.object.po)
+		self.assertIn(po, self.job.POs.values())
+		self.assertTrue(self.object.fulfilled)
 		return NotImplemented
 
 	def testDelPO(self):
 		""" Tests that passed object or hash is successfully deleted.
-		:return:
 		"""
 		return NotImplemented
 
@@ -138,17 +153,17 @@ class TestMaterialListMethods(unittest.TestCase):
 		## verify that task was added to self.object
 		return NotImplemented
 
+	def testDelTask(self):
+		## manually create Task
+		## verify that task was deleted
+		return NotImplemented
+
 	def testAddDelivery(self):
 		## manually create Delivery
 		## verify that delivery was added to self.object
 		return NotImplemented
 
 	def testAddRental(self):
-		return NotImplemented
-
-	def testDelTask(self):
-		## manually create Task
-		## verify that task was deleted
 		return NotImplemented
 
 

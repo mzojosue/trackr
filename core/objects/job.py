@@ -539,11 +539,14 @@ class AwardedJob(Job):
 		Function calls unlinked_quotes to ensure that self._quotes is updated.
 		:return: self._quotes and material list quotes
 		"""
-		_dir = os.path.join(self.path, 'Quotes')
-		q_doc_len = len(os.listdir(_dir))
-		if not hasattr(self, 'q_doc_len') or self.q_doc_len != q_doc_len:
-			self.q_doc_len = q_doc_len
-			self.unlinked_quotes  # updates self._quotes
+		try:
+			_dir = os.path.join(self.path, 'Quotes')
+			q_doc_len = len(os.listdir(_dir))
+			if not hasattr(self, 'q_doc_len') or self.q_doc_len != q_doc_len:
+				self.q_doc_len = q_doc_len
+				self.unlinked_quotes()  # updates self._quotes
+		except OSError:		# object directory does not exist
+			pass
 
 		_return = {}
 		for _mlist in self.materials.itervalues():
@@ -551,7 +554,6 @@ class AwardedJob(Job):
 		_return.update(self._quotes)  # Assume that _quotes is up to date
 		return _return
 
-	@property
 	def unlinked_quotes(self):
 		""" Grabs and returns unlinked quotes which have been added to the Quotes directory
 		:return: self._quotes
