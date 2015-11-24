@@ -61,7 +61,7 @@ def serialized_overview():
 			for i, z in zip(result, grab):
 				_deliv[i] = delivery.__getattribute__(z)
 
-			_deliv['url'] = url_for('material_list', m_hash=delivery.mat_list.hash)
+			_deliv['url'] = url_for('material_list', job_num=delivery.job.number, m_hash=delivery.mat_list.hash)
 			_deliv['class'] = 'event-info'
 			#TODO: format start and end values
 			_deliveries.append(_deliv)

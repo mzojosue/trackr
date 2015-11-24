@@ -285,9 +285,10 @@ class EstimatingJob(Job):
 					self.scope.append(i)
 					self._quotes[i] = {}
 
-		self.update()
 		if struct:
 			self.init_struct()  # rebuild directory structure to implement new scope and for good measure
+
+		self.update()
 		if add_to_log:
 			return add_sub_bid_to_log(self, _bid_hash)
 		return True
