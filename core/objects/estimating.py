@@ -277,7 +277,7 @@ class EstimatingJob(Job):
 		if not bid_date: bid_date = 'ASAP'
 		_bid_hash = abs(hash(str(gc).lower()))
 		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact,
-				'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
+		        'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		self.bids[_bid_hash] = _bid
 		if scope:
 			for i in scope:
@@ -291,6 +291,7 @@ class EstimatingJob(Job):
 		self.update()
 		if add_to_log:
 			return add_sub_bid_to_log(self, _bid_hash)
+		self.update()
 		return True
 
 	def del_sub(self, bid_hash):
