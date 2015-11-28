@@ -11,7 +11,8 @@ from config import *
 def job_materials(job_num=None):
 	"""
 	Displays history of all active and fulfilled material listed in a table-like format for the specified jobs.
-	:param job_num: specifies jobs number
+
+	:param job_num:	Awardedjob number to select
 	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
@@ -62,8 +63,10 @@ def job_materials(job_num=None):
 @app.route('/j/<int:job_num>/material/<int:m_hash>/')
 def material_list(job_num, m_hash):
 	"""
-	Renders material list page
-	:param m_hash: hash attribute of material list object to display
+	Renders a single material list page specified by `m_hash`
+
+	:param job_num:	AwardedJob number to select
+	:param m_hash: MaterialList object hash belonging to `job_num`
 	:return: renders material list page
 	"""
 	auth = check_login()
@@ -80,8 +83,11 @@ def material_list(job_num, m_hash):
 @app.route('/j/<int:job_num>/material/<int:m_hash>/update', methods=['POST'])
 def update_material_list(job_num, m_hash):
 	"""
-	Updates material list using http post methods
-	:param m_hash: Material list hash to update
+	Updates material list using arbitrary HTTP POST variables.
+
+	:param job_num:	AwardedJob numnber to select
+	:param m_hash:	MaterialList hash belonging to `job_num`
+
 	:return: Redirects to referring page
 	"""
 	auth = check_login()
@@ -100,6 +106,11 @@ def update_material_list(job_num, m_hash):
 
 @app.route('/deliveries')
 def deliveries():
+	"""
+	Displays delivery page, containing a calendar of upcoming deliveries. Used for interacting with global deliveries.
+
+	:return: Renders 'deliveries.html' template
+	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
@@ -109,7 +120,8 @@ def deliveries():
 def serialized_deliveries():
 	"""
 	Displays all future and past deliveries in a table-like format.
-	:return:
+
+	:return:	JSON two-keyed dict containing a list of deliveries, 'result', and the status of the operation, 'success'.
 	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
@@ -138,8 +150,13 @@ def serialized_deliveries():
 @app.route('/delivery/schedule', methods=['POST'])
 @app.route('/j/<int:job_num>/deliveries/new', methods=['POST'])
 def schedule_delivery(job_num=None):
-	""" Schedules deliveries for `job_num`. Should only be called by `objects.delivery_widget`.
+	"""
+	Creates a Delivery object for `job_num`. Should only be called by `objects.delivery_widget`.
+	MaterialList and `Delivery.destination` is specified via HTTP POST variables 'materialListHash' and 'destination'.
+
 	:param job_num: specifies jobs number
+
+	:return:		redirects to previous page
 	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
@@ -158,6 +175,14 @@ def schedule_delivery(job_num=None):
 
 @app.route('/j/<int:job_num>/deliveries/<int:d_hash>/delivered')
 def accept_delivery(job_num, d_hash):
+	"""
+	Updates specified `Delivery.delivered`
+
+	:param job_num:	AwardedJob to select
+	:param d_hash:	specified Delivery hash belonging to `job_num`
+
+	:return:		redirects to previous page
+	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
@@ -172,9 +197,15 @@ def accept_delivery(job_num, d_hash):
 @app.route('/j/<int:job_num>/material/quote', methods=['GET', 'POST'])
 @app.route('/j/<int:job_num>/material/<int:m_hash>/quote', methods=['GET', 'POST'])
 def quote(job_num, m_hash=None):
-	""" Used for uploading and associating a quote with a material list via HTTP POST methods
-	:param:
-	:return:
+	"""
+	Creates a new MaterialListQuote belonging to `m_hash`,
+	then attempts to extract file stream from HTTP POST via 'quote'.
+	If `m_hash` is not specified, an HTTP POST 'materialList' must be passed.
+
+	:param job_num:	AwardedJob number to select
+	:param m_hash:	MaterialList hash belonging to `job_num`
+
+	:return:		redirects to 'material_list' page for 'm_hash'
 	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
@@ -182,16 +213,15 @@ def quote(job_num, m_hash=None):
 	if request.method == 'POST':
 		##TODO:correctly implement document upload
 		_job = AwardedJob.find(job_num)
-		if m_hash:
-			_list = _job.materials[m_hash]
-		else:
-			_list = _job.materials[int(request.form['materialList'])]
+		if not m_hash:
+			m_hash = int(request.form['materialList'])	# grab `m_hash` from HTTP POST
+		_list = _job.materials[m_hash]
 
 
 		__price = request.form['quotePrice']
 		__vend = request.form['vendor']
 
-		_quote = request.files['quote']
+		_quote = request.files['quote']					# attempt to extract file stream
 		if _quote and allowed_file(_quote.filename):
 			filename = secure_filename(_quote.filename)
 			_path = os.path.join(_list.job.path, 'Quotes', filename)
@@ -205,6 +235,16 @@ def quote(job_num, m_hash=None):
 
 @app.route('/j/<int:job_num>/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
 def add_quote_doc(job_num, m_hash, q_hash):
+	"""
+	Associates document file stream with MaterialListQuote object from HTTP POST 'fileUpload'.
+	URL is assembled by and used by js func 'add_quote_doc' in dynamic.js and used in templates/material_list.html.
+
+	:param job_num: AwardedJob number to select
+	:param m_hash:  specified MaterialList hash belonging to `job_num`
+	:param q_hash:  specified MaterialListQuote hash belonging to `m_hash`
+
+	:return:		redirects to `material_list` page for `m_hash`
+	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
@@ -228,6 +268,15 @@ def add_quote_doc(job_num, m_hash, q_hash):
 
 @app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
 def update_po_attr(job_num, po_num, attr):
+	"""
+	Updates a specified PO object attribute `attr` from HTTP POST 'updateValue'.
+
+	:param job_num: AwardedJob number to select
+	:param po_num:  specified PO number belonging to `job_num`
+	:param attr:    object attribute to update
+
+	:return:		redirects to previous page
+	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
@@ -245,6 +294,15 @@ def update_po_attr(job_num, po_num, attr):
 
 @app.route('/j/<int:job_num>/materials/<int:m_hash>/qoutes/<int:q_hash>')
 def material_quote_doc(job_num, m_hash, q_hash):
+	"""
+	Streams stored document file associated with `q_hash`.
+
+	:param job_num:	AwardedJob number to select
+	:param m_hash:	specified MaterialList hash belonging to `job_num`
+	:param q_hash:	specified MaterialListQuote hash belonging to `m_hash`
+
+	:return:		returns file stream from 'MaterialList.doc' attribute of `q_hash`
+	"""
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
