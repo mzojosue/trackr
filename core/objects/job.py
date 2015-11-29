@@ -210,6 +210,8 @@ class Job(yaml.YAMLObject):
 
 	@property
 	def name(self):
+		if self._name[-1] == ' ':
+			self._name = self._name[:-1]
 		if hasattr(self, 'number'):
 			return '-'.join([str(self.number), str(self._name)])
 		else:
@@ -337,16 +339,23 @@ class Job(yaml.YAMLObject):
 			else:                  # no db attribute
 				return 'DB_ERROR'  # returned for debugging
 			if not hasattr(self, '_dump_lock'):  # ensures that file is not written multiple times during import
-				self.dump_all()  # save to global yaml storage
+				self.dump_info()  # save to global yaml storage
 		else:
 			return False
+
+	def dump_info(self):
+		_filename = os.path.join(self.path, self.yaml_filename)
+		stream = open(_filename, 'w')
+		print 'Saving %s' % _filename
+		yaml.dump(self, stream)
+		print 'Local storage updated'
+
 
 	@classmethod
 	def storage(cls):
 		if hasattr(cls, 'default_sub_dir'):
 			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
 			return _filename
-
 
 	@classmethod
 	def dump_all(cls):
@@ -530,11 +539,14 @@ class AwardedJob(Job):
 		Function calls unlinked_quotes to ensure that self._quotes is updated.
 		:return: self._quotes and material list quotes
 		"""
-		_dir = os.path.join(self.path, 'Quotes')
-		q_doc_len = len(os.listdir(_dir))
-		if not hasattr(self, 'q_doc_len') or self.q_doc_len != q_doc_len:
-			self.q_doc_len = q_doc_len
-			self.unlinked_quotes  # updates self._quotes
+		try:
+			_dir = os.path.join(self.path, 'Quotes')
+			q_doc_len = len(os.listdir(_dir))
+			if not hasattr(self, 'q_doc_len') or self.q_doc_len != q_doc_len:
+				self.q_doc_len = q_doc_len
+				self.unlinked_quotes()  # updates self._quotes
+		except OSError:		# object directory does not exist
+			pass
 
 		_return = {}
 		for _mlist in self.materials.itervalues():
@@ -542,7 +554,6 @@ class AwardedJob(Job):
 		_return.update(self._quotes)  # Assume that _quotes is up to date
 		return _return
 
-	@property
 	def unlinked_quotes(self):
 		""" Grabs and returns unlinked quotes which have been added to the Quotes directory
 		:return: self._quotes

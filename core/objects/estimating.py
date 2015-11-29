@@ -188,23 +188,24 @@ class EstimatingJob(Job):
 		_srch = ' '.join(os.listdir(self.path))                 # enumerate top-level file and dir names in project folder
 		_patterns = ('proposal\.docx', 'pricing\.xls')
 		_temp_dir = os.path.join(env.env_root, 'Templates')     # Document template directory
-		_templates = ' '.join(os.listdir(_temp_dir))            # Grab document template names
-		for _doc in _patterns:
-			if not re.search('\w+\.%s' % _doc, _srch):          # document not in project folder
-				doc = _doc.replace("\\", "")                    # exclude '\' from file name
-				doc = '%s.%s' % (_name, doc)                    # new document filename to save
-				template = re.search('\w+\.%s' % _doc, _templates)
-				if template:
-					template = template.group()                 # convert SRE_Match obj to str
-					template = os.path.join(env.env_root, 'Templates', template)
-					_dest = os.path.join(self.path, doc)
-					shutil.copyfile(template, _dest)
-				else:  # template does not exist in Template directory
-					print "WARNING: Template matching regex '%s' not found in '%s'" % (_doc, _temp_dir)
-			else:
-				print "NOTE: Template matching regex '%s' is already in project folder for %s" % (_doc, self.name)
+		if os.path.isdir(_temp_dir):
+			_templates = ' '.join(os.listdir(_temp_dir))            # Grab document template names
+			for _doc in _patterns:
+				if not re.search('\w+\.%s' % _doc, _srch):          # document not in project folder
+					doc = _doc.replace("\\", "")                    # exclude '\' from file name
+					doc = '%s.%s' % (_name, doc)                    # new document filename to save
+					template = re.search('\w+\.%s' % _doc, _templates)
+					if template:
+						template = template.group()                 # convert SRE_Match obj to str
+						template = os.path.join(env.env_root, 'Templates', template)
+						_dest = os.path.join(self.path, doc)
+						shutil.copyfile(template, _dest)
+					else:  # template does not exist in Template directory
+						print "WARNING: Template matching regex '%s' not found in '%s'" % (_doc, _temp_dir)
+				else:
+					print "NOTE: Template matching regex '%s' is already in project folder for %s" % (_doc, self.name)
 
-		return True
+			return True
 
 
 	# Quote Functions
@@ -284,9 +285,10 @@ class EstimatingJob(Job):
 					self.scope.append(i)
 					self._quotes[i] = {}
 
-		self.update()
 		if struct:
 			self.init_struct()  # rebuild directory structure to implement new scope and for good measure
+
+		self.update()
 		if add_to_log:
 			return add_sub_bid_to_log(self, _bid_hash)
 		return True

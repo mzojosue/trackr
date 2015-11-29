@@ -127,7 +127,7 @@ def serialized_deliveries():
 			_deliv = {}
 			for i, z in zip(result, grab):
 				_deliv[i] = delivery.__getattribute__(z)
-			_deliv['url'] = url_for('material_list', m_hash=delivery.mat_list.hash)
+			_deliv['url'] = url_for('material_list', job_num=delivery.job.number, m_hash=delivery.mat_list.hash)
 			_deliv['class'] = 'event-info'
 			#TODO: format start and end values
 			_deliveries.append(_deliv)
@@ -147,7 +147,8 @@ def schedule_delivery(job_num=None):
 	if not job_num:
 		job_num = int(request.form['jobs-number'])
 	_job = AwardedJob.find(job_num)
-	_mlist =  MaterialList.find(request.form['materialListHash'])
+	_mlist = int(request.form['materialListHash'])
+	_mlist =  _job.materials[_mlist]
 	_dest = str(request.form['destination'])
 	_deliveryDate = datetime.strptime(request.form['deliveryDate'], '%Y-%m-%d')
 	__obj = Delivery(mat_list=_mlist, expected=_deliveryDate, destination=_dest)

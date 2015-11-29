@@ -64,7 +64,6 @@ class MaterialList(object):
 	def __setattr__(self, key, value):
 		# do not update yaml file or call self.update() if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
-		forbidden = ('__init__', '')
 		if _caller is not '__init__':
 			self.update()
 		_return = super(MaterialList, self).__setattr__(key, value)
@@ -119,11 +118,8 @@ class MaterialList(object):
 			_path = os.path.join(_path, val)
 			if os.path.isfile(_path):
 				self._doc = val
-				# TODO: return hash of document?
-				return True
 			else:
 				print "Document doesn't exist"
-				return False
 
 	def update(self):
 		if hasattr(self, 'hash') and hasattr(self, 'job'):
@@ -187,11 +183,10 @@ class MaterialList(object):
 		return NotImplemented
 
 	def issue_po(self, quote_obj, user=None):
+		_obj = PO(self.job, quote=quote_obj, mat_list=self, user=user)
 		quote_obj.awarded = True
 		self.fulfilled = True
 		self.sent_out = True
-		_obj = PO(self.job, quote=quote_obj, mat_list=self, user=user)
-		self.update()
 		return _obj
 
 	def return_rental(self, obj_id):
@@ -235,8 +230,9 @@ class Quote(object):
 
 	@property
 	def hash(self):
+		# TODO: manage returned value when document is added after `self._hash` is created
 		if hasattr(self, 'doc') and self.doc:
-			return abs(hash(str(self.doc)))  # hash attribute is derived from document title
+			return abs(hash(str(self.doc)))  # hash attribute is derived from document filename
 		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
 			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
 		return self._hash
@@ -247,15 +243,12 @@ class Quote(object):
 		if self.path and self._doc:
 			return self.path, self._doc
 		elif self._doc:  # self has no path
-			return True
+			return self._doc
 		else:
 			return False
 
 	def __repr__(self):
 		return "Quote from %s" % self.vend
-
-	def update(self):
-		return NotImplemented
 
 	@property
 	def path(self):
@@ -276,7 +269,8 @@ class Quote(object):
 	@price.setter
 	def price(self, value):
 		self._price = float(value)
-		self.update()
+		if hasattr(self, 'update'):
+			self.update()
 
 
 class MaterialListQuote(Quote):
@@ -310,8 +304,8 @@ class MaterialListQuote(Quote):
 
 
 class PO(object):
-	def __init__(self, job, mat_list=None, date_issued=today(),
-	             quote=None, desc=None, delivery=None, po_num=None, po_pre=None, update=True, user=None):
+	def __init__(self, job, mat_list=None, quote=None,
+				 date_issued=today(), desc=None, delivery=None, po_num=None, po_pre=None, update=True, user=None):
 		if not po_num:
 			self.number = job.next_po
 		else:
@@ -320,8 +314,8 @@ class PO(object):
 		self.mat_list = mat_list
 		self.date_issued = date_issued
 		self.quote = quote
-		self.delivery = delivery  # stores initial delivery date
-		self.backorders = []          # stores any backorder delivery dates
+		self.delivery = delivery    # stores initial delivery date
+		self.backorders = []        # stores any backorder delivery dates
 		self.desc = str(desc)
 		self.user = user
 		if po_pre:
@@ -333,7 +327,6 @@ class PO(object):
 		self.mat_list.add_po(self)
 		# update quote object
 		self.quote.awarded = True
-		self.quote.update()
 
 		if update:
 			try:
