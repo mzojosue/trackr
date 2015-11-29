@@ -85,7 +85,7 @@ def update_material_list(job_num, m_hash):
 	"""
 	Updates material list using arbitrary HTTP POST variables.
 
-	:param job_num:	AwardedJob numnber to select
+	:param job_num:	AwardedJob number to select
 	:param m_hash:	MaterialList hash belonging to `job_num`
 
 	:return: Redirects to referring page
