@@ -73,6 +73,3 @@ class TestPOLogParsing(unittest.TestCase):
 # TODO: class TestJobInfoParsing
 
 # TODO: class TestEstimatingLogParsing
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TestPOLogParsing)
-unittest.TextTestRunner(verbosity=2).run(suite)

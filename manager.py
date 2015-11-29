@@ -1,5 +1,7 @@
 from core import User
+from core.db import init_db
 
+init_db()
 User.load_users()
 
 
@@ -13,7 +15,8 @@ def add_user():
 	usr['username'] = str(raw_input("Please input login name: "))
 	usr['email'] = str(raw_input("Please input user email: "))
 	usr['passwd'] = str(raw_input("Please input password: "))
-	return User(**usr)
+	print '\n'
+	return ' '.join(['Created:', str(User(**usr))])
 
 
 def change_passwd():
@@ -22,6 +25,9 @@ def change_passwd():
 
 
 def update_role():
+	print "Current Users:"
+	list_users()
+
 	name = str(raw_input("Please input username: "))
 	usr = User.find(name)
 	if usr:
@@ -50,6 +56,8 @@ def delete_user():
 	_users = list_users()
 
 	num = int(raw_input("Please select user to delete (#): "))
-	_hash = _users[num][1].hash
+	_usr = _users[num][1]
+	_hash = _usr.hash
+	print "Deleted %s" % _usr
 	del User.db[_hash]
 	return User.db.values()

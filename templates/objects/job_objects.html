@@ -228,7 +228,9 @@
 						</div>
 
 				{% endif %}<!-- /.form-group -->
-          {% if not obj %}
+          {% if hasattr(obj, 'hash') %}
+            <input type="hidden" name="materialListHash" value={{ obj.hash }}>
+          {% else %}
             <div class="form-group col-xs-12">
               <label for="materialList">
                 Material List to Deliver:
@@ -237,16 +239,14 @@
                 {% if job %}
                   {% for i in job.materials.itervalues() if (i.fulfilled and not i.delivered) %}
                     <option value="{{ i.hash }}">{{ i }}</option>
-	                {% else %}
-	                  <option>No material lists ready for delivery</option>
+                  {% else %}
+                    <option>No material lists ready for delivery</option>
                   {% endfor %}
                 {% else %}
-									<option selected>Please select a job first</option>
+                  <option selected>Please select a job first</option>
                 {% endif %}
               </select>
             </div><!-- /.form-group -->
-          {% else %}
-            <input type="hidden" name="materialListHash" value={{ obj.hash }}>
           {% endif %}
 
 					<div class="form-group col-xs-12">
