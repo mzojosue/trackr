@@ -60,6 +60,7 @@ class TestMaterialCycleUI(TestCase):
 		self.assert_template_used('jobs/job_materials.html')
 		# test redirect when AwardedJob does not exist
 		# test redirect when new MaterialList is created
+		# TODO: test MaterialList creation via HTTP POST
 
 	def test_material_list(self):
 		"""
