@@ -15,7 +15,7 @@ class TestEstimatingJob(unittest.TestCase):
 		core.EstimatingJob.yaml_filename = ''
 		core.EstimatingJob._dump_lock = True
 		self.name = 'test_bid'
-		self.bid = core.EstimatingJob(self.name, add_to_log=False, struct=False)
+		self.bid = core.EstimatingJob(self.name, add_to_log=False, init_struct=False)
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.bid_sandbox'
