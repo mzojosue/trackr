@@ -5,7 +5,7 @@ from core.frontend import *
 from core.objects import EstimatingJob, EstimatingQuote, User
 
 
-class TestJobUI(TestCase):
+class TestBidUI(TestCase):
 	def setUp(self):
 		disconnect_db()  # ensure database objects aren't interfered with
 		Job._dump_lock = True  # prevent object storage

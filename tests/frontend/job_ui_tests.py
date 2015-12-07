@@ -26,9 +26,9 @@ class TestJobUI(TestCase):
 			try:
 				os.mkdir(_dir)  # create sandbox
 			except OSError:
-				pass  # assume that directory already exists for some reason
+				pass  			# assume that directory already exists for some reason
 			self.job._path = os.getcwd()
-			os.chdir(_dir)  # move stack to sandbox
+			os.chdir(_dir)  	# move stack to sandbox
 
 	def tearDown(self):
 		# Exit the Sandbox
@@ -46,16 +46,55 @@ class TestJobUI(TestCase):
 		app.config['TESTING'] = True
 		return app
 
+
+	# Begin View Method Tests #
+
 	def test_all_jobs(self):
-		return self.fail()
+		response = self.client.get('/j/')
+
+		self.assert_200(response)
+		self.assert_template_used('jobs/all_jobs.html')
 
 	def test_job_overview(self):
-		return self.fail()
+		_get = '/j/%d' % self.job.number
+		response = self.client.get(_get)
+
+		self.assert_200(response)
+		self.assert_template_used('jobs/job_overview.html')
+
+		# TODO: test template variables
+
+		# test invalid AwardedJob number
+		_get = '/j/999'
+		response = self.client.get(_get)
+
+		_error = 'Error: AwardedJob does not exist'		# expected reply
+		self.assertEqual(response.data, _error)
 
 	def test_job_info(self):
+		_get = '/j/%d/info' % self.job.number
+		response = self.client.get(_get)
+
+		self.assert_200(response)
+		self.assert_template_used('jobs/job_info.html')
+
+		# test with invalid AwardedJob number
+		_get = '/j/999/info'
+		response = self.client.get(_get)
+
+		_error = 'Error: AwardedJob does not exist'		# expected reply
+		self.assertEqual(response.data, _error)
+
+	def test_job_analytics(self):
 		return self.fail()
 
 	def test_job_material_doc(self):
+		# create document
+		# add MaterialList object w/ document
+		mlist_hash = None
+		_get = '/j/%d/materials/%d' % (self.job.number, mlist_hash)
+		# response = self.client.get(_get)
+
 		return self.fail()
 
 	def test_delete_material_doc(self):
