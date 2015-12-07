@@ -91,14 +91,21 @@ class TestJobUI(TestCase):
 	def test_job_material_doc(self):
 		# create document
 		# add MaterialList object w/ document
-		mlist_hash = None
+		mlist_hash = 0
 		_get = '/j/%d/materials/%d' % (self.job.number, mlist_hash)
 		# response = self.client.get(_get)
 
 		return self.fail()
 
 	def test_delete_material_doc(self):
-		return self.fail()
+		mlist = MaterialList(self.job)
+		self.assertIn(mlist, self.job.materials.values())
+
+		_get = '/j/%d/materials/%d/del' % (self.job.number, mlist.hash)
+		response = self.client.get(_get)
+
+		self.assert_redirects(response, '/None')
+		self.assertNotIn(mlist, self.job.materials)
 
 	def test_update_job_quote(self):
 		return self.fail()
