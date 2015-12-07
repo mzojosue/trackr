@@ -316,6 +316,7 @@ class TestPOMethods(unittest.TestCase):
 		"""
 		self.assertEqual(self.po.__repr__(), self.po.name)
 
+
 class TestDeliveryMethods(unittest.TestCase):
 	def setUp(self):
 		## create _job

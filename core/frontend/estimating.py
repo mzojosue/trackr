@@ -179,7 +179,7 @@ def cancel_bid(bid_num):
 
 @app.route('/estimating/bid/<int:bid_num>/complete')
 def complete_bid(bid_num):
-	""" Moves calls EstiamtingJob.complete_bid to separate submitted bids from unsubmitted ones.
+	""" Moves calls EstimatingJob.complete_bid to separate submitted bids from unsubmitted ones.
 	:param bid_num: Desired bid to complete
 	:return:
 	"""

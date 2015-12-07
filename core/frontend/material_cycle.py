@@ -60,7 +60,7 @@ def job_materials(job_num=None):
 		return redirect(request.referrer)
 
 
-@app.route('/j/<int:job_num>/material/<int:m_hash>/')
+@app.route('/j/<int:job_num>/material/<int:m_hash>')
 def material_list(job_num, m_hash):
 	"""
 	Renders a single material list page specified by `m_hash`
@@ -214,15 +214,15 @@ def quote(job_num, m_hash=None):
 		##TODO:correctly implement document upload
 		_job = AwardedJob.find(job_num)
 		if not m_hash:
-			m_hash = int(request.form['materialList'])	# grab `m_hash` from HTTP POST
+			m_hash = int(request.form['materialListHash'])	# grab `m_hash` from HTTP POST
 		_list = _job.materials[m_hash]
 
 
 		__price = request.form['quotePrice']
 		__vend = request.form['vendor']
 
-		_quote = request.files['quote']					# attempt to extract file stream
-		if _quote and allowed_file(_quote.filename):
+		if 'quote' in request.files and allowed_file(request.files['quote'].filename):
+			_quote = request.files['quote']					# attempt to extract file stream
 			filename = secure_filename(_quote.filename)
 			_path = os.path.join(_list.job.path, 'Quotes', filename)
 			_quote.save(_path)
@@ -251,8 +251,8 @@ def add_quote_doc(job_num, m_hash, q_hash):
 	_job = AwardedJob.find(job_num)
 	_mlist = _job.materials[m_hash]
 	_quote = _mlist.quotes[q_hash]
-	_file = request.files['fileUpload']
-	if _file and allowed_file(_file.filename):
+	if 'fileUpload' in request.files and allowed_file(request.files['fileUpload'].filename):
+		_file = request.files['fileUpload']
 		filename = secure_filename(_file.filename)
 		_path = os.path.join(_mlist.job.path, 'Quotes', filename)
 		_file.save(_path)
@@ -262,8 +262,6 @@ def add_quote_doc(job_num, m_hash, q_hash):
 		_mlist.add_quote(_quote)  # update quote hash
 		_job.update()
 		print "Saved document %s for %s" % (_quote.doc, _quote.job)
-	else:
-		print "%s not saved" % _file
 	return redirect(url_for('material_list', job_num=_job.number, m_hash=_mlist.hash))
 
 @app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
@@ -292,7 +290,7 @@ def update_po_attr(job_num, po_num, attr):
 	return redirect(request.referrer)
 
 
-@app.route('/j/<int:job_num>/materials/<int:m_hash>/qoutes/<int:q_hash>')
+@app.route('/j/<int:job_num>/materials/<int:m_hash>/quote/<int:q_hash>')
 def material_quote_doc(job_num, m_hash, q_hash):
 	"""
 	Streams stored document file associated with `q_hash`.

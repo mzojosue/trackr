@@ -177,8 +177,3 @@ def user_settings():
 @app.route('/user_help')
 def user_help():
 	return abort(404)
-
-@app.route('/flash/test')
-def flash_test():
-	flash('test message', category='success')
-	return redirect(request.referrer)
