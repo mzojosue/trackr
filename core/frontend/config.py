@@ -2,6 +2,7 @@ from os import path
 import time
 
 from flask import *
+from werkzeug.utils import secure_filename
 
 from core.objects import *
 

@@ -81,6 +81,7 @@
             </a>
           {% elif path.isdir(attr['path']) %}
             <a href="{{ url_for('bid_folder', bid_num=bid.number, dir=attr['sub_path']) }}">
+              <span class="glyphicon glyphicon-folder-close"></span>&nbsp;
               {{ _file }}
             </a>
           {% endif %}
@@ -142,7 +143,7 @@
 								<span class="input-group-addon">
 									<span class="glyphicon glyphicon-usd"></span>
 								</span>
-								<input type="text" name="quotePrice" class="form-control" value="0.0">
+								<input type="text" name="quotePrice" id="quotePrice" class="form-control" value="0.0">
 							</div>
 						</div>
 					</form>

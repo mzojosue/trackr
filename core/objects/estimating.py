@@ -19,13 +19,14 @@ now = datetime.now
 
 class EstimatingJob(Job):
 	yaml_tag = u'!EstimatingJob'
+	yaml_filename = 'bid_storage.yaml'
 	_dir_folders = ('Addendums', 'Documents', 'Drawings', 'Quotes', 'Specs', 'Takeoffs')
 	default_sub_dir = 'Preconstruction'
 
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
 				 address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
 				 tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False,
-				 struct=True, add_to_log=True):
+				 init_struct=True, add_to_log=True):
 		"""
 		:param name: The desired name for the bid
 		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
@@ -77,7 +78,7 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope,
-					 struct=struct, add_to_log=False)
+					 init_struct=init_struct, add_to_log=False)
 		if add_to_log:
 			add_bid_to_log(self)
 
@@ -187,23 +188,24 @@ class EstimatingJob(Job):
 		_srch = ' '.join(os.listdir(self.path))                 # enumerate top-level file and dir names in project folder
 		_patterns = ('proposal\.docx', 'pricing\.xls')
 		_temp_dir = os.path.join(env.env_root, 'Templates')     # Document template directory
-		_templates = ' '.join(os.listdir(_temp_dir))            # Grab document template names
-		for _doc in _patterns:
-			if not re.search('\w+\.%s' % _doc, _srch):          # document not in project folder
-				doc = _doc.replace("\\", "")                    # exclude '\' from file name
-				doc = '%s.%s' % (_name, doc)                    # new document filename to save
-				template = re.search('\w+\.%s' % _doc, _templates)
-				if template:
-					template = template.group()                 # convert SRE_Match obj to str
-					template = os.path.join(env.env_root, 'Templates', template)
-					_dest = os.path.join(self.path, doc)
-					shutil.copyfile(template, _dest)
-				else:  # template does not exist in Template directory
-					print "WARNING: Template matching regex '%s' not found in '%s'" % (_doc, _temp_dir)
-			else:
-				print "NOTE: Template matching regex '%s' is already in project folder for %s" % (_doc, self.name)
+		if os.path.isdir(_temp_dir):
+			_templates = ' '.join(os.listdir(_temp_dir))            # Grab document template names
+			for _doc in _patterns:
+				if not re.search('\w+\.%s' % _doc, _srch):          # document not in project folder
+					doc = _doc.replace("\\", "")                    # exclude '\' from file name
+					doc = '%s.%s' % (_name, doc)                    # new document filename to save
+					template = re.search('\w+\.%s' % _doc, _templates)
+					if template:
+						template = template.group()                 # convert SRE_Match obj to str
+						template = os.path.join(env.env_root, 'Templates', template)
+						_dest = os.path.join(self.path, doc)
+						shutil.copyfile(template, _dest)
+					else:  # template does not exist in Template directory
+						print "WARNING: Template matching regex '%s' not found in '%s'" % (_doc, _temp_dir)
+				else:
+					print "NOTE: Template matching regex '%s' is already in project folder for %s" % (_doc, self.name)
 
-		return True
+			return True
 
 
 	# Quote Functions
@@ -264,7 +266,7 @@ class EstimatingJob(Job):
 
 	# Sub Bid Methods #
 
-	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], struct=True, add_to_log=True):
+	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], init_struct=True, add_to_log=True):
 		"""
 		:param date_received: date that bid request was received/uploaded
 		:param gc: string or object of GC
@@ -283,9 +285,10 @@ class EstimatingJob(Job):
 					self.scope.append(i)
 					self._quotes[i] = {}
 
-		self.update()
-		if struct:
+		if init_struct:
 			self.init_struct()  # rebuild directory structure to implement new scope and for good measure
+
+		self.update()
 		if add_to_log:
 			return add_sub_bid_to_log(self, _bid_hash)
 		return True

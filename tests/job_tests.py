@@ -58,7 +58,7 @@ class TestWorker(unittest.TestCase):
 		"""
 		return NotImplemented
 
-	def add_labor(self):
+	def test_add_labor(self):
 		""" Calls add_labor with hardcoded values. Tests date_worked, week_end, and job.
 		"""
 		return NotImplemented
@@ -102,11 +102,8 @@ class TestJob(unittest.TestCase):
 		if os.path.isdir('../../tests'):  # checks if in tests/.job_sandbox
 			_escape = '../..'  # escape tests/.job_sandbox
 			_delete = 'tests/.job_sandbox'
-		else:
-			_escape = '..'
-			_delete = '.job_sandbox'
-		os.chdir(_escape)
-		shutil.rmtree(_delete)
+			os.chdir(_escape)
+			shutil.rmtree(_delete, ignore_errors=True)
 
 	def testInit(self):
 		""" Tests all attributes creating during initialization as well as class attributes
@@ -188,105 +185,107 @@ class TestJob(unittest.TestCase):
 	def test_documents(self):
 		""" Tests drawings property by creating empty files
 		"""
-		self.assertEqual(self.job.documents, {})  # test without directory
+		self.assertEqual(self.job.documents, {})		# test without directory
 
-		self.job._path = os.getcwd()  # set path attribute to current directory
-		if os.path.isdir('../.job_sandbox'):  # checks for sandbox
+		self.job._path = os.getcwd()					# set path attribute to current directory
+		if os.path.isdir('../.job_sandbox'):			# checks for sandbox
 			_dir = 'Documents'
 			os.mkdir(_dir)
 			os.chdir(_dir)
-			self.assertEqual(self.job.documents, {})  # test with directory, without files
+			self.assertEqual(self.job.documents, {})    # test with directory, without files
 
 			_docs = ['doc1', 'doc2', 'doc3']
 			for fname in _docs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
-			self.assertEqual(self.job.documents.keys().sort(),
-							 _docs.sort())  # check returned keys against created files
+			self.assertEqual(self.job.documents.keys().sort(),  # check returned keys against created files
+							 _docs.sort())
 			os.chdir('..')
 
 	def test_has_drawings(self):
 		""" Tests has_drawings property by parsing shell output
 		"""
-		self.assertEqual(self.job.has_drawings, False)  # without directory
+		self.assertFalse(self.job.has_drawings)			# without directory
 
-		self.job._path = os.getcwd()  # set path attribute to current directory
-		if os.path.isdir('../.job_sandbox'):  # checks for sandbox
+		self.job._path = os.getcwd()					# set path attribute to current directory
+		if os.path.isdir('../.job_sandbox'): 			# checks for sandbox
 			_dir = 'Drawings'
 			os.mkdir(_dir)
 			os.chdir(_dir)
-			self.assertEqual(self.job.has_drawings, False)  # with directory, without files
+			self.assertFalse(self.job.has_drawings)		# with directory, without files
 
 			_dwgs = ['dwg1', 'dwg2', 'dwg3']
 			for fname in _dwgs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
-			self.assertEqual(self.job.has_drawings, True)  # with files
+			self.assertTrue(self.job.has_drawings)		# with files
 			os.chdir('..')
 
 	def test_has_documents(self):
 		""" Tests has_documents property by parsing shell output
 		"""
-		self.assertEqual(self.job.has_documents, False)  # without directory
+		self.assertFalse(self.job.has_documents)		# without directory
 
-		self.job._path = os.getcwd()  # set path attribute to current directory
-		if os.path.isdir('../.job_sandbox'):  # checks for sandbox
+		self.job._path = os.getcwd()					# set path attribute to current directory
+		if os.path.isdir('../.job_sandbox'):			# checks for sandbox
 			_dir = 'Documents'
 			os.mkdir(_dir)
 			os.chdir(_dir)
-			self.assertEqual(self.job.has_documents, False)  # with directory, without files
+			self.assertFalse(self.job.has_documents)	# with directory, without files
 
 			_docs = ['doc1', 'doc2', 'doc3']
 			for fname in _docs:
 				_fobj = open(fname, 'w')
 				_fobj.close()
-			self.assertEqual(self.job.has_documents, True)  # with files
+			self.assertTrue(self.job.has_documents)		# with files
 			os.chdir('..')
 
 	def test_has_addendums(self):
 		""" Checks to see if self has any takeoff
 		"""
-		self.assertEqual(self.job.has_addendums, False)  # without directory
+		self.assertFalse(self.job.has_addendums)		# without directory
 
-		self.job._path = os.getcwd()  # set path attribute to current directory
-		if os.path.isdir('../.job_sandbox'):  # checks for sandbox
+		self.job._path = os.getcwd()					# set path attribute to current directory
+		if os.path.isdir('../.job_sandbox'):			# checks for sandbox
 			_dir = 'Addendums'
 			os.mkdir(_dir)
 			os.chdir(_dir)
-			self.assertEqual(self.job.has_addendums, False)  # with directory, without files
+			self.assertFalse(self.job.has_addendums)	# with directory, without files
 
 			_adds = ['add1', 'add2', 'add3']
 			for fname in _adds:
 				_fobj = open(fname, 'w')
 				_fobj.close()
-			self.assertEqual(self.job.has_addendums, True)  # with files
+			self.assertTrue(self.job.has_addendums)		# with files
 			os.chdir('..')
 
 	def test_update(self):
 		""" Tests update function with and without 'number' and 'db' atrributes.
 		"""
-		self.assertEqual(self.job.update(), False)  # without number attribute
+		self.assertFalse(self.job.update())				# without number attribute
 
 		_num = 24
 		self.job.number = _num
 		self.assertEqual(self.job.update(), 'DB_ERROR')  # without db attributes
 
 		self.job.db = {}
-		self.assertEqual(self.job.db.keys()[0], _num)  # ensure that update was called on __setattr__ previous line
+		self.assertEqual(self.job.db.keys()[0], _num)	# ensure that update was called on __setattr__ previous line
 
 	def test_dump_all(self):
 		""" Creates multiple job objects in virtual db.
 		Tests dump_all function with/without _dump_lock, completed_db, db, and default_sub_dir.
 		"""
+		return NotImplemented
 
 
 class TestAwardedJob(unittest.TestCase):
 	def setUp(self):
-		core.disconnect_db()  # ensure database objects aren't interfered with
+		core.disconnect_db()			# ensure database objects aren't interfered with
+		core.Job._dump_lock = True		# prevent object storage
+
 		num = core.get_job_num()
 		self.name = 'test_job'
 		self.object = core.AwardedJob(num, self.name, init_struct=False)
-		core.AwardedJob._dump_lock = True  # prevent object storage
 
 		if os.path.isdir('tests'):
 			_dir = 'tests/.job_sandbox'
@@ -384,7 +383,6 @@ class TestAwardedJob(unittest.TestCase):
 		_quote_list = self.object.quotes.keys()
 		self.assertNotIn(_quote_obj.hash, _quote_list, 'Quote was not deleted from AwardedJob.quotes')
 
-
 	def test_add_po(self):
 		""" Creates a MaterialList/Quote/PO linked to self.object.
 		Ensures that MaterialList objects are changed appropriately.
@@ -449,9 +447,3 @@ class TestAwardedJob(unittest.TestCase):
 		""" Tests the find static method by creating arbitrary AwardedJob objects and calling AwardedJob.find
 		"""
 		return NotImplemented
-
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TestJob)
-unittest.TextTestRunner(verbosity=2).run(suite)
-suite = unittest.TestLoader().loadTestsFromTestCase(TestAwardedJob)
-unittest.TextTestRunner(verbosity=2).run(suite)
