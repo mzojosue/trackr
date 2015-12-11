@@ -69,6 +69,19 @@ def bid_calculate(bid_num):
 			return "Error: Bid does not exist."
 
 
+@app.route('/estimating/bid/<int:bid_num>/info', methods=['GET', 'POST'])
+def bid_info(bid_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth
+	if hasattr(EstimatingJob, 'db'):
+		try:
+			_bid = EstimatingJob.find(bid_num)
+			return render_template('estimating/bid_info.html', bid=_bid, usr=auth)
+		except KeyError:
+			return "Error: Bid does not exist."
+
+
 @app.route('/estimating/bid/<int:bid_num>/dir/<path:dir>')
 def bid_folder(bid_num, dir):
 	""" Renders given directory as page. Renders specific pages for 'Drawings', and 'Takeoffs'.
@@ -391,7 +404,8 @@ def estimating_serialized_overview():
 			_bid['class'] = 'event-success'
 			# TODO: format start and end values
 			_estimates.append(_bid)
-		_return = {"success": 1, "result": _estimates}
+		_return = {"success": 1,
+				   "result": _estimates}
 		return json.dumps(_return)
 
 @app.route('/estimating/bid/<int:bid_num>/drawings/<dwg_name>')
@@ -417,3 +431,24 @@ def bid_get_document(bid_num, query):
 	print os.path.isfile(doc)
 	if os.path.isfile(doc):
 		return send_from_directory(*os.path.split(doc))
+
+
+@app.route('/estimating/bid/<int:bid_num>/update', methods=['POST'])
+def update_bid_info(bid_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth  # redirects to login
+	_bid = EstimatingJob.find(bid_num)
+	_bid.desc = str(request.form['bidDesc'])
+	return redirect(request.referrer)
+
+
+@app.route('/estimating/bid/<int:bid_num>/bids/json')
+def serialized_sub_bids(bid_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth
+	_bid = EstimatingJob.find(bid_num)
+	_result = _bid.bids
+	return json.dumps({"success": 1,
+	                   "result": _result})
