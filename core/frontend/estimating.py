@@ -441,3 +441,14 @@ def update_bid_info(bid_num):
 	_bid = EstimatingJob.find(bid_num)
 	_bid.desc = str(request.form['bidDesc'])
 	return redirect(request.referrer)
+
+
+@app.route('/estimating/bid/<int:bid_num>/bids/json')
+def serialized_sub_bids(bid_num):
+	auth = check_login()
+	if not hasattr(auth, 'passwd'):
+		return auth
+	_bid = EstimatingJob.find(bid_num)
+	_result = _bid.bids
+	return json.dumps({"success": 1,
+	                   "result": _result})
