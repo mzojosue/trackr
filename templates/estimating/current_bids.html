@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% import "objects/estimating-objects.html" as estimating %}
+{% import "objects/estimating_objects.html" as estimating %}
 
 {% block title %}
 	Current Bids - Campano HVAC
@@ -25,6 +25,7 @@
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 		<h1 class="page-header">
 			Current Bids&nbsp;
+        <a href="{{ url_for('create_bid') }}" class="btn btn-small btn-success">Create new job</a>
 		</h1>
 
 		<div class="row">

@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% import "objects/estimating_objects.html" as estimating %}
+
+{% block title %}
+{{ bid.name }} - Info
+{% endblock %}
+
+
+{% block styles %}
+
+<link href="{{ url_for('static', filename='css/estimating.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block nav_links %}
+{{ layout.navbar_links('estimating_home', usr=usr) }}
+{% endblock %}
+
+
+{% block body %}
+
+{{ estimating.bid_sidebar('bid_info', bid=bid, usr=usr) }}
+
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+  <h1 class="page-header" id="bidHeader">
+    {{ bid.name }}
+    <small>
+      Info
+    </small>
+    <a href="javascript:" id="unlockBtn" class="btn btn-default btn-sm"
+       onclick="unlock_bid_for_editing('{{ bid.number }}');">
+      Unlock for Editing
+    </a>
+  </h1>
+  <form id="bidInfo" name="bidInfo" method="post"
+        action="{{ url_for('update_bid_info', bid_num=bid.number) }}">
+     <div class="col-xs-3">
+				<label for="bidDesc">Description:</label>
+				<textarea id="bidDesc" name="bidDesc" class="form-control" rows="3" onclick="this.select();" readonly>
+					{{- bid.desc -}}
+				</textarea>
+     </div>
+    <div class="clearfix visible-lg-block"></div>
+    <hr>
+  </form>
+</div>
+
+{% endblock %}
