@@ -95,6 +95,20 @@ function unlock_job_for_editing(jobNum) {
     document.getElementById('jobHeader').appendChild(updateInfo);
 }
 
+function unlock_bid_for_editing(bidNum) {
+    document.getElementById('bidDesc').readOnly = false;
+
+    //document.getElementById('unlockBtn').onclick = "document.forms['jobInfo'].submit();";
+    //document.getElementById('unlockBtn').href = '/j/' + jobNum + '/update';
+
+    var updateInfo = document.createElement('button');
+    updateInfo.setAttribute('class', 'btn btn-sm btn-success');
+    updateInfo.setAttribute('type', 'submit');
+    updateInfo.setAttribute('form', 'bidInfo');
+    updateInfo.innerHTML = 'Update';
+    document.getElementById('bidHeader').appendChild(updateInfo);
+}
+
 function add_quote_doc(job_num, m_hash, q_hash) {
     // set form action
     var url = '/j/' + job_num + '/material/' + m_hash + '/quote/' + q_hash + '/update/doc';
