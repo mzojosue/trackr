@@ -315,7 +315,7 @@
 						<label for="matListforQuote">
 							Add quote to:
 						</label>
-						<select class="form-control" name="materialList" id="matListforQuote">
+						<select class="form-control" name="materialListHash" id="matListforQuote">
 							<option selected>Select Material List</option>
 							{% if job %}
 								{% for i in job.materials.itervalues() if not i.fulfilled %}

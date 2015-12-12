@@ -26,7 +26,7 @@ class EstimatingJob(Job):
 	def __init__(self, name, job_num=None, alt_name=None, date_received=today(), date_end=None,
 				 address=None, gc=None, gc_contact=None, rebid=False, scope=None, desc=None, rate='a',
 				 tax_exempt=False, certified_pay=False, sub_path=None, group=False, completed=False,
-				 struct=True, add_to_log=True):
+				 init_struct=True, add_to_log=True):
 		"""
 		:param name: The desired name for the bid
 		:param job_num: desired jobs number. if specified and a bid already exists, passed number is ignored.
@@ -78,7 +78,7 @@ class EstimatingJob(Job):
 		self.group = group
 
 		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope,
-					 struct=struct, add_to_log=False)
+					 init_struct=init_struct, add_to_log=False)
 		if add_to_log:
 			add_bid_to_log(self)
 
@@ -266,7 +266,7 @@ class EstimatingJob(Job):
 
 	# Sub Bid Methods #
 
-	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], struct=True, add_to_log=True):
+	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], init_struct=True, add_to_log=True):
 		"""
 		:param date_received: date that bid request was received/uploaded
 		:param gc: string or object of GC
@@ -277,7 +277,7 @@ class EstimatingJob(Job):
 		if not bid_date: bid_date = 'ASAP'
 		_bid_hash = abs(hash(str(gc).lower()))
 		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact,
-				'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
+		        'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		self.bids[_bid_hash] = _bid
 		if scope:
 			for i in scope:
@@ -285,12 +285,13 @@ class EstimatingJob(Job):
 					self.scope.append(i)
 					self._quotes[i] = {}
 
-		if struct:
+		if init_struct:
 			self.init_struct()  # rebuild directory structure to implement new scope and for good measure
 
 		self.update()
 		if add_to_log:
 			return add_sub_bid_to_log(self, _bid_hash)
+		self.update()
 		return True
 
 	def del_sub(self, bid_hash):

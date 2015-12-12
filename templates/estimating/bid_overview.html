@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% import "objects/estimating-objects.html" as estimating %}
+{% import "objects/estimating_objects.html" as estimating %}
 
 {% block title %}
 	{{ bid }}
@@ -10,6 +10,19 @@
 
 	<link href='{{ url_for("static", filename="css/estimating.css") }}' rel="stylesheet">
 
+{% endblock %}
+
+
+{% block html_attributes %}
+  {%- raw -%}
+    ng-app="SubBidApp"
+  {%- endraw -%}
+{% endblock %}
+
+{% block body_attributes %}
+  {%- raw -%}
+    ng-controller="SubBidController"
+  {%- endraw -%}
 {% endblock %}
 
 
@@ -101,7 +114,7 @@
       </div>
 
       <!-- Sub Bid Widget -->
-			<div class="col-xs-4 pull-right">
+			<div id="subBidWidget" class="col-xs-4 pull-right">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
             {% if usr and usr.role == 'admin' %}
@@ -195,17 +208,55 @@
 							</div>
 						{% endfor %}
 					</div>
+
+					<div class="list-group">
+						{% raw %}
+							<div class="list-group-item" ng-repeat="(_hash, bid) in sub_bids">
+								<h4 class="gc-label">
+									To <strong>{{ bid.gc }}</strong>
+								</h4>
+								<label for="{{ _hash }}-gc_contact" class="control-label">
+                      GC Contact:
+                    </label>
+                    <input type="text" class="form-control"  form="{{ _hash }}-form" onchange="this.form.submit()"
+                           name="gc_contact" id="{{ _hash }}-gc_contact"
+                           value="{{ bid.gc_contact }}" placeholder="GC Contact">
+							</div>
+						{% endraw %}
+					</div>
 				</div>
 			</div>
 
-		</div>
-	</div><!-- /.row -->
+		</div><!-- /.row -->
+	</div><!-- /.main -->
 
 {% endblock %}
 
 
-{% block post_script %}
+{%  block post_script %}
 
+	<script type="text/javascript" language="javascript">
+		(function () {
+				'use strict';
 
+				angular.module('SubBidApp', ['scDateTime'])
+					.controller('SubBidController', ['$scope', '$log', '$http', function($scope, $log, $http) {
+						$scope.sub_bids = {};
+
+						$http.get("{{ url_for('serialized_sub_bids', bid_num=bid.number) }}")
+							.success(function(results) {
+								$scope.sub_bids = results['result'];
+								$log.log(results['result']);
+							})
+							.error(function(error) {
+								$scope.sub_bids = {};
+								$log.log(error);
+							});
+
+						$scope.createBid = function() {};
+						$scope.updateBid = function() {};
+					}])
+			}())
+	</script>
 
 {% endblock %}

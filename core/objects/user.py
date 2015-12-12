@@ -1,14 +1,13 @@
 import hashlib
-import uuid
 import os
 import traceback
+import uuid
 from datetime import datetime
 
 import yaml
 
-from core.log import logger
 import core.environment as env
-
+from core.log import logger
 
 today = datetime.today
 
@@ -91,11 +90,12 @@ class User(yaml.YAMLObject):
 		""" Iterates through class database and saves objects to YAML file
 		:return: None
 		"""
+		if hasattr(cls, '_dump_lock') and cls._dump_lock:
+			return None  # attribute to prevent object storage for testing purposes
 		users = {}  # values to save to file
 		if hasattr(cls, 'db'):
 			for _hash, obj in cls.db.iteritems():
 				users[_hash] = obj
-
 
 		_filename = os.path.join(env.env_root, cls._yaml_filename)
 		with open(_filename, 'w') as stream:

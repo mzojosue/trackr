@@ -1,4 +1,4 @@
-{# templates/objects/estimating-objects.html #}
+{# templates/objects/estimating_objects.html #}
 
 
 
@@ -41,9 +41,14 @@
 
   {# links are separated by function name (used by `url_for`), Link Text Content, and a glyphicon tag (optional) #}
   {% if usr and usr.role == 'admin' %}
-    {% set links = [('bid_overview', 'View Bid', 'eye-open'), ('bid_calculate', 'Calculate', 'scale')] %}
+    {% set links = [
+      ('bid_overview', 'View Bid', 'eye-open'),
+      ('bid_calculate', 'Calculate', 'scale'),
+      ('bid_info', 'Info', 'info-sign')] %}
   {% else %}
-    {% set links = [('bid_overview', 'View Bid', 'eye-open')] %}
+    {% set links = [
+      ('bid_overview', 'View Bid', 'eye-open'),
+      ('bid_info', 'Info', 'info-sign')] %}
   {% endif %}
 
 	<div class="col-sm-3 col-md-2 sidebar bid-sidebar">
@@ -204,7 +209,8 @@
 						</div><!-- /.form-group -->
 						<div class="form-group">
 							<label class="control-label" for="bidDate">Bid Due Date:</label>
-							<input type="date" name="bidDate" id="bidDate" class="form-control">
+							<!--input type="date" name="bidDate" id="bidDate" class="form-control"-->
+							<time-date-picker ng-model="dateValue"></time-date-picker>
 						</div>
 					</form>
 	      </div>
