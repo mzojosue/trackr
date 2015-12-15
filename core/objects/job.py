@@ -518,7 +518,7 @@ class AwardedJob(Job):
 			if i.mat_list.hash == mlist_hash:
 				del self.POs[i.number]
 		for i in self._quotes.values():
-			if i.mat_list.hash == mlist_hash:
+			if hasattr(i, 'mat_list') and i.mat_list.hash == mlist_hash:
 				del self._quotes[i.hash]
 		del self._materials[mlist_hash]
 
