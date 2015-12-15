@@ -564,7 +564,7 @@ class AwardedJob(Job):
 				_quotes = os.listdir(_dir)
 				for q_doc in _quotes:
 					_hash = abs(hash(str(q_doc)))
-					if _hash not in self.quotes.keys() and not _hash in self._quotes.keys():
+					if _hash not in self.quotes.keys() and _hash not in self._quotes.keys():
 						_obj = Quote(vend=None, doc=q_doc)
 						_obj._path = self.path
 						self._quotes[_hash] = _obj
