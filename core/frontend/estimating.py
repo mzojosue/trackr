@@ -1,4 +1,5 @@
 from werkzeug import secure_filename
+import json
 
 from job import *
 from core.sorting import *
@@ -242,7 +243,9 @@ def create_sub_bid(bid_num):
 		except:
 			continue
 
-	_bid.add_sub(datetime.now(), _gc, _bidDate, _gc_contact, _scope)
+	_sub_kwargs = {datetime.now(), _gc, _bidDate, _gc_contact, _scope}
+	print _sub_kwargs
+	_bid.add_sub(_sub_kwargs)
 	return redirect(url_for('bid_overview', bid_num=_bid.number))
 
 
@@ -262,8 +265,8 @@ def award_sub_bid(bid_num, sub_hash):
 		return NotImplemented
 
 
-@app.route('/estimating/bid/<int:bid_num>/sub/<int:sub_hash>/update', methods=['POST'])
-def update_sub_bid(bid_num, sub_hash):
+@app.route('/estimating/bid/<int:bid_num>/subs/update', methods=['POST'])
+def update_sub_bid(bid_num):
 	""" Updates sub bid attributes based on hardcoded attribute list ('gc', 'gc_contact', 'bid_date').
 	Parses bid_date as datetime object.
 	:param bid_num: Type int representing bid to update
@@ -275,16 +278,27 @@ def update_sub_bid(bid_num, sub_hash):
 		return auth  # redirects to login
 	bid = EstimatingJob.find(bid_num)
 
-	values = ('gc', 'gc_contact', 'bid_date')
-	for _val in values:
-		val = request.form[_val]  # grab value from POST request
-		if _val == 'bid_date':
-			val = datetime.strptime(val, '%Y-%m-%d')  # parse value as datetime
-		else:
-			val = str(val)
-		bid.bids[sub_hash][_val] = val  # update value. update is not called
-	bid.update()  # update object
-	return redirect(request.referrer)
+	_json = json.loads(request.data)
+
+	for _hash, data in _json.iteritems():
+		tmp = {}
+		for key, val in data.iteritems():				# load data to `tmp`
+			tmp[key] = val
+
+		tmp['date_received'] = datetime.strptime(tmp['date_received'], '%Y-%m-%d')
+		tmp['bid_date'] = datetime.strptime(tmp['bid_date'], '%Y-%m-%d')
+
+		_scope = []
+		for val, _bool in tmp['scope'].iteritems():		# decompress scope to List
+			if _bool:
+				_scope.append(val)
+		tmp['scope'] = _scope
+
+		bid.bids[_hash] = tmp
+		print tmp
+
+	bid.update()
+	return json.dumps(bid.bids)
 
 
 # Bid Quote API #
@@ -449,6 +463,23 @@ def serialized_sub_bids(bid_num):
 	if not hasattr(auth, 'passwd'):
 		return auth
 	_bid = EstimatingJob.find(bid_num)
-	_result = _bid.bids
+	_result = copy(_bid.bids)
+	for b in _result.itervalues():
+		epoch = datetime(1969, 12, 31)  # why does this work???
+
+		dt = b['date_received']  		# format date_received value
+		b['date_received'] = (dt - epoch).total_seconds() * 1000
+
+		dt = b['bid_date']				# format bid_date value
+		b['bid_date'] = (dt - epoch).total_seconds() * 1000
+
+		tmp = {}						# expand scope arguments to dict contained bool values
+		for scope in EstimatingJob.valid_scope:
+			if scope in b['scope']:
+				tmp[scope] = True
+			else:
+				tmp[scope] = False
+		b['scope'] = tmp
+
 	return json.dumps({"success": 1,
 	                   "result": _result})
