@@ -1,5 +1,4 @@
 from werkzeug import secure_filename
-import json
 
 from job import *
 from core.sorting import *
@@ -66,19 +65,6 @@ def bid_calculate(bid_num):
 		try:
 			_bid = EstimatingJob.find(bid_num)
 			return render_template('estimating/bid_calculate.html', bid=_bid, usr=auth)
-		except KeyError:
-			return "Error: Bid does not exist."
-
-
-@app.route('/estimating/bid/<int:bid_num>/info', methods=['GET', 'POST'])
-def bid_info(bid_num):
-	auth = check_login()
-	if not hasattr(auth, 'passwd'):
-		return auth
-	if hasattr(EstimatingJob, 'db'):
-		try:
-			_bid = EstimatingJob.find(bid_num)
-			return render_template('estimating/bid_info.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
 
