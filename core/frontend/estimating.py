@@ -1,4 +1,5 @@
 from werkzeug import secure_filename
+import json
 
 from job import *
 from core.sorting import *
@@ -68,6 +69,7 @@ def bid_calculate(bid_num):
 		except KeyError:
 			return "Error: Bid does not exist."
 
+
 @app.route('/estimating/bid/<int:bid_num>/info', methods=['GET', 'POST'])
 def bid_info(bid_num):
 	auth = check_login()
@@ -79,6 +81,7 @@ def bid_info(bid_num):
 			return render_template('estimating/bid_info.html', bid=_bid, usr=auth)
 		except KeyError:
 			return "Error: Bid does not exist."
+
 
 @app.route('/estimating/bid/<int:bid_num>/dir/<path:dir>')
 def bid_folder(bid_num, dir):
