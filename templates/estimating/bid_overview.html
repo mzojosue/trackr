@@ -164,8 +164,7 @@
                   <label for="{{ _hash }}-gc_contact" class="control-label">
                     GC Contact:
                   </label>
-                  <input type="text" form="{{ _hash }}-form" onchange="this.form.submit()"
-                         name="gc_contact" id="{{ _hash }}-gc_contact"
+                  <input type="text" ng-model="bid.gc_contact" id="{{ _hash }}-gc_contact" ng-disabled="editable"
                          value="{{ bid.gc_contact }}" placeholder="GC Contact">
                 </md-input-container>
 
