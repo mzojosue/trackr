@@ -59,3 +59,18 @@
 #scopeArea {
   padding: 6px 12px;
 }
+
+legend {
+  font-weight: normal;
+  width: auto;
+  border-style: none;
+  margin-bottom: 0;
+  }
+
+fieldset.standard {
+  padding: 8px;
+  padding-left: 15px;
+  border-style: solid;
+  border-width: 1px;
+  height: 100%;
+}

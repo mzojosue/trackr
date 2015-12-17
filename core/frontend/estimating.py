@@ -142,30 +142,26 @@ def create_bid():
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	if request.method == 'POST':
-		_name = str(request.form['newBidName'])
-		_addr = str(request.form['jobAddress'])
-		_desc = str(request.form['jobDesc'])
-		_gc   = str(request.form['gc'])
-		_gcContact = str(request.form['gcContact'])
+		data = json.loads(request.data)
+
 		try:
-			_bid_date = datetime.strptime(request.form['bid_date'], '%Y-%m-%d')
-		except:
-			_bid_date = None
+			data['bid_date'] = datetime.strptime(data['bid_date'], '%Y-%m-%d')
+		except KeyError:
+			data['bid_date'] = None
+		tmp = data['bid_date']
+		del data['bid_date']
+		data['date_end'] = tmp
 
 		_scope = []
-		__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']
-		for i in __scope:
-			try:
-				if bool(request.form[i]):
-					__s = str(i[0])
-					__s = __s.upper()
-					_scope.append(__s)
-			except:
-				continue
+		for val, _bool in data['scope'].iteritems():		# decompress scope to List
+			if _bool:
+				_scope.append(val)
+		data['scope'] = _scope
 
-		bid = EstimatingJob(_name, address=_addr, gc=_gc, gc_contact=_gcContact, scope=_scope,
-							date_end=_bid_date, desc=_desc)
-		return redirect(url_for('bid_overview', bid_num=bid.number))
+		print data
+
+		bid = EstimatingJob(add_to_log=False, **data)
+		return url_for('bid_overview', bid_num=bid.number)
 	else:
 		return render_template('estimating/estimating_create.html', usr=auth)
 
@@ -457,6 +453,15 @@ def update_bid_info(bid_num):
 	return redirect(request.referrer)
 
 
+@app.route('/estimating/json/valid_scope')
+def serialized_valid_scope():
+	_result = {}
+	for scope in EstimatingJob.valid_scope:
+		_result[scope] = False
+	return json.dumps({"success": 1,
+					   "result": _result})
+
+
 @app.route('/estimating/bid/<int:bid_num>/bids/json')
 def serialized_sub_bids(bid_num):
 	auth = check_login()
@@ -467,11 +472,12 @@ def serialized_sub_bids(bid_num):
 	for b in _result.itervalues():
 		epoch = datetime(1969, 12, 31)  # why does this work???
 
-		dt = b['date_received']  		# format date_received value
-		b['date_received'] = (dt - epoch).total_seconds() * 1000
-
-		dt = b['bid_date']				# format bid_date value
-		b['bid_date'] = (dt - epoch).total_seconds() * 1000
+		for _date in ('date_received', 'bid_date'):
+			try:
+				dt = b[_date]  		# format datetime object
+				b[_date] = (dt - epoch).total_seconds() * 1000
+			except TypeError:
+				continue
 
 		tmp = {}						# expand scope arguments to dict contained bool values
 		for scope in EstimatingJob.valid_scope:
