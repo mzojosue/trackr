@@ -279,7 +279,9 @@ def update_sub_bid(bid_num):
 	for _hash, data in _json.iteritems():
 		tmp = {}
 		for key, val in data.iteritems():				# load data to `tmp`
-			tmp[key] = val
+			if type(val) is unicode:
+				val = str(val)
+			tmp[str(key)] = val
 
 		tmp['date_received'] = datetime.strptime(tmp['date_received'], '%Y-%m-%d')
 		tmp['bid_date'] = datetime.strptime(tmp['bid_date'], '%Y-%m-%d')
@@ -287,13 +289,14 @@ def update_sub_bid(bid_num):
 		_scope = []
 		for val, _bool in tmp['scope'].iteritems():		# decompress scope to List
 			if _bool:
-				_scope.append(val)
+				_scope.append(str(val))
 		tmp['scope'] = _scope
 
-		bid.bids[_hash] = tmp
+		bid.bids[int(_hash)] = tmp
 		print tmp
 
 	bid.update()
+	bid.init_struct()
 	return json.dumps(bid.bids)
 
 
