@@ -92,7 +92,7 @@
             <legend>Bid Scope:</legend>
             <div layout="row" layout-wrap flex>
               <div flex="50" ng-repeat="(scope, val) in bid.scope">
-                <md-checkbox ng-model="val" aria-checked="val">
+                <md-checkbox ng-model="val" aria-checked="val" ng-change="updateScope(scope, val)">
                   {% raw %}
                     {{ scope }}
                   {% endraw %}
@@ -142,6 +142,7 @@
           $scope.GCs = ['McCloskey Mechanical',
 							          'Gary F. Gardner',
                         'Other GC'];
+
           $scope.submitBid = function() {
             if ($scope.bid.bid_date) {
               $scope.bid.bid_date = dateToYMD($scope.bid.bid_date);
@@ -154,6 +155,10 @@
               .error(function(error) {
                 $log.log(error);
               });
+          };
+
+          $scope.updateScope = function(scope, val) {
+            $scope.bid.scope[scope] = val;
           };
         }])
 	      .controller('SearchCtrl', SearchCtrl)
