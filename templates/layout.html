@@ -46,8 +46,17 @@
 				{%- endblock -%}
 
 			</ul>
-			<form class="navbar-form navbar-right">
-				<input type="text" class="form-control" placeholder="Search...">
+			<form class="navbar-form navbar-right" ng-controller="SearchCtrl as ctrl">
+				<md-autocomplete
+					ng-selected-item="ctrl.selectedItem"
+				  ng-search-text-change="ctrl.searchTextChange(ctrl.searchText)"
+				  ng-search-text="ctrl.searchText"
+				  ng-selected-item-change="ctrl.selectedItemChange(item)"
+				  ng-items="item in ctrl.querySearch(ctrl.searchText)"
+				  ng-item-text="item.display"
+				  md-min-length="0"
+				  placeholder="Search...">
+				</md-autocomplete>
 			</form>
 		</div>
 	</div>
