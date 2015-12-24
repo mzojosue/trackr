@@ -284,7 +284,11 @@ class Job(yaml.YAMLObject):
 		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
 		:return: self.dump_folder
 		"""
-		return self.dump_folder('Drawings')
+		_dump = self.dump_folder('Drawings')
+		for fn, stats in _dump.iteritems():
+			if os.path.isfile(stats['path']):
+				print 'bam'
+		return _dump
 
 	@property
 	def documents(self):
