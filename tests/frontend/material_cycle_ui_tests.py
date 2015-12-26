@@ -1,6 +1,6 @@
 from flask.ext.testing import TestCase
 
-from core.db import disconnect_db
+from core.environment import disconnect_db
 from core.frontend import *
 from core.objects import AwardedJob, MaterialList, User
 

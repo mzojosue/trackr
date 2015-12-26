@@ -28,19 +28,6 @@
 {% endblock %}
 
 
-{% block html_attributes %}
-  {%- raw -%}
-    ng-app="SubBidApp"
-  {%- endraw -%}
-{% endblock %}
-
-{% block body_attributes %}
-  {%- raw -%}
-    ng-controller="SubBidController"
-  {%- endraw -%}
-{% endblock %}
-
-
 {% block nav_links %}
  {{ layout.navbar_links('estimating_home', usr=usr) }}
 {% endblock %}
@@ -205,22 +192,6 @@
 							</div>
 						{% endraw %}
 					</div>
-
-					<div class="list-group">
-						{% raw %}
-							<div class="list-group-item" ng-repeat="(_hash, bid) in sub_bids">
-								<h4 class="gc-label">
-									To <strong>{{ bid.gc }}</strong>
-								</h4>
-								<label for="{{ _hash }}-gc_contact" class="control-label">
-                      GC Contact:
-                    </label>
-                    <input type="text" class="form-control"  form="{{ _hash }}-form" onchange="this.form.submit()"
-                           name="gc_contact" id="{{ _hash }}-gc_contact"
-                           value="{{ bid.gc_contact }}" placeholder="GC Contact">
-							</div>
-						{% endraw %}
-					</div>
 				</div>
 			</div>
 
@@ -264,7 +235,31 @@
 								$scope.sub_bids = {};
 								$log.log(error);
 							});
-						$scope.updateBid = function() {};
+
+						$scope.createBid = function() {};
+            $scope.awardBid = function() {};
+            $scope.updateBids = function() {
+              if ($scope.editable) {
+                var subs = $scope.sub_bids;
+                jQuery.each(subs, function(key, value) {
+                  value.bid_date = dateToYMD(value.bid_date);
+                  value.date_received = dateToYMD(value.date_received);
+                });
+                $log.log(subs);
+                $http.post("{{ url_for('update_sub_bid', bid_num=bid.number) }}", subs)
+                  .success(function(results) {
+                    $log.log(results);
+                  })
+                  .error(function(error) {
+                    $log.log(error);
+                  })
+              }
+              // send HTTP POST value when $scope.editable is false
+            };
+
+            $scope.updateScope = function(hash, scope, val) {
+              $scope.sub_bids[hash].scope[scope] = val;
+            };
 					}])
 			}());
 

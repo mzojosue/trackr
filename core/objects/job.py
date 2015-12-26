@@ -1,10 +1,9 @@
-import yaml
-import os
+import yaml, os, traceback
 
-from timesheet import *
-from material_cycle import MaterialList, Quote
-import core.environment as env
+from datetime import timedelta
 import core.log as log
+from material_cycle import MaterialList, Quote
+from timesheet import *
 
 
 class Worker(object):
@@ -17,7 +16,8 @@ class Worker(object):
 	_yaml_attr = ('date_created', '_job_num', 'prev_job', 'phone', 'email', 'role', 'rate', 'timesheets')
 	_yaml_filename = 'workers.yaml'
 
-	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today(), timesheets=[]):
+	def __init__(self, name, job, phone=None, email=None, role='Installer', rate=None, date_created=today(),
+				 timesheets=[]):
 		"""
 		Initializes employee representation object.
 		:param name: employee's name. hash/key is created from this variable.
@@ -109,9 +109,9 @@ class Worker(object):
 		if not week_end:
 			# find correct week end (Wednesday)
 			weekday = date_worked.isoweekday()
-			_wed = 3                    # Wednesday in iso format
+			_wed = 3  # Wednesday in iso format
 			_diff = _wed - weekday
-			_diff *= -1                 # invert _diff
+			_diff *= -1  # invert _diff
 			_diff = timedelta(days=_diff)
 			week_end = date_worked + _diff
 
@@ -127,7 +127,7 @@ class Worker(object):
 	@staticmethod
 	def load_workers():
 		""" Loads users from campano/workers.yaml in root environment"""
-		fname = os.path.join(env.env_root, Worker._yaml_filename)
+		fname = os.path.join(Worker.env_root, Worker._yaml_filename)
 		try:
 			with open(fname, 'r') as _file_dump:
 				_file_dump = yaml.load(_file_dump)
@@ -143,7 +143,7 @@ class Worker(object):
 	@classmethod
 	def dump_info(cls):
 		""" dump values from self to .yaml file """
-		_filename = os.path.join(env.env_root, cls._yaml_filename)
+		_filename = os.path.join(cls.env_root, cls._yaml_filename)
 
 		_dump = {}
 		if hasattr(Worker, 'db'):
@@ -179,11 +179,13 @@ class Job(yaml.YAMLObject):
 	yaml_filename = 'db_storage.yaml'
 	valid_scope = ('M', 'E', 'B', 'I', 'P', 'sm')
 
-	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
-	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
+	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt',
+				  'certified_pay',
+				  'rate', 'scope', 'bids', 'completed']  # TODO: somehow store POs in job YAML
 
 	def __init__(self, name, date_received=None, date_end=None, alt_name=None, address=None, gc=None,
-	             gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False, completed=False):
+				 gc_contact=None, scope=None, desc=None, rate='a', tax_exempt=False, certified_pay=False,
+				 completed=False):
 		self._name = str(name)
 		self._alt_name = alt_name
 		self.date_received = date_received
@@ -244,18 +246,18 @@ class Job(yaml.YAMLObject):
 		if hasattr(self, '_path') and self._path:
 			return self._path
 		elif self.sub_path:
-			_path = os.path.join(env.env_root, self.sub_path)
+			_path = os.path.join(self.env_root, self.sub_path)
 			return _path
 		else:
 			return False
 
-	def dump_folder(self, dir):
-		""" Iterates through contents of given dir and returns file-names, paths, and last modified times
+	def dump_folder(self, _dir):
+		""" Iterates through contents of given _dir and returns file-names, paths, and last modified times
 		:return:
 		"""
 		# TODO: update docstring
 		if self.path:
-			_dir = os.path.join(self.path, dir)
+			_dir = os.path.join(self.path, _dir)
 			if os.path.isdir(_dir):
 				_files = os.listdir(_dir)
 				_return = {}
@@ -263,7 +265,7 @@ class Job(yaml.YAMLObject):
 					_path = os.path.join(_dir, f)
 					_mod_time = os.stat(_path)
 					# TODO: process file type
-					_sub_path = os.path.join(dir, f)
+					_sub_path = os.path.join(_dir, f)
 					_return[f] = {'path': _path, 'sub_path': _sub_path, 'mod_time': _mod_time}
 				return _return
 			else:
@@ -340,7 +342,7 @@ class Job(yaml.YAMLObject):
 				self.completed_db[self.number] = self
 			elif hasattr(self, 'db'):
 				self.db[self.number] = self
-			else:                  # no db attribute
+			else:  # no db attribute
 				return 'DB_ERROR'  # returned for debugging
 			if not hasattr(self, '_dump_lock'):  # ensures that file is not written multiple times during import
 				self.dump_info()  # save to global yaml storage
@@ -354,11 +356,10 @@ class Job(yaml.YAMLObject):
 		yaml.dump(self, stream)
 		print 'Local storage updated'
 
-
 	@classmethod
 	def storage(cls):
-		if hasattr(cls, 'default_sub_dir'):
-			_filename = os.path.join(env.env_root, cls.default_sub_dir, cls.yaml_filename)
+		if hasattr(cls, 'default_sub_dir') and hasattr(cls, 'env_root'):
+			_filename = os.path.join(cls.env_root, cls.default_sub_dir, cls.yaml_filename)
 			return _filename
 
 	@classmethod
@@ -390,9 +391,9 @@ class AwardedJob(Job):
 	default_sub_dir = 'Jobs'
 
 	def __init__(self, job_num, name, start_date=None, end_date=None, alt_name=None, po_pre=None, address=None,
-				gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
-				contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(),
-				sheet_num=None, init_struct=True):
+				 gc=None, gc_contact=None, scope=None, foreman=None, desc=None, rate='a',
+				 contract_amount=None, tax_exempt=False, certified_pay=False, sub_path=None, date_received=today(),
+				 sheet_num=None, init_struct=True):
 		"""
 		:param job_num: desired jobs number
 		:param name: primary jobs name
@@ -427,11 +428,11 @@ class AwardedJob(Job):
 		self.contract_amount = contract_amount
 		self.sheet_num = sheet_num
 
-		self._PO = 0    # stores most recent PO suffix number
-		self.POs = {}   # stores PO strings as keys
-		self.workers = {}     # stores all current Worker objects
+		self._PO = 0  # stores most recent PO suffix number
+		self.POs = {}  # stores PO strings as keys
+		self.workers = {}  # stores all current Worker objects
 		self._materials = {}  # stores all MaterialList objects
-		self._quotes = {}     # stores unlinked Quote objects
+		self._quotes = {}  # stores unlinked Quote objects
 		self.deliveries = {}  # TODO: iterate over _materials
 		self.tasks = {}
 		# AwardedJob.timesheets.key is datetime.datetime object for the week-ending
@@ -444,7 +445,6 @@ class AwardedJob(Job):
 		log.logger.info('Created \'%s\' AwardedJob object' % self.name)
 
 		self.update()
-
 
 	def init_struct(self):
 		""" Initializes project directory hierarchy. """
@@ -464,7 +464,6 @@ class AwardedJob(Job):
 				log.logger.debug('Created sub directory, \'%s\', for \'%s\'' % (_folder, self.name))
 			except OSError:
 				log.logger.warning('Sub directory, "%s", for %s already exists!' % (_folder, self.name))
-
 
 	# Material List Functions #
 
@@ -534,7 +533,6 @@ class AwardedJob(Job):
 		if not delete:
 			log.logger.info('Deleted %s material list from %s' % (mlist_hash, self.name))
 
-
 	# Quote Functions #
 
 	@property
@@ -549,7 +547,7 @@ class AwardedJob(Job):
 			if not hasattr(self, 'q_doc_len') or self.q_doc_len != q_doc_len:
 				self.q_doc_len = q_doc_len
 				self.unlinked_quotes()  # updates self._quotes
-		except OSError:		# object directory does not exist
+		except OSError:  # object directory does not exist
 			pass
 
 		_return = {}
@@ -587,7 +585,8 @@ class AwardedJob(Job):
 		self._materials[_mat_list].add_quote(quote_obj)
 		self.update()
 
-		log.logger.info('Added quote object from "%s" to "%s" material list for %s' % (quote_obj.vend, _mat_list, self.name))
+		log.logger.info(
+			'Added quote object from "%s" to "%s" material list for %s' % (quote_obj.vend, _mat_list, self.name))
 
 	def del_quote(self, quote_hash, delete=False):
 		"""
@@ -610,7 +609,6 @@ class AwardedJob(Job):
 
 		if not delete:
 			log.logger.info('Deleted %s material list from %s' % (quote_hash, self.name))
-
 
 	# PO Functions #
 
@@ -640,14 +638,14 @@ class AwardedJob(Job):
 		_return = 0
 		if _k_len:
 			# calculate ideal sum of continuous sequence of equal length
-			_ideal_seq_sum = (_k_len/2) * (0 + (_k_len - 1))
+			_ideal_seq_sum = (_k_len / 2) * (0 + (_k_len - 1))
 
 			# calculate the real sum of existing po# sequence
-			_seq_sum = (_k_len/2) * (_keys[0] - _keys[-1])
+			_seq_sum = (_k_len / 2) * (_keys[0] - _keys[-1])
 
 			# check to see if current sequence is continuous
 			if not (int(_seq_sum) == int(_ideal_seq_sum)):
-				#find the smallest integer to begin to complete the sequence.
+				# find the smallest integer to begin to complete the sequence.
 				_new_PO = 0  # start search @ 0
 				while True:
 					if _new_PO not in _keys:
@@ -665,9 +663,8 @@ class AwardedJob(Job):
 		:return: returns the formatted value of the next available PO for considering it being given to a vendor
 		"""
 		_po = self.next_po
-		_po = '%03d' % _po        # add padding to PO number
+		_po = '%03d' % _po  # add padding to PO number
 		return '-'.join([self.name, _po])
-
 
 	# Delivery Functions #
 
@@ -681,7 +678,6 @@ class AwardedJob(Job):
 		self.update()
 
 		log.logger.info('Scheduled delivery on %s for %s' % (deliv_obj.expected, self.name))
-
 
 	# Worker/Labor/Cost Functions #
 
@@ -718,7 +714,6 @@ class AwardedJob(Job):
 			amt += i.quote.price
 		return amt
 
-
 	# Task Functions #
 
 	def add_task(self, task_obj):
@@ -742,7 +737,6 @@ class AwardedJob(Job):
 		self.update()
 
 		log.logger.info('Deleted %s task from %s' % (task_hash, self.name))
-
 
 	# Misc Functions #
 

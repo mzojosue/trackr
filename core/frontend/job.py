@@ -1,6 +1,7 @@
 from config import *
 from core.sorting import *
 
+
 @app.route('/j/')
 def all_jobs():
 	"""
@@ -29,6 +30,7 @@ def job_overview(job_num):
 	except KeyError:
 		return "Error: AwardedJob does not exist"
 
+
 @app.route('/j/<int:job_num>/info')
 def job_info(job_num):
 	auth = check_login()
@@ -39,6 +41,7 @@ def job_info(job_num):
 		return render_template('jobs/job_info.html', job=_job, usr=auth)
 	except KeyError:
 		return "Error: AwardedJob does not exist"
+
 
 @app.route('/j/<int:job_num>/analytics')
 def job_analytics(job_num):
@@ -71,7 +74,6 @@ def delete_material_doc(doc_hash, job_num=None):
 	return redirect(request.referrer)
 
 
-
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/update', methods=['POST'])
 def update_job_quote(job_num, doc_hash):
 	""" Updates specified document object based on given POST variables. Meant for changing price of object or adding a document file once quote object has been created.
@@ -83,7 +85,6 @@ def update_job_quote(job_num, doc_hash):
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
 	return abort(404)
-
 
 
 @app.route('/j/<int:job_num>/quotes/<int:doc_hash>/del')
@@ -184,9 +185,9 @@ def create_job():
 		# TODO:figure out how to accept then save uploaded file
 
 		_job = AwardedJob(job_num=_job_num, name=_name, gc=_gc, gc_contact=_gc_contact, address=_job_address,
-					start_date=_start, end_date=_end, desc=_desc,
-					contract_amount=_contract_amt, scope=_scope,
-					tax_exempt=_tax_exempt, certified_pay=_certified_pay)
+						  start_date=_start, end_date=_end, desc=_desc,
+						  contract_amount=_contract_amt, scope=_scope,
+						  tax_exempt=_tax_exempt, certified_pay=_certified_pay)
 
 		return redirect(url_for('job_overview', job_num=_job.number))
 	else:
@@ -203,7 +204,6 @@ def update_job_info(job_num):
 	_job.desc = str(request.form['jobDesc'])
 	_job.po_pre = str(request.form['poPre'])
 	return redirect(request.referrer)
-
 
 ## END JOB FUNCTIONS ##
 #######################

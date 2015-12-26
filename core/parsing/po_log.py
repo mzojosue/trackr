@@ -4,15 +4,12 @@ import os
 import shutil
 import unicodedata
 from parse import parse
-
 import openpyxl
 from xlrd import xldate_as_tuple
-
-from core import environment
 from core.log import logger
 
 
-def parse_po_log(po_log=environment.get_po_log):
+def parse_po_log(po_log):
 	# TODO: add logger debugging hooks
 	log = openpyxl.load_workbook(po_log, read_only=True)
 	_nsheet = len(log.get_sheet_names())
@@ -62,15 +59,15 @@ def parse_po_log(po_log=environment.get_po_log):
 			try:  # ensures that __date_issued is in the namespace
 				__date_issued
 			except NameError:
-				__date_issued   = None
+				__date_issued = None
 			# SKIP _row[4] -> "date expected"
 
 			try:  # parse material list document cell
-				__mat_list_val  = unicodedata.normalize('NFKD', _row[5].value).encode('ascii','ignore')
+				__mat_list_val = unicodedata.normalize('NFKD', _row[5].value).encode('ascii', 'ignore')
 			except TypeError:
-				__mat_list_val  = ''
+				__mat_list_val = ''
 			try:  # parse material list quote cell
-				__quote_val     = unicodedata.normalize('NFKD', _row[6].value).encode('ascii','ignore')
+				__quote_val = unicodedata.normalize('NFKD', _row[6].value).encode('ascii', 'ignore')
 			except TypeError:
 				__quote_val = ''
 
@@ -79,7 +76,6 @@ def parse_po_log(po_log=environment.get_po_log):
 			except IndexError:
 				__comment = ""
 
-
 			_return = {}  # Dict to create objects from
 
 			# Job attribute values
@@ -87,7 +83,8 @@ def parse_po_log(po_log=environment.get_po_log):
 			# MaterialList attribute values
 			if '\\' in __mat_list_val:
 				__mat_list_val = str(__mat_list_val).replace('\\', '/')
-				_mat_list = {'doc': os.path.split(__mat_list_val)[1], 'date_sent': __date_issued, 'task': False}  # store material list values
+				_mat_list = {'doc': os.path.split(__mat_list_val)[1], 'date_sent': __date_issued,
+							 'task': False}  # store material list values
 
 			else:
 				_mat_list = {'items': __mat_list_val, 'date_sent': __date_issued, 'task': False}
@@ -95,20 +92,21 @@ def parse_po_log(po_log=environment.get_po_log):
 
 			# MaterialListQuote attribute values minus MaterialList object
 			if '\\' in __quote_val:
-				_quote = {'price': __price, 'vend': __vend, 'date_uploaded': __date_issued, 'doc': os.path.split(__quote_val)[1]}
+				_quote = {'price': __price, 'vend': __vend, 'date_uploaded': __date_issued,
+						  'doc': os.path.split(__quote_val)[1]}
 			else:
 				_quote = {'price': __price, 'vend': __vend, 'date_uploaded': __date_issued}
 			_return['list_quote'] = _quote
 
 			# PO log attributes
-			_po_num  = __po[2]
-			_po = {'date_issued': __date_issued, 'desc':__comment, 'po_num': _po_num, 'update': False}
+			_po_num = __po[2]
+			_po = {'date_issued': __date_issued, 'desc': __comment, 'po_num': _po_num, 'update': False}
 			_return['po'] = _po
 
 			yield 'po', _return
 
 
-def find_job_in_log(obj, po_log=environment.get_po_log):
+def find_job_in_log(obj, po_log):
 	"""
 	Finds and returns the sheet title for the passed job object in the given po log
 	:param obj: jobs object to find in log
@@ -132,7 +130,7 @@ def find_job_in_log(obj, po_log=environment.get_po_log):
 		return False
 
 
-def add_job_to_log(obj, po_log=environment.get_po_log, save=True):
+def add_job_to_log(obj, po_log, save=True):
 	"""
 	Adds a spreadsheet page to the passed log file to log POs for the given jobs
 	:param obj: job object or int to add to log. Function assumes that the AwardedJob is new to the company
@@ -159,16 +157,15 @@ def add_job_to_log(obj, po_log=environment.get_po_log, save=True):
 		# TODO: add header rows to _sheet
 		if save:
 			log.save(po_log)
-		return find_job_in_log(obj, log)
+		return find_job_in_log(obj, po_log=log)
 
 
-def dump_pos_from_log(job, po_log=environment.get_po_log):
-
+def dump_pos_from_log(job, po_log):
 	_sheet, log = find_job_in_log(job, po_log=po_log)
 
 	# calculate dimensions to iterate over
 	_min_col = 'A'
-	_min_row = 3     # do not iterate over header rows
+	_min_row = 3  # do not iterate over header rows
 	_max_col = 'I'
 	_max_row = _sheet.max_row + 1
 	_iter_dim = '%s%s:%s%s' % (_min_col, _min_row, _max_col, _max_row)
@@ -178,11 +175,11 @@ def dump_pos_from_log(job, po_log=environment.get_po_log):
 		_rows.append(_row)
 	_row_count = len(_rows)
 	for _num, _row in zip(range(1, _row_count + 1), _rows):
-		_num += 2    # offset for header rows
+		_num += 2  # offset for header rows
 		yield (_num), _row
 
 
-def find_po_in_log(obj, po_log=environment.get_po_log):
+def find_po_in_log(obj, po_log):
 	"""
 	Finds and returns spreadsheet page, and row number which corresponds to the given PO object passed
 	:param obj: PO object to find in spreadsheet
@@ -192,7 +189,7 @@ def find_po_in_log(obj, po_log=environment.get_po_log):
 	if hasattr(obj, 'job'):
 		_job = obj.job
 
-		_sheet, po_log = find_job_in_log(_job, po_log)
+		_sheet, po_log = find_job_in_log(_job, po_log=po_log)
 		_po_dump = dump_pos_from_log(_job, po_log)  # creates a generator object
 		for _num, _row in _po_dump:
 			if str(_row[0].value) == str(obj.name):
@@ -200,7 +197,7 @@ def find_po_in_log(obj, po_log=environment.get_po_log):
 				return _sheet.title, _po_row
 
 
-def add_po_to_log(obj, po_log=environment.get_po_log, save=True):
+def add_po_to_log(obj, po_log, save=True):
 	if hasattr(po_log, 'get_sheet_by_name'):
 		log = po_log
 	else:
@@ -239,7 +236,8 @@ def add_po_to_log(obj, po_log=environment.get_po_log, save=True):
 			try:
 				_sheet.cell(row=_nrow, column=col, value=str(val))
 			except Exception as e:
-				raise Exception("Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
+				raise Exception(
+					"Unexpected value given when writing %s to (%d,%d): %s" % (str(val), _nrow, col, e.args[0]))
 		if save:
 			log.save(po_log)
 			logger.info("Successfully saved %s to PO log" % obj)
@@ -247,7 +245,7 @@ def add_po_to_log(obj, po_log=environment.get_po_log, save=True):
 	return find_po_in_log(obj, po_log)
 
 
-def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_log, save=True):
+def update_po_in_log(obj=None, attr=None, value=None, po_log=None, save=True):
 	"""
 	:param po_log: po_log file object to write to
 	:param obj: object to reflect changes on
@@ -287,10 +285,10 @@ def update_po_in_log(obj=None, attr=None, value=None, po_log=environment.get_po_
 		return True
 
 
-def get_po_attr(obj, attr, po_log=environment.get_po_log):
+def get_po_attr(obj, attr, po_log):
 	# TODO: optimize this bs initialization
 	_attr = {'number': 'A', 'vend': 'B', 'price': 'C', 'date_sent': 'D', 'date_expected': 'E',
-	         'mat_list': 'F', 'quote': 'J', 'ordered_by': 'K', 'quote_id': 'L'}
+			 'mat_list': 'F', 'quote': 'J', 'ordered_by': 'K', 'quote_id': 'L'}
 	if attr in _attr:
 		if hasattr(po_log, 'get_sheet_by_name'):
 			log = po_log
@@ -306,18 +304,18 @@ def get_po_attr(obj, attr, po_log=environment.get_po_log):
 		return val
 
 
-def set_log_style(po_log=environment.get_po_log):
+def set_log_style(po_log):
 	log = openpyxl.load_workbook(po_log)
 
-	_cols = (('number', 'A', 18),    # automatic width
-	         ('vend', 'B', 17.5),
-	         ('price', 'C', 10),
-	         ('date_sent', 'D', 12),
-	         ('date_expected', 'E', 11),
-	         ('mat_list', 'F', 45),
-	         ('quote', 'G', 60),
-	         ('ordered_by', 'H', 15),
-	         ('comments', 'I', 10))
+	_cols = (('number', 'A', 18),  # automatic width
+			 ('vend', 'B', 17.5),
+			 ('price', 'C', 10),
+			 ('date_sent', 'D', 12),
+			 ('date_expected', 'E', 11),
+			 ('mat_list', 'F', 45),
+			 ('quote', 'G', 60),
+			 ('ordered_by', 'H', 15),
+			 ('comments', 'I', 10))
 
 	_sheets = log.get_sheet_names()
 	for _sheet in _sheets:
@@ -331,15 +329,14 @@ def set_log_style(po_log=environment.get_po_log):
 	log.save(po_log)
 
 
-def check_po_log(po_log=environment.get_po_log):
+def check_po_log(po_log, log_hash):
 	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
 	md5 = hashlib.md5()
 	with open(po_log, 'rb') as _po_log:
 		buf = _po_log.read()
 		md5.update(buf)
 		_hash = str(md5.hexdigest())
-		if _hash != environment.last_po_log_hash:
+		if _hash != log_hash:
 			logger.info('updating PO Log hash digest stored')
-			environment.set_po_log_hash(_hash)
-			return False
+			return log_hash
 		return True

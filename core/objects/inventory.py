@@ -1,5 +1,6 @@
 from objects import *
 
+
 class InventoryItem(object):
 	def __init__(self, item_id, item_label, stock=None):
 
