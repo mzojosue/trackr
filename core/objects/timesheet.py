@@ -1,6 +1,3 @@
-import traceback
-from datetime import timedelta
-
 from objects import *
 
 
@@ -8,7 +5,7 @@ class Timesheet(object):
 	def __init__(self, job, end_date=None, doc=None):
 		self.hash = abs(hash(''.join([str(job.number), str(end_date)])))
 		self.job = job
-		self.start_date = end_date - timedelta(7)   # starting date should be a week before ending date
+		self.start_date = end_date - timedelta(7)  # starting date should be a week before ending date
 		self.end_date = end_date
 		self.doc = doc
 

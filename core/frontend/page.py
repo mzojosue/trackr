@@ -1,5 +1,3 @@
-import json
-
 from config import *
 from core.sorting import sort_jobs
 
@@ -7,6 +5,7 @@ from core.sorting import sort_jobs
 @app.route('/upload/<filename>')
 def uploaded_file(filename):
 	return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 
 @app.route('/')
 def root():
@@ -23,6 +22,7 @@ def home():
 		return redirect(url_for('estimating_home'))
 	return render_template('dashboard.html', usr=auth)
 
+
 @app.route('/overview/json')
 def serialized_overview():
 	""" Sums up all events occuring within given timestamps. Pulls upcoming deliveries, bid due dates, and other key dates. """
@@ -31,7 +31,7 @@ def serialized_overview():
 		return auth  # redirects to login
 
 	# Grab 'from' and 'to' GET requests
-	#TODO: implement 'from' and 'to' as search queries
+	# TODO: implement 'from' and 'to' as search queries
 	date_scope = [request.args.get('from'), request.args.get('to')]
 
 	result = ['id', 'title', 'url', 'class', 'start', 'end']
@@ -63,7 +63,7 @@ def serialized_overview():
 
 			_deliv['url'] = url_for('material_list', job_num=delivery.job.number, m_hash=delivery.mat_list.hash)
 			_deliv['class'] = 'event-info'
-			#TODO: format start and end values
+			# TODO: format start and end values
 			_deliveries.append(_deliv)
 		_results.extend(_deliveries)
 
@@ -82,6 +82,7 @@ def inventory():
 		_inventory = InventoryItem.db.itervalues()
 		return render_template('inventory.html', inventory=_inventory, usr=auth)
 
+
 @app.route('/inventory/item', methods=['POST'])
 def new_inventory_item():
 	auth = check_login()
@@ -91,6 +92,7 @@ def new_inventory_item():
 	_item_label = request.form['itemLabel']
 	InventoryItem(_item_id, _item_label)
 	return redirect(request.referrer)
+
 
 @app.route('/inventory/order', methods=['POST'])
 def inventory_item_order():
@@ -103,6 +105,7 @@ def inventory_item_order():
 	_order_amount = request.form['orderAmount']
 	InventoryOrder(_item, _order_price, _vend_name, _order_amount)
 	return redirect(request.referrer)
+
 
 @app.route('/inventory/<int:item_hash>/del')
 def del_inventory_item(item_hash):
@@ -130,6 +133,7 @@ def timesheets():
 		_timesheets = Timesheet.db.itervalues()
 		return render_template('timesheets.html', timesheets=_timesheets, jobs=_jobs, usr=auth)
 
+
 @app.route('/timesheets/upload', methods=('POST', 'GET'))
 def upload_timesheet():
 	job = int(request.form['jobSelect'])
@@ -137,9 +141,9 @@ def upload_timesheet():
 
 	week_ending = datetime.strptime(request.form['weekEnding'], '%Y-%m-%d')
 
-	workerCount = int(request.form['workerCounter']) + 1
-	workerLines = {}
-	for i in range(1, workerCount):
+	worker_count = int(request.form['workerCounter']) + 1
+	worker_lines = {}
+	for i in range(1, worker_count):
 		_name = 'workerName_%d' % i
 		_name = request.form[_name]
 		_worker = Worker.get_set_or_create(_name, job)
@@ -150,13 +154,13 @@ def upload_timesheet():
 			_hours = '%s_Hours_%d' % (_day, i)
 			_hours = int(request.form[_hours])
 			_work_week.append(_hours)
-		_work_week.insert(3, 0)                 # blank variable to account for Sunday
+		_work_week.insert(3, 0)  # blank variable to account for Sunday
 
-		_date = week_ending - timedelta(6)   # offset date to previous Thursday (week beginning)
+		_date = week_ending - timedelta(6)  # offset date to previous Thursday (week beginning)
 		for hours in _work_week:
 			if _date.isoweekday() is not 7:
 				_worker.add_labor(hours, _date, week_ending, job)
-			_date += timedelta(1)            # increment to next day
+			_date += timedelta(1)  # increment to next day
 	return redirect(request.referrer)
 
 
@@ -166,13 +170,16 @@ def upload_timesheet():
 def analytics():
 	return abort(404)
 
+
 @app.route('/rentals')
 def rental_log():
 	return abort(404)
 
+
 @app.route('/settings')
 def user_settings():
 	return abort(404)
+
 
 @app.route('/user_help')
 def user_help():

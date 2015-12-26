@@ -1,8 +1,4 @@
-from datetime import datetime
-from flask import send_from_directory
-
 from config import *
-
 
 
 # Material List Pages #
@@ -30,10 +26,10 @@ def job_materials(job_num=None):
 					_file.save(_path)
 					_date_sent = datetime.strptime(request.form['dateSubmitted'], '%Y-%m-%d')
 					try:
-						_date_due  = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
+						_date_due = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
 					except ValueError:
 						print "_date_due value not given. Setting to None."
-						_date_due  = None
+						_date_due = None
 					_label = request.form['listLabel']
 					__obj = MaterialList(_job, doc=filename, date_sent=_date_sent, date_due=_date_due, label=_label)
 			elif request.form.has_key('itemCounter'):
@@ -41,16 +37,16 @@ def job_materials(job_num=None):
 				__items = []
 				_counter = 1
 				while _counter <= __item_count:
-					_qty = '-'.join([ 'item', str(_counter), 'qty' ])
-					_desc = '-'.join([ 'item', str(_counter), 'desc' ])
-					_item = [ int(request.form[_qty]), str(request.form[_desc]) ]
+					_qty = '-'.join(['item', str(_counter), 'qty'])
+					_desc = '-'.join(['item', str(_counter), 'desc'])
+					_item = [int(request.form[_qty]), str(request.form[_desc])]
 					__items.append(_item)
 					_counter += 1
 				try:
-					_date_due  = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
+					_date_due = datetime.strptime(request.form['dateRequired'], '%Y-%m-%d')
 				except ValueError:
 					print "_date_due value not given. Setting to None."
-					_date_due  = None
+					_date_due = None
 				_label = request.form['listLabel']
 				__obj = MaterialList(_job, items=__items, date_due=_date_due, label=_label, user=auth)
 			return redirect(url_for('material_list', job_num=job_num, m_hash=__obj.hash))
@@ -116,6 +112,7 @@ def deliveries():
 		return auth  # redirects to login
 	return render_template('deliveries.html', usr=auth)
 
+
 @app.route('/deliveries/json')
 def serialized_deliveries():
 	"""
@@ -128,7 +125,7 @@ def serialized_deliveries():
 		return auth  # redirects to login
 
 	# Grab 'from' and 'to' GET requests
-	#TODO: implement 'from' and 'to' as search queries
+	# TODO: implement 'from' and 'to' as search queries
 	date_scope = [request.args.get('from'), request.args.get('to')]
 
 	result = ['id', 'title', 'url', 'class', 'start', 'end']
@@ -141,7 +138,7 @@ def serialized_deliveries():
 				_deliv[i] = delivery.__getattribute__(z)
 			_deliv['url'] = url_for('material_list', job_num=delivery.job.number, m_hash=delivery.mat_list.hash)
 			_deliv['class'] = 'event-info'
-			#TODO: format start and end values
+			# TODO: format start and end values
 			_deliveries.append(_deliv)
 		_return = {"success": 1, "result": _deliveries}
 		return json.dumps(_return)
@@ -165,7 +162,7 @@ def schedule_delivery(job_num=None):
 		job_num = int(request.form['jobs-number'])
 	_job = AwardedJob.find(job_num)
 	_mlist = int(request.form['materialListHash'])
-	_mlist =  _job.materials[_mlist]
+	_mlist = _job.materials[_mlist]
 	_dest = str(request.form['destination'])
 	_deliveryDate = datetime.strptime(request.form['deliveryDate'], '%Y-%m-%d')
 	__obj = Delivery(mat_list=_mlist, expected=_deliveryDate, destination=_dest)
@@ -214,15 +211,14 @@ def quote(job_num, m_hash=None):
 		##TODO:correctly implement document upload
 		_job = AwardedJob.find(job_num)
 		if not m_hash:
-			m_hash = int(request.form['materialListHash'])	# grab `m_hash` from HTTP POST
+			m_hash = int(request.form['materialListHash'])  # grab `m_hash` from HTTP POST
 		_list = _job.materials[m_hash]
-
 
 		__price = request.form['quotePrice']
 		__vend = request.form['vendor']
 
 		if 'quote' in request.files and allowed_file(request.files['quote'].filename):
-			_quote = request.files['quote']					# attempt to extract file stream
+			_quote = request.files['quote']  # attempt to extract file stream
 			filename = secure_filename(_quote.filename)
 			_path = os.path.join(_list.job.path, 'Quotes', filename)
 			_quote.save(_path)
@@ -232,6 +228,7 @@ def quote(job_num, m_hash=None):
 			_obj = MaterialListQuote(mat_list=_list, price=__price, vend=__vend)
 		flash('Quote successfully uploaded.', 'success')
 		return redirect(url_for('material_list', job_num=_job.number, m_hash=_list.hash))
+
 
 @app.route('/j/<int:job_num>/material/<int:m_hash>/quote/<int:q_hash>/update/doc', methods=['POST'])
 def add_quote_doc(job_num, m_hash, q_hash):
@@ -263,6 +260,7 @@ def add_quote_doc(job_num, m_hash, q_hash):
 		_job.update()
 		print "Saved document %s for %s" % (_quote.doc, _quote.job)
 	return redirect(url_for('material_list', job_num=_job.number, m_hash=_mlist.hash))
+
 
 @app.route('/j/<int:job_num>/po/<int:po_num>/update/<attr>', methods=['POST'])
 def update_po_attr(job_num, po_num, attr):

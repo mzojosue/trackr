@@ -1,11 +1,9 @@
-from os import path
 import time
+from os import path
 
 from flask import *
-from werkzeug.utils import secure_filename
 
 from core.objects import *
-
 
 # Flask environment
 TEMPLATE_FOLDER = "../../templates"
@@ -17,7 +15,7 @@ ALLOWED_EXTENSIONS = {'pdf', 'xlsx', 'png', 'jpg'}
 
 app = Flask(__name__, template_folder=TEMPLATE_FOLDER, static_folder=STATIC_FOLDER)
 # generate random private key for encrypting client-side sessions
-app.secret_key = str(hash( ''.join(["!campanohvac_2015", str(now()), os.urandom(4)]) ))
+app.secret_key = str(hash(''.join(["!campanohvac_2015", str(now()), os.urandom(4)])))
 
 # Jinja environment globals
 app.jinja_env.globals['Todo'] = Todo
@@ -34,7 +32,7 @@ app.jinja_env.globals['path'] = os.path
 
 def allowed_file(filename):
 	return '.' in filename and \
-		filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+		   filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 @app.template_filter()
@@ -67,8 +65,8 @@ def friendly_time(dt, past_="ago", future_="from now", default="just now"):
 
 		if period:
 			return "%d %s %s" % (period,
-				singular if period == 1 else plural,
-				past_ if dt_is_past else future_)
+								 singular if period == 1 else plural,
+								 past_ if dt_is_past else future_)
 
 	return default
 
@@ -85,6 +83,7 @@ def check_login():
 	except KeyError:
 		return redirect(url_for('login'))
 
+
 @app.before_request
 def user_permissions(*args, **kwargs):
 	if request.endpoint != 'login' and 'static' not in request.path:  # restrict redirects on neutral paths
@@ -93,7 +92,7 @@ def user_permissions(*args, **kwargs):
 			if session['logged_in'] and session['hash_id']:  # ensure logged in
 				usr = User.find(session['hash_id'])
 				_table = {'/estimating': ('admin', 'estimator'),
-						  '/j/': ('admin')}  # dict object containing restricted statements and allowed user types
+						  '/j/': ['admin']}  # dict object containing restricted statements and allowed user types
 				for restricted, allowed in _table.iteritems():
 					if restricted in request.path and usr.role not in allowed:
 						# TODO: log user permission error
@@ -115,7 +114,7 @@ def login():
 		try:
 			if pass_auth(user, passwd):
 				session['hash_id'] = user.hash
-				session['logged_in'] = True     # log the user in
+				session['logged_in'] = True  # log the user in
 				flash('You were logged in')
 				return redirect(url_for('home'))
 			else:
@@ -131,6 +130,7 @@ def logout():
 	session.pop('hash_id', None)
 	flash('You were logged out')
 	return redirect(url_for('login'))
+
 
 @app.errorhandler(404)
 def not_implemented(e):

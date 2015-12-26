@@ -3,10 +3,7 @@ import os
 import traceback
 import uuid
 from datetime import datetime
-
 import yaml
-
-import core.environment as env
 from core.log import logger
 
 today = datetime.today
@@ -66,7 +63,7 @@ class User(yaml.YAMLObject):
 	@staticmethod
 	def load_users():
 		""" Loads users from campano/users.yaml in root environment"""
-		fname = os.path.join(env.env_root, User._yaml_filename)
+		fname = os.path.join(User.env_root, User._yaml_filename)
 		try:
 			with open(fname, 'r') as _file_dump:
 				_file_dump = yaml.load(_file_dump)
@@ -97,7 +94,7 @@ class User(yaml.YAMLObject):
 			for _hash, obj in cls.db.iteritems():
 				users[_hash] = obj
 
-		_filename = os.path.join(env.env_root, cls._yaml_filename)
+		_filename = os.path.join(cls.env_root, cls._yaml_filename)
 		with open(_filename, 'w') as stream:
 			print 'Updating %s' % _filename
 			yaml.dump(users, stream, default_flow_style=False)

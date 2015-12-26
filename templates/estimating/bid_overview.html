@@ -256,11 +256,13 @@
               }
               // send HTTP POST value when $scope.editable is false
             };
+
             $scope.updateScope = function(hash, scope, val) {
               $scope.sub_bids[hash].scope[scope] = val;
             };
 					}])
 			}());
+
     function dateToYMD(date) {
       var d = date.getDate();
       var m = date.getMonth() + 1;

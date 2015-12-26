@@ -1,12 +1,8 @@
-from werkzeug import secure_filename
-import json
-
 from job import *
-from core.sorting import *
 
 
 ##############################
-#** ROUTE/RENDER Functions **#
+# ** ROUTE/RENDER Functions **#
 
 @app.route('/estimating')
 def estimating_home():
@@ -40,9 +36,11 @@ def past_bids(sort_by):
 		_estimates = sort_bids(_estimates, sort_by)
 		return render_template('estimating/past_bids.html', estimates=_estimates, usr=auth)
 
+
 @app.route('/estimating/analytics')
 def estimating_analytics():
 	return NotImplemented
+
 
 @app.route('/estimating/bid/<int:bid_num>/overview')
 def bid_overview(bid_num):
@@ -83,11 +81,11 @@ def bid_info(bid_num):
 			return "Error: Bid does not exist."
 
 
-@app.route('/estimating/bid/<int:bid_num>/dir/<path:dir>')
-def bid_folder(bid_num, dir):
+@app.route('/estimating/bid/<int:bid_num>/_dir/<_dir>')
+def bid_folder(bid_num, _dir):
 	""" Renders given directory as page. Renders specific pages for 'Drawings', and 'Takeoffs'.
 	:param bid_num: bid number to select
-	:param dir: directory to iterate over and render
+	:param _dir: directory to iterate over and render
 	:return:
 	"""
 	auth = check_login()
@@ -96,12 +94,12 @@ def bid_folder(bid_num, dir):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			if dir == 'Drawings':
+			if _dir == 'Drawings':
 				return render_template('estimating/bid_drawings.html', bid=_bid, usr=auth)
 			else:
-				_dir = os.path.join(_bid.path, dir)
+				_dir = os.path.join(_bid.path, _dir)
 				contents = _bid.dump_folder(_dir)
-				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents, current_page=dir)
+				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents, current_page=_dir)
 		except KeyError:
 			return "Error: Bid does not exist."
 
@@ -133,7 +131,7 @@ def bid_takeoffs(bid_num):
 
 
 #######################
-#** Estimating API **##
+# ** Estimating API **##
 
 
 @app.route('/estimating/create', methods=['GET', 'POST'])
@@ -153,7 +151,7 @@ def create_bid():
 		data['date_end'] = tmp
 
 		_scope = []
-		for val, _bool in data['scope'].iteritems():		# decompress scope to List
+		for val, _bool in data['scope'].iteritems():  # decompress scope to List
 			if _bool:
 				_scope.append(val)
 		data['scope'] = _scope
@@ -183,7 +181,7 @@ def cancel_bid(bid_num):
 	"""
 	_bid = EstimatingJob.find(bid_num)
 	_bid.cancel_bid()
-	#TODO: somehow show feedback that bid was successfully moved
+	# TODO: somehow show feedback that bid was successfully moved
 	return redirect(request.referrer)
 
 
@@ -195,7 +193,7 @@ def complete_bid(bid_num):
 	"""
 	_bid = EstimatingJob.find(bid_num)
 	_bid.complete_bid()
-	#TODO: somehow show feedback that bid was successfully moved
+	# TODO: somehow show feedback that bid was successfully moved
 	return redirect(request.referrer)
 
 
@@ -228,14 +226,13 @@ def create_sub_bid(bid_num):
 	except ValueError:
 		_bidDate = None
 
-
 	_scope = []
 	__scope = ['materialsScope', 'equipmentScope', 'insulationScope', 'balancingScope']
 	for i in __scope:
 		try:
-			if bool(request.form[i]):    # see if form with same id label returns bool
+			if bool(request.form[i]):  # see if form with same id label returns bool
 				__s = str(i[0]).upper()
-				_scope.append(__s)       # append first letter to scope
+				_scope.append(__s)  # append first letter to scope
 		except:
 			continue
 
@@ -250,7 +247,6 @@ def delete_sub_bid(bid_num, sub_hash):
 	return NotImplemented
 
 
-
 @app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/cancel')
 def cancel_sub_bid(bid_num, sub_hash):
 	return NotImplemented
@@ -258,7 +254,7 @@ def cancel_sub_bid(bid_num, sub_hash):
 
 @app.route('/estimating/bid/<int:bid_num>/sub/<sub_hash>/award')
 def award_sub_bid(bid_num, sub_hash):
-		return NotImplemented
+	return NotImplemented
 
 
 @app.route('/estimating/bid/<int:bid_num>/subs/update', methods=['POST'])
@@ -266,7 +262,6 @@ def update_sub_bid(bid_num):
 	""" Updates sub bid attributes based on hardcoded attribute list ('gc', 'gc_contact', 'bid_date').
 	Parses bid_date as datetime object.
 	:param bid_num: Type int representing bid to update
-	:param sub_hash: Sub bid to edit
 	:return: Redirects to referring page
 	"""
 	auth = check_login()
@@ -278,7 +273,7 @@ def update_sub_bid(bid_num):
 
 	for _hash, data in _json.iteritems():
 		tmp = {}
-		for key, val in data.iteritems():				# load data to `tmp`
+		for key, val in data.iteritems():  # load data to `tmp`
 			if type(val) is unicode:
 				val = str(val)
 			tmp[str(key)] = val
@@ -287,7 +282,7 @@ def update_sub_bid(bid_num):
 		tmp['bid_date'] = datetime.strptime(tmp['bid_date'], '%Y-%m-%d')
 
 		_scope = []
-		for val, _bool in tmp['scope'].iteritems():		# decompress scope to List
+		for val, _bool in tmp['scope'].iteritems():  # decompress scope to List
 			if _bool:
 				_scope.append(str(val))
 		tmp['scope'] = _scope
@@ -319,7 +314,7 @@ def upload_bid_quote(bid_num):
 		return auth  # redirects to login
 	_bid = EstimatingJob.find(bid_num)
 	_scope = request.form['scope']
-	_vend  = request.form['vendor']
+	_vend = request.form['vendor']
 	_price = request.form['quotePrice']
 
 	_quote = request.files['quote']
@@ -369,6 +364,7 @@ def create_section(bid_num):
 	print _data
 	return "true"
 
+
 @app.route('/estimating/bid/<int:bid_num>/pricing/available_items')
 def get_available_items(bid_num):
 	""" Returns all available items with AngularJS hooks in a JSON format
@@ -379,7 +375,6 @@ def get_available_items(bid_num):
 	for _scope in bid.scope:
 		_return[_scope] = {}
 		for key, obj in SectionItem.available_items[_scope].iteritems():
-
 			_return[_scope][key] = {'id': key,
 									'label': obj.label,
 									'metric': obj.metric,
@@ -401,7 +396,7 @@ def estimating_serialized_overview():
 		return auth  # redirects to login
 
 	# Grab 'from' and 'to' GET requests
-	#TODO: implement 'from' and 'to' as search queries
+	# TODO: implement 'from' and 'to' as search queries
 	date_scope = [request.args.get('from'), request.args.get('to')]
 
 	result = ['id', 'title', 'url', 'class', 'start', 'end']
@@ -421,6 +416,7 @@ def estimating_serialized_overview():
 				   "result": _estimates}
 		return json.dumps(_return)
 
+
 @app.route('/estimating/bid/<int:bid_num>/drawings/<dwg_name>')
 def bid_drawing_doc(bid_num, dwg_name):
 	auth = check_login()
@@ -429,13 +425,12 @@ def bid_drawing_doc(bid_num, dwg_name):
 	_bid = EstimatingJob.find(bid_num)
 	doc = _bid.drawings[dwg_name]  # extract returned dict
 	if doc:
-		dir = os.path.split(doc['path'])
-		return send_from_directory(*dir)
+		_dir = os.path.split(doc['path'])
+		return send_from_directory(*_dir)
 
 
 @app.route('/estimating/bid/<int:bid_num>/get/<path:query>')
 def bid_get_document(bid_num, query):
-
 	auth = check_login()
 	if not hasattr(auth, 'passwd'):
 		return auth  # redirects to login
@@ -477,12 +472,12 @@ def serialized_sub_bids(bid_num):
 
 		for _date in ('date_received', 'bid_date'):
 			try:
-				dt = b[_date]  		# format datetime object
+				dt = b[_date]  # format datetime object
 				b[_date] = (dt - epoch).total_seconds() * 1000
 			except TypeError:
 				continue
 
-		tmp = {}						# expand scope arguments to dict contained bool values
+		tmp = {}  # expand scope arguments to dict contained bool values
 		for scope in EstimatingJob.valid_scope:
 			if scope in b['scope']:
 				tmp[scope] = True
@@ -491,4 +486,4 @@ def serialized_sub_bids(bid_num):
 		b['scope'] = tmp
 
 	return json.dumps({"success": 1,
-	                   "result": _result})
+					   "result": _result})

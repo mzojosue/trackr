@@ -3,6 +3,7 @@ from datetime import datetime
 today = datetime.today
 now = datetime.now
 
+
 class ObjectStore(object):
 	def __init__(self, key_value='hash'):
 		self.store = []

@@ -1,13 +1,8 @@
-from operator import itemgetter
-import os
-from datetime import datetime
-from copy import copy
-import re
+import re, os
 import shutil
-
+from copy import copy
+from operator import itemgetter
 # Import parent classes and methods for estimating objects
-import core.environment as env
-
 from core.parsing.bid_log import *
 from material_cycle import Quote
 from job import AwardedJob, get_job_num, Job
@@ -80,7 +75,7 @@ class EstimatingJob(Job):
 		self.add_sub(date_received=date_received, gc=gc, bid_date=date_end, gc_contact=gc_contact, scope=scope,
 					 init_struct=init_struct, add_to_log=False)
 		if add_to_log:
-			add_bid_to_log(self)
+			add_bid_to_log(self, self.get_estimating_log)
 
 	@property
 	def name(self):
@@ -185,19 +180,19 @@ class EstimatingJob(Job):
 		_name = self._name
 		_name = _name.replace(' ', '_')  # normalize _name string as filename
 
-		_srch = ' '.join(os.listdir(self.path))                 # enumerate top-level file and dir names in project folder
+		_srch = ' '.join(os.listdir(self.path))  # enumerate top-level file and dir names in project folder
 		_patterns = ('proposal\.docx', 'pricing\.xls')
-		_temp_dir = os.path.join(env.env_root, 'Templates')     # Document template directory
+		_temp_dir = os.path.join(self.env_root, 'Templates')  # Document template directory
 		if os.path.isdir(_temp_dir):
-			_templates = ' '.join(os.listdir(_temp_dir))            # Grab document template names
+			_templates = ' '.join(os.listdir(_temp_dir))  # Grab document template names
 			for _doc in _patterns:
-				if not re.search('\w+\.%s' % _doc, _srch):          # document not in project folder
-					doc = _doc.replace("\\", "")                    # exclude '\' from file name
-					doc = '%s.%s' % (_name, doc)                    # new document filename to save
+				if not re.search('\w+\.%s' % _doc, _srch):  # document not in project folder
+					doc = _doc.replace("\\", "")  # exclude '\' from file name
+					doc = '%s.%s' % (_name, doc)  # new document filename to save
 					template = re.search('\w+\.%s' % _doc, _templates)
 					if template:
-						template = template.group()                 # convert SRE_Match obj to str
-						template = os.path.join(env.env_root, 'Templates', template)
+						template = template.group()  # convert SRE_Match obj to str
+						template = os.path.join(self.env_root, 'Templates', template)
 						_dest = os.path.join(self.path, doc)
 						shutil.copyfile(template, _dest)
 					else:  # template does not exist in Template directory
@@ -207,12 +202,11 @@ class EstimatingJob(Job):
 
 			return True
 
-
 	# Quote Functions
 
 	@property
 	def quotes(self):
-		_dir = os.path.join(env.env_root, self.sub_path, 'Quotes')
+		_dir = os.path.join(self.env_root, self.sub_path, 'Quotes')
 		_return = {}
 		if os.path.isdir(_dir):
 			_scope_folders = os.listdir(_dir)
@@ -263,7 +257,6 @@ class EstimatingJob(Job):
 			del self.quotes[category][quote_hash]
 			self.update()
 
-
 	# Sub Bid Methods #
 
 	def add_sub(self, date_received, gc, bid_date='ASAP', gc_contact=None, scope=[], init_struct=True, add_to_log=True):
@@ -277,7 +270,7 @@ class EstimatingJob(Job):
 		if not bid_date: bid_date = 'ASAP'
 		_bid_hash = abs(hash(str(gc).lower()))
 		_bid = {'bid_hash': _bid_hash, 'gc': gc, 'gc_contact': gc_contact,
-		        'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
+				'bid_date': bid_date, 'date_received': date_received, 'scope': scope}
 		self.bids[_bid_hash] = _bid
 		if scope:
 			for i in scope:
@@ -290,7 +283,7 @@ class EstimatingJob(Job):
 
 		self.update()
 		if add_to_log:
-			return add_sub_bid_to_log(self, _bid_hash)
+			return add_sub_bid_to_log(self, _bid_hash, self.get_estimating_log())
 		self.update()
 		return True
 
@@ -304,7 +297,6 @@ class EstimatingJob(Job):
 		self.update()
 		return True
 
-
 	# Top-level Bid Functions #
 
 	def complete_bid(self):
@@ -315,8 +307,9 @@ class EstimatingJob(Job):
 				del self.db[self.number]
 				logger.info('EstimatingJob %s was updated as complete!' % self.name)
 
-				#TODO: update sent_out data cell in Estimating Log and style row
-				update_bid_in_log(self, 'complete', self.completed.date())
+				# TODO: update sent_out data cell in Estimating Log and style row
+				update_bid_in_log(obj=self, attr='complete', value=self.completed.date(),
+								  estimating_log=self.get_estimating_log())
 				return True
 
 	def cancel_bid(self):
@@ -327,8 +320,9 @@ class EstimatingJob(Job):
 				del EstimatingJob.db[self.number]
 				logger.info('Canceled EstimatingJob %s' % self.name)
 
-				#TODO: update sent_out data cell in Estimating Log and style row
-				update_bid_in_log(self, 'complete', "No bid")
+				# TODO: update sent_out data cell in Estimating Log and style row
+				update_bid_in_log(obj=self, attr='complete', value="No bid",
+								  estimating_log=self.get_estimating_log())
 				return True
 
 	def delete_bid(self, remove=False):
@@ -401,7 +395,6 @@ class EstimatingJob(Job):
 
 
 class EstimatingQuote(Quote):
-
 	def __init__(self, bid, vend, category, price=0.0, doc=None):
 		super(EstimatingQuote, self).__init__(vend, price, doc)
 		self.bid = bid
@@ -484,7 +477,7 @@ class BidSheet(object):
 		# Calculate labor cost
 		# Return sum of all costs with profit markup
 		if _purch:
-			return (_labor, _purch)
+			return _labor, _purch
 		else:
 			return _purch
 
@@ -540,7 +533,7 @@ class BidSection(object):
 		_cost *= self.iterate
 
 		if _cost:
-			return (_return, _cost)
+			return _return, _cost
 		else:
 			return _return
 
@@ -558,8 +551,9 @@ class SectionItem(object):
 	for i in valid_scope:
 		available_items[i] = {}
 
-	def __init__(self, id, scope, label=None, amount=0, metric=default_metric, units=None, value=0.0, cost=0.0, correction_factor=1.0):
-		self.id = id
+	def __init__(self, _id, scope, label=None, amount=0, metric=default_metric, units=None, value=0.0, cost=0.0,
+				 correction_factor=1.0):
+		self.id = _id
 		if scope in self.valid_scope:
 			self.scope = scope
 		elif scope[0].upper() in self.valid_scope:
@@ -589,7 +583,6 @@ class SectionItem(object):
 			else:  # assum self.metric == 'count'
 				return 'pieces'
 
-
 	def calculate(self, output='hours', rate=None):
 		""" Process value based on metric and output type while implementing cost and correction factor.
 		:param output: defines returned value. Can either be 'cost' or 'hours', defaults to 'hours'.
@@ -601,11 +594,11 @@ class SectionItem(object):
 		_return = self.amount * self.value * self.correction_factor  # calculate labor hours
 
 		if str(output) is 'cost' and rate:  # labor rate must be passed
-			_return *= rate       # convert labor hours to labor cost
+			_return *= rate  # convert labor hours to labor cost
 			_return += self.cost  # add item cost to output
 			return _return
 		else:
-			return (_return, self.cost)
+			return _return, self.cost
 
 	def __repr__(self):
 		_metric = self.metric
@@ -617,16 +610,17 @@ class SectionItem(object):
 		elif _metric is 'weight':
 			return "%s pounds of %s @ %s hours per pound" % _format
 
+
 # Create default section items
 SectionItem('sm_shop', label="Sheet Metal Fabrication", metric='weight', value=30, scope='sm')
-SectionItem('sm_field', label="Sheet Metal Installation",  metric='weight', value=25, scope='sm')
+SectionItem('sm_field', label="Sheet Metal Installation", metric='weight', value=25, scope='sm')
 SectionItem('RGD', label="Air Device", units="pieces", value=0.25, scope='materials')
-SectionItem('linear', label="Linear Air Device", metric='length', value=0.25, scope='materials')  # TODO: fix labor value
+SectionItem('linear', label="Linear Air Device", metric='length', value=0.25,
+			scope='materials')  # TODO: fix labor value
 SectionItem('FSD', label="Fire/Smoke Damper", units="pieces", value=1, scope='materials')
 SectionItem('vol_damper', label="Volume Damper", units="pieces", value=.3, scope='materials')
 SectionItem('ceiling_fan', label="Ceiling Fan", units="fans", value=1.25, scope='equipment')
-SectionItem('curbed_fan',  label="Curbed Fan", units="fans", value=2.25, scope='equipment')
+SectionItem('curbed_fan', label="Curbed Fan", units="fans", value=2.25, scope='equipment')
 SectionItem('louver', label="Louver", units="pieces", value=0.5, scope='louvers')
 SectionItem('RTU', label="Packaged Rooftop Unit", units="units", value=4, scope='equipment')
 SectionItem('VAV', label="Terminal/VAV Unit", units="units", value=2.25, scope='equipment')
-

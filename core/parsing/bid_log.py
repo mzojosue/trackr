@@ -1,18 +1,14 @@
-from datetime import datetime
 import hashlib
-import os
 import unicodedata
-from parse import parse
+from datetime import datetime
 
 from openpyxl.reader.excel import load_workbook
-from openpyxl.workbook import Workbook
 from openpyxl.styles import PatternFill, Border, Side, Font, colors
+from parse import parse
 
-from core import environment
 from core.log import logger
 
 today = datetime.today
-
 
 # Row Color Styling
 submitted_bid = PatternFill(fill_type='solid', start_color=colors.YELLOW, end_color=colors.YELLOW)
@@ -22,27 +18,26 @@ cancelled_bid = PatternFill(fill_type='solid', start_color=colors.RED, end_color
 base_font = Font(name="Calibri Light", size=12, color=colors.BLACK)
 bold_font = base_font.copy(bold=True)
 
-borders = Border(left   = Side(border_style=None, color='BBFFFFFF'),  # light gray border
-				 right  = Side(border_style=None, color='BBFFFFFF'),
-				 top    = Side(border_style=None, color='BBFFFFFF'),
-				 bottom = Side(border_style=None, color='BBFFFFFF'))
+borders = Border(left=Side(border_style=None, color='BBFFFFFF'),  # light gray border
+				 right=Side(border_style=None, color='BBFFFFFF'),
+				 top=Side(border_style=None, color='BBFFFFFF'),
+				 bottom=Side(border_style=None, color='BBFFFFFF'))
 
 
-def check_estimating_log(estimating_log=environment.get_estimating_log):
+def check_estimating_log(estimating_log, log_hash):
 	""" Checks to see that content in database is the updated based on the stored hash of po_log file """
 	md5 = hashlib.md5()
 	with open(estimating_log, 'rb') as _estimating_log:
 		buf = _estimating_log.read()
 		md5.update(buf)
 		_hash = str(md5.hexdigest())
-		if _hash != environment.last_estimating_log_hash:
+		if _hash != log_hash:
 			logger.info('updating Estimating Log hash digest stored')
-			environment.set_estimating_log_hash(_hash)
-			return False
+			return False, _hash
 		return True
 
 
-def parse_est_log(estimating_log=environment.get_estimating_log):
+def parse_est_log(estimating_log):
 	log = load_workbook(estimating_log, read_only=True)
 	_sheet = log.get_active_sheet()
 	logger.debug('Opening Estimating Log')
@@ -57,8 +52,9 @@ def parse_est_log(estimating_log=environment.get_estimating_log):
 			__name = unicodedata.normalize('NFKD', _row[1].value).encode('ASCII', 'ignore')
 		except (ValueError, TypeError):
 			# attempt to parse _row as a sub bid
-			if _row[5].value and __num is None:  # sub bid hash is based off of 'gc' string/column and 'number' should be None
-				_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact' , None, 'scope')
+			if _row[
+				5].value and __num is None:  # sub bid hash is based off of 'gc' string/column and 'number' should be None
+				_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact', None, 'scope')
 				sub_bid = {}  # stores grabbed values
 				for attr in _attr:
 					if attr:
@@ -77,9 +73,9 @@ def parse_est_log(estimating_log=environment.get_estimating_log):
 						try:
 							__due = datetime.strptime(__date[0], _format)
 							if __date[1:]:
-								#TODO: implement
-								#TODO: translate AM/PM
-								#__due.hour = parse("{:d}{}", __date_due[1])[0]
+								# TODO: implement
+								# TODO: translate AM/PM
+								# __due.hour = parse("{:d}{}", __date_due[1])[0]
 								pass
 							sub_bid[i] = __due
 							break
@@ -123,9 +119,9 @@ def parse_est_log(estimating_log=environment.get_estimating_log):
 					try:
 						__due = datetime.strptime(__date_due[0], _format)
 						if __date_due[1:]:
-							#TODO: implement
-							#TODO: translate AM/PM
-							#__due.hour = parse("{:d}{}", __date_due[1])[0]
+							# TODO: implement
+							# TODO: translate AM/PM
+							# __due.hour = parse("{:d}{}", __date_due[1])[0]
 							pass
 						__date_due = __due
 						break
@@ -148,11 +144,15 @@ def parse_est_log(estimating_log=environment.get_estimating_log):
 				except TypeError:
 					break
 
-		if _row[5].value: __gc = _row[5].value          # Default: None
-		else: __gc = None
-		if _row[6].value: __gc_contact = _row[6].value  # Default: None
-		else: __gc_contact = None
-		#  __via = _row[7].value# default: email
+		if _row[5].value:
+			__gc = _row[5].value  # Default: None
+		else:
+			__gc = None
+		if _row[6].value:
+			__gc_contact = _row[6].value  # Default: None
+		else:
+			__gc_contact = None
+		# __via = _row[7].value# default: email
 
 		# Scope parsing #
 		__scope = str(_row[8].value)
@@ -162,7 +162,7 @@ def parse_est_log(estimating_log=environment.get_estimating_log):
 			for _letter in __scope:
 				if _letter in valid_scope:
 					_tmp_scope.append(_letter)
-			__scope = _tmp_scope   # does not change variable while in iterating
+			__scope = _tmp_scope  # does not change variable while in iterating
 		elif __scope == 'None':
 			__scope = [None]
 		else:
@@ -179,28 +179,32 @@ def parse_est_log(estimating_log=environment.get_estimating_log):
 
 		try:
 			if today() <= __date_due or not __date_sent:
-				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact, 'scope': __scope, 'add_to_log': False}
+				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact,
+					   'scope': __scope, 'add_to_log': False}
 			else:
-				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact, 'scope': __scope, 'add_to_log': False, 'completed': __date_sent}
+				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact,
+					   'scope': __scope, 'add_to_log': False, 'completed': __date_sent}
 		except TypeError:  # __date_due is 'ASAP'
 			if not __date_sent:
-				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact, 'scope': __scope, 'add_to_log': False}
+				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact,
+					   'scope': __scope, 'add_to_log': False}
 			else:
-				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact, 'scope': __scope, 'add_to_log': False, 'completed': __date_sent}
+				obj = {'name': __name, 'job_num': __num, 'date_end': __date_due, 'gc': __gc, 'gc_contact': __gc_contact,
+					   'scope': __scope, 'add_to_log': False, 'completed': __date_sent}
 
 		_prev = obj
 
 		yield 'bid', obj
-		# TODO: delete leftover variables for debugging purposes
+	# TODO: delete leftover variables for debugging purposes
 
 
-def dump_bids_from_log(estimating_log=environment.get_estimating_log):
+def dump_bids_from_log(estimating_log):
 	log = load_workbook(estimating_log, read_only=True)
 	_sheet = log.get_active_sheet()
 
 	# calculate dimensions to iterate over
 	_min_col = 'A'
-	_min_row = 3     # do not iterate over header rows
+	_min_row = 3  # do not iterate over header rows
 	_max_col = 'I'
 	_max_row = _sheet.max_row + 1
 	_iter_dim = '%s%s:%s%s' % (_min_col, _min_row, _max_col, _max_row)
@@ -210,11 +214,11 @@ def dump_bids_from_log(estimating_log=environment.get_estimating_log):
 		_rows.append(_row)
 	_row_count = len(_rows)
 	for _num, _row in zip(range(1, _row_count + 1), _rows):
-		_num += 2    # offset for header rows
+		_num += 2  # offset for header rows
 		yield (_num), _row
 
 
-def find_bid_in_log(obj, sub_hash=None, estimating_log=environment.get_estimating_log):
+def find_bid_in_log(obj, estimating_log, sub_hash=None):
 	"""
 	:param obj: bid object to find in log or to reference for sub bid
 	:param sub_hash: if specified, returns row number of sub bid hash from given bid object
@@ -223,14 +227,14 @@ def find_bid_in_log(obj, sub_hash=None, estimating_log=environment.get_estimatin
 	"""
 	if sub_hash:
 		sub_bid = obj.bids[sub_hash]
-		_in_sub = False   # boolean for when the parent bid object has been reached while iterating rows
-	_bid_dump = dump_bids_from_log()  # creates a generator object
+		_in_sub = False  # boolean for when the parent bid object has been reached while iterating rows
+	_bid_dump = dump_bids_from_log(estimating_log=estimating_log)  # creates a generator object
 	for _num, _row in _bid_dump:
 		if str(_row[0].value) == str(obj.number):
 			if sub_hash:
 				_in_sub = True
 			else:
-				return _num      # returns row number where base bid object occurs
+				return _num  # returns row number where base bid object occurs
 			if sub_hash and _in_sub and sub_bid:
 				if str(_row[5].value) == str(sub_bid['gc']):
 					return _num  # returns row number where sub bid object occurs
@@ -238,7 +242,7 @@ def find_bid_in_log(obj, sub_hash=None, estimating_log=environment.get_estimatin
 		return False
 
 
-def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
+def insert_bid_row(obj, estimating_log):
 	"""
 	Inserts blank row after the returned value of `find_bid_in_log`
 	:param obj: bid object to insert row after
@@ -252,7 +256,7 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 		_old_ws.title += 'old-'
 		_new_ws = _wb.create_sheet(0, 'Estimating Log')
 
-		_num = 0   # counter when iterating through old worksheet rows
+		_num = 0  # counter when iterating through old worksheet rows
 		_return = None  # row number to return
 		_new_ws._styles = _old_ws._styles
 		for row in _old_ws.rows:
@@ -278,8 +282,8 @@ def insert_bid_row(obj, estimating_log=environment.get_estimating_log):
 		return _wb, _return
 
 
-def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
-	#TODO: check for rebid
+def add_bid_to_log(obj, estimating_log):
+	# TODO: check for rebid
 	log = load_workbook(estimating_log)
 
 	_sheet = log.get_active_sheet()
@@ -308,7 +312,7 @@ def add_bid_to_log(obj, estimating_log=environment.get_estimating_log):
 	print "Successfully saved %s to Estimating log" % obj
 
 
-def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_log):
+def add_sub_bid_to_log(obj, sub_hash, estimating_log):
 	""" Adds extra row representing a sub bid to an already existing bid
 	:param obj: EstimatingJob object to write to log
 	:param sub_hash: new sub bid hash to write to log
@@ -319,7 +323,7 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 		# TODO: ensure that bid attributes shown in log are up to date
 		return True
 	else:  # bid has not been added to the estimating log yet
-		wb, _row_int = insert_bid_row(obj, estimating_log)   # stores new row
+		wb, _row_int = insert_bid_row(obj, estimating_log)  # stores new row
 		ws = wb.get_active_sheet()
 
 		_attr = (None, None, 'date_received', 'bid_date', None, 'gc', 'gc_contact', None, 'scope')
@@ -341,18 +345,18 @@ def add_sub_bid_to_log(obj, sub_hash, estimating_log=environment.get_estimating_
 						ws.cell(row=_row_int, column=_col).font = bold_font
 						continue  # continue onto next attribute
 
-				elif attr == 'scope':     # separate scope list into string
+				elif attr == 'scope':  # separate scope list into string
 					_content = ', '.join(_content)
 
 				ws.cell(row=_row_int, column=_col).value = _content
 				ws.cell(row=_row_int, column=_col).font = base_font
-				# TODO: style row according to bid status
+			# TODO: style row according to bid status
 
 		wb.save(estimating_log)
 		return find_bid_in_log(obj, sub_hash, estimating_log)
 
 
-def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environment.get_estimating_log, save=True):
+def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=None, save=True):
 	"""
 	:param estimatingLog: estimating log file object to write to
 	:param obj: object to reflect changes on
@@ -393,7 +397,7 @@ def update_bid_in_log(obj=None, attr=None, value=None, estimating_log=environmen
 				return True
 
 
-def delete_bid_from_log(obj=None, estimating_log=environment.get_estimating_log):
+def delete_bid_from_log(obj, estimating_log):
 	"""
 	:param obj: Object to locate and delete from log
 	:param estimating_log: Default file to parse as log
