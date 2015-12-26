@@ -10,6 +10,21 @@
 
 	<link href='{{ url_for("static", filename="css/estimating.css") }}' rel="stylesheet">
 
+  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.0.0-rc5/angular-material.min.css">
+
+{% endblock %}
+
+
+{% block html_attributes %}
+  {%- raw -%}
+    ng-app="SubBidApp"
+  {%- endraw -%}
+{% endblock %}
+
+{% block body_attributes %}
+  {%- raw -%}
+    ng-controller="SubBidController" ng-cloak
+  {%- endraw -%}
 {% endblock %}
 
 
@@ -36,7 +51,7 @@
   {{ estimating.bid_sidebar('bid_overview', bid=bid, usr=usr) }}
 
 	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-		<h1 class="page-header">
+		<h1 class="page-header" style="margin-top: 50px;">
       {{ bid }}&nbsp;
 			{% if bid.completed %}
 				{% if bid.completed == "No bid" %}
@@ -119,94 +134,76 @@
 					<div class="panel-heading">
             {% if usr and usr.role == 'admin' %}
               {# Enclose restricted element #}
-              <div class="btn-group pull-right sub-bid-btn" role="group">
+              <!--div class="btn-group pull-right sub-bid-btn" role="group">
                 <a href="javascript:" onclick="unlock_sub_bids_for_editing()" class="btn btn-sm btn-warning">
                   <span class="glyphicon glyphicon-pencil"></span>&nbsp;
-                  Edit    <!-- TODO:add hover effects to show text -->
+                  Edit    <!-- TODO:add hover effects to show text --
                 </a>
-                <!-- TODO:add upload/update button when edit was clicked -->
-                {{ estimating.sub_bid_modal(bid) }}
-                <!-- TODO:add hover effects to button -->
-              </div>
+                <!-- TODO:add upload/update button when edit was clicked --
+                  {#
+                   {{ estimating.sub_bid_modal(bid) }}
+                   #}
+              </div-->
+
+              <span class="pull-right" ng-if="editable">
+                <span class="glyphicon glyphicon-pencil"></span>
+                Edit
+              </span>
+              <span class="pull-right" ng-if="!editable">
+                <span class="glyphicon glyphicon-floppy-disk"></span>
+                Save
+              </span>
+              <md-switch ng-model="editable" aria-label="Edit" class="pull-right sub-bid-btn md-warn"
+                         ng-true-value="false" ng-false-value="true" ng-change="updateBids()"></md-switch>
+
             {% endif %}
 						Sub bids:
 					</div>
 
 					<div class="list-group">
-						{% for b in bid.bids.values() %}
-						<form action="{{ url_for('update_sub_bid', bid_num=bid.number, sub_hash=b.bid_hash) }}" method="post" id="{{ b.bid_hash }}-form"></form>
-						<div class="list-group-item">
+						{% raw %}
+							<div class="list-group-item" ng-repeat="(_hash, bid) in sub_bids">
+                <md-button href="" class="md-primary md-raised pull-right" id="award_button">
+                  Award &nbsp;
+                  <span class="glyphicon glyphicon-ok"></span>
+                </md-button><!-- /#award_button -->
+                <h4 class="gc-label">
+                  To <strong>{{ bid.gc }}</strong>
+                </h4>
 
-                <!-- GC Bidding To -->
-								<h4 class="gc-label">
-									To <strong>{{ b.gc }}</strong>
-								</h4>
-                {% if usr and usr.role == 'admin' %}
-                  <div class="gc-input" style="display: none">
-                    <label for="{{ b.bid_hash }}-gc" class="control-label">
-                      Bidding To:
-                    </label>
-                    <select class="form-control" form="{{ b.bid_hash}}-form" onchange="this.form.submit()"
-                            name="gc" id="{{ b.bid_hash }}-gc">
-                      <option value="Falasca">Falasca</option>
-                      <option value="McCloskey">McCloskeyFalasca</option>
-                      <option value="Limbach">Limbach</option>
-                      <!-- TODO: add 'Other GC' option -->
-                    </select>
-                  </div>
-                {% endif %}
+                <div class="clearfix"></div>
 
-                <!-- GC Contact -->
-								<p class="contact-label">GC Contact: {{ b.gc_contact }}</p>
-                {% if usr and usr.role == 'admin' %}
-                  {# Enclose restricted element #}
-                  <div class="gc_contact-input" style="display: None">
-                    <label for="{{ b.bid_hash }}-gc_contact" class="control-label">
-                      GC Contact:
-                    </label>
-                    <input type="text" class="form-control"  form="{{ b.bid_hash }}-form" onchange="this.form.submit()"
-                           name="gc_contact" id="{{ b.bid_hash }}-gc_contact"
-                           value="{{ b.gc_contact }}" placeholder="GC Contact">
-                  </div>
-                {% endif %}
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label for="{{ _hash }}-gc_contact" class="control-label">
+                    GC Contact:
+                  </label>
+                  <input type="text" ng-model="bid.gc_contact" id="{{ _hash }}-gc_contact" ng-disabled="editable"
+                         value="{{ bid.gc_contact }}" placeholder="GC Contact">
+                </md-input-container>
 
-                <!-- Date Received -->
-								<p>Date Recvd: {% if hasattr(b.date_received, 'date') %}{{ b.date_received.date() }}{% else %}{{ b.date_received }}{% endif %}</p>
+                <p>
+                  Date Received:
+                </p>
+                <md-datepicker ng-model="bid.date_received" id="{{ _hash }}-date_received" ng-disabled="editable"></md-datepicker>
 
-                <!-- Date Due -->
-								<div class="form-group">
-									<label for="{{ b.bid_hash }}-date" class="control-label">
-										Date Due:
-									</label>
-                  {% if usr and usr.role == 'admin' %}
-                    {# Enclose restricted element #}
-                    <!-- #award_button -->
-                    <a id="award_button" href="{{ url_for('award_bid', bid_num=bid.number, bid_hash=b.bid_hash) }}" style="margin-top: -5px !important;" class="pull-right">
-                      <span class="btn btn-success btn-sm award-button">
-                        Award &nbsp;
-                        <span class="glyphicon glyphicon-ok"></span>
-                      </span>
-                    </a><!-- /#award_button -->
-                    <!-- Date Input Element -->
-                    <div class="date-input" style="display: none;">
-                      <input type="date" class="form-control" form="{{ b.bid_hash }}-form" onchange="this.form.submit()"
-                             name="bid_date" id="{{ b.bid_hash }}-date"
-                             value="{% if hasattr(b.bid_date, 'date') %}{{ b.bid_date.date() }}{% endif %}">
+                <p>
+                  Date Due:
+                </p>
+                <md-datepicker ng-model="bid.bid_date" id="{{ _hash }}-bid_date" ng-disabled="editable"></md-datepicker>
+
+                <fieldset class="standard">
+                  <legend>Bid Scope:</legend>
+                  <div layout="row" layout-wrap flex>
+                    <div flex="50" ng-repeat="(scope, val) in bid.scope">
+                      <md-checkbox ng-model="val" ng-disabled="editable" aria-checked="val" ng-change="updateScope(_hash, scope, val)">
+                        {{ scope }}
+                      </md-checkbox>
                     </div>
-                  {% endif %}
-									<span class="lead due-date-label">
-										<span class="label label-info">
-											{% if hasattr(b.bid_date, 'date') %}
-												{{ b.bid_date.date() }}
-											{% else %}
-												{{ b.bid_date }}
-											{% endif %}
-										</span>
-									</span>
+                  </div>
+                </fieldset>
 
-								</div>
 							</div>
-						{% endfor %}
+						{% endraw %}
 					</div>
 
 					<div class="list-group">
@@ -235,28 +232,48 @@
 
 {%  block post_script %}
 
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+
+  <!-- Angular Material Library -->
+  <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.0.0-rc7/angular-material.min.js"></script>
+
+
 	<script type="text/javascript" language="javascript">
 		(function () {
 				'use strict';
 
-				angular.module('SubBidApp', ['scDateTime'])
+				angular.module('SubBidApp', ['ngMaterial', 'scDateTime'])
 					.controller('SubBidController', ['$scope', '$log', '$http', function($scope, $log, $http) {
-						$scope.sub_bids = {};
+            $scope.editable = {};   // used for editing sub_bids
+						$scope.new_sub  = {};   // used for storing a new bid
+            $scope.sub_bids = {};
 
 						$http.get("{{ url_for('serialized_sub_bids', bid_num=bid.number) }}")
 							.success(function(results) {
-								$scope.sub_bids = results['result'];
-								$log.log(results['result']);
+								var sub_bids = results['result'];
+                jQuery.each(sub_bids, function(key, value) {
+                  value.bid_date = new Date(value.bid_date);            // convert bid_date and date_received values
+                  value.date_received = new Date(value.date_received);
+                });
+                $scope.sub_bids = sub_bids;
+								$log.log(sub_bids);
 							})
 							.error(function(error) {
 								$scope.sub_bids = {};
 								$log.log(error);
 							});
-
-						$scope.createBid = function() {};
 						$scope.updateBid = function() {};
 					}])
-			}())
+			}());
+
+    function dateToYMD(date) {
+      var d = date.getDate();
+      var m = date.getMonth() + 1;
+      var y = date.getFullYear();
+      return '' + y + '-' + (m<=9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
+    }
 	</script>
 
 {% endblock %}

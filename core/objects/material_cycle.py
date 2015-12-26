@@ -134,7 +134,8 @@ class MaterialList(object):
 		"""
 		if type(quote) == Quote:
 			# TODO: verify that quote.doc document file still exists
-			q_obj = MaterialListQuote(self, doc=quote.doc, **kwargs)
+
+			q_obj = MaterialListQuote(mat_list=self, doc=quote.doc, **kwargs)
 			return q_obj
 		else:
 			raise TypeError
@@ -230,7 +231,6 @@ class Quote(object):
 
 	@property
 	def hash(self):
-		# TODO: manage returned value when document is added after `self._hash` is created
 		if hasattr(self, 'doc') and self.doc:
 			return abs(hash(str(self.doc)))  # hash attribute is derived from document filename
 		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist

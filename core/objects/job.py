@@ -177,7 +177,7 @@ class Worker(object):
 class Job(yaml.YAMLObject):
 	yaml_tag = u'!Job'
 	yaml_filename = 'db_storage.yaml'
-	valid_scope = ('M', 'E', 'B', 'I', 'P', 'fabrication', 'install', 'sm')
+	valid_scope = ('M', 'E', 'B', 'I', 'P', 'sm')
 
 	_yaml_attr = ['end_date', 'alt_name', 'address', 'gc_contact', 'scope', 'desc', 'po_pre' 'tax_exempt', 'certified_pay',
 	              'rate', 'scope', 'bids', 'completed']  #TODO: somehow store POs in job YAML
@@ -284,7 +284,11 @@ class Job(yaml.YAMLObject):
 		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
 		:return: self.dump_folder
 		"""
-		return self.dump_folder('Drawings')
+		_dump = self.dump_folder('Drawings')
+		for fn, stats in _dump.iteritems():
+			if os.path.isfile(stats['path']):
+				print 'bam'
+		return _dump
 
 	@property
 	def documents(self):
@@ -518,7 +522,7 @@ class AwardedJob(Job):
 			if i.mat_list.hash == mlist_hash:
 				del self.POs[i.number]
 		for i in self._quotes.values():
-			if i.mat_list.hash == mlist_hash:
+			if hasattr(i, 'mat_list') and i.mat_list.hash == mlist_hash:
 				del self._quotes[i.hash]
 		del self._materials[mlist_hash]
 
@@ -564,7 +568,7 @@ class AwardedJob(Job):
 				_quotes = os.listdir(_dir)
 				for q_doc in _quotes:
 					_hash = abs(hash(str(q_doc)))
-					if _hash not in self.quotes.keys() and not _hash in self._quotes.keys():
+					if _hash not in self.quotes.keys() and _hash not in self._quotes.keys():
 						_obj = Quote(vend=None, doc=q_doc)
 						_obj._path = self.path
 						self._quotes[_hash] = _obj
