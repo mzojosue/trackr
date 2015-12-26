@@ -33,14 +33,13 @@ class Environment(object):
 		self.reset_db()
 
 	def init_paths(self):
-		""" Initializes Python object file directory paths.
+		""" Sets environment instance for all objects found in Environment.objects.
+		Also initializes `env_root` attribute for all objects.
 		:return:
 		"""
 		for obj in self.objects:
+			obj.env = self
 			obj.env_root = self.paths['env_root']
-
-		AwardedJob.get_po_log = self.paths['po_log']
-		EstimatingJob.get_estimating_log = self.paths['estimating_log']
 
 	@property
 	def paths(self):
@@ -68,7 +67,7 @@ class Environment(object):
 		User.load_users()
 
 		self.start_db()
-		self.init_db()
+		init_db(self.db_label)
 		self.check_db()
 
 		Worker.load_workers()
@@ -110,43 +109,6 @@ class Environment(object):
 				self.db_state = False
 				self.start_db()
 
-	def init_db(self, db=db_label):
-		print "Connecting objects to DB\n"
-		# TODO: log connection4
-		try:
-			# Worker/Job DBs
-			Worker.db = MongoDict(database=db, collection='workers')
-			AwardedJob.db = MongoDict(database=db, collection='jobs')
-			AwardedJob.completed_db = MongoDict(database=db, collection='completed_jobs')
-
-			# Material Cycle DB
-			Delivery.db = MongoDict(database=db, collection='deliveries')
-
-			# _Todo DBs
-			Todo.db = MongoDict(database=db, collection='todos')
-			Todo.completed_db = MongoDict(database=db, collection='completed_todos')
-
-			# Inventory DBs
-			InventoryItem.db = MongoDict(database=db, collection='inventory_items')
-			InventoryOrder.db = MongoDict(database=db, collection='inventory_orders')
-
-			# Timesheet DB
-			Timesheet.db = MongoDict(database=db, collection='timesheets')
-
-			# Estimating DBs
-			EstimatingJob.db = MongoDict(database=db, collection='estimating_jobs')
-			EstimatingJob.completed_db = MongoDict(database=db, collection='completed_bids')
-			EstimatingQuote.db = MongoDict(database=db, collection='estimating_quotes')
-
-			# User Database
-			User.db = MongoDict(database=db, collection='users')
-
-		except:
-			print "Cannot connect to MongoDB Database... Retaining storage cannot be implemented"
-			disconnect_db()
-
-		return True
-
 	def check_db(self):
 		""" Ensures database is updated by comparing hashes of YAML storage objects with values in database.
 		YAML storage is re-imported if database is not up to date
@@ -172,6 +134,8 @@ class Environment(object):
 				_value = {'_id': _id, 'hash': _hash, 'date_modified': datetime.now()}
 				hashes.update({'_id': _id}, _value, upsert=True)
 				print "Updating %s" % _id
+
+
 def import_po_log(method='iter', src=None):
 	"""
 	Imports AwardedJob objects based on `method` and `src`
@@ -328,6 +292,45 @@ def backup_globals():
 			pass
 		else:
 			print "%s doesn't exist" % _backup
+
+
+def init_db(db):
+	print "Connecting objects to DB\n"
+	# TODO: log connection
+
+	try:
+		# Worker/Job DBs
+		Worker.db = MongoDict(database=db, collection='workers')
+		AwardedJob.db = MongoDict(database=db, collection='jobs')
+		AwardedJob.completed_db = MongoDict(database=db, collection='completed_jobs')
+
+		# Material Cycle DB
+		Delivery.db = MongoDict(database=db, collection='deliveries')
+
+		# _Todo DBs
+		Todo.db = MongoDict(database=db, collection='todos')
+		Todo.completed_db = MongoDict(database=db, collection='completed_todos')
+
+		# Inventory DBs
+		InventoryItem.db = MongoDict(database=db, collection='inventory_items')
+		InventoryOrder.db = MongoDict(database=db, collection='inventory_orders')
+
+		# Timesheet DB
+		Timesheet.db = MongoDict(database=db, collection='timesheets')
+
+		# Estimating DBs
+		EstimatingJob.db = MongoDict(database=db, collection='estimating_jobs')
+		EstimatingJob.completed_db = MongoDict(database=db, collection='completed_bids')
+		EstimatingQuote.db = MongoDict(database=db, collection='estimating_quotes')
+
+		# User Database
+		User.db = MongoDict(database=db, collection='users')
+
+	except:
+		print "Cannot connect to MongoDB Database... Retaining storage cannot be implemented"
+		disconnect_db()
+
+	return True
 
 
 def disconnect_db():

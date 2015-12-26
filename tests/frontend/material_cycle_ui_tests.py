@@ -179,7 +179,7 @@ class TestMaterialCycleUI(TestCase):
 		"""
 		mlist = MaterialList(self.job)
 		quote = MaterialListQuote(mlist, 'test vendor')
-		po = PO(self.job, mlist, quote)
+		po = PO(self.job, mlist, quote, update=False)
 		self.assertEqual(po.price, 0.0)		# check value before modification
 
 		_attr = 'price'						# PO attribute to modify

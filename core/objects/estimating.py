@@ -52,8 +52,6 @@ class EstimatingJob(Job):
 											tax_exempt=tax_exempt, certified_pay=certified_pay, completed=completed)
 		self._quotes = {}
 
-		# TODO: implement document/drawing storage
-		self.docs = {}
 		self.takeoff = {}  # stores dict of takeoff document paths stored as PDF. dict key is the md5 hash of file
 
 		for i in self.scope:
@@ -377,7 +375,6 @@ class EstimatingJob(Job):
 	@staticmethod
 	def get_bid_num():
 		try:
-			# TODO: check completed_db as well
 			num = 0
 			if hasattr(EstimatingJob, 'db'):
 				_keys = EstimatingJob.db.keys()
@@ -392,6 +389,11 @@ class EstimatingJob(Job):
 			# no bids in database. assume a bid number of 1
 			# TODO: check completed_db
 			return 1
+
+	@classmethod
+	def get_estimating_log(cls):
+		if hasattr(cls, 'env') and cls.env:
+			return cls.env.paths['estimating_log']
 
 
 class EstimatingQuote(Quote):

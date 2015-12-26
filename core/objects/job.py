@@ -666,6 +666,11 @@ class AwardedJob(Job):
 		_po = '%03d' % _po  # add padding to PO number
 		return '-'.join([self.name, _po])
 
+	@classmethod
+	def get_po_log(cls):
+		if hasattr(cls, 'env') and cls.env:
+			return cls.env.paths['po_log']
+
 	# Delivery Functions #
 
 	def add_delivery(self, deliv_obj):
