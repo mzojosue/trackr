@@ -172,7 +172,7 @@ def start_db():
 	""" Attempts to start MongoDB from hardcoded path. Passes db path, and 'quiet' arguments.
 	"""
 	try:
-		pymongo.MongoClient()
+		pymongo.MongoClient("localhost", 27017)
 		return True  # daemon already running
 	except ConnectionFailure:
 		_paths = ('C:\\Program Files\\MongoDB 2.6 Standard\\bin\\mongod', 'C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod')
