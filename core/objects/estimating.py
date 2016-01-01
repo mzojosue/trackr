@@ -168,7 +168,7 @@ class EstimatingJob(Job):
 
 		# create folders for holding quotes
 		for _scope in self.scope:
-			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'Install' or 'Fab'
+			if len(_scope) == 1:  # only create directories for (M, E, I, B, P) not 'sm'
 				try:
 					os.mkdir(os.path.join(self.path, 'Quotes', _scope))
 				except OSError:
@@ -231,10 +231,13 @@ class EstimatingJob(Job):
 		_scope_fulfilled = 0
 		_quotes_needed = 0
 		for i in self.scope:
-			if self.quotes[i]:
-				_scope_fulfilled += 1
-			else:
-				_quotes_needed += 1
+			try:
+				if self.quotes[i]:
+					_scope_fulfilled += 1
+				else:
+					_quotes_needed += 1
+			except KeyError:
+				continue
 		try:
 			_status = (float(_scope_fulfilled) / float(_scope_len))
 		except ZeroDivisionError:

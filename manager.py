@@ -1,8 +1,4 @@
-from core import User
-from core.db import init_db
-
-init_db()
-User.load_users()
+from core import *
 
 
 # TODO: implement session manager
