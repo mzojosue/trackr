@@ -1,13 +1,13 @@
-import traceback
 import os
+import traceback
 from datetime import datetime
+
+from core.log import logger
+from core.parsing.po_log import add_po_to_log
+from core.scheduler import scheduler
 
 today = datetime.today
 now = datetime.now
-
-from core.parsing.po_log import add_po_to_log, update_po_in_log
-from core.log import logger
-from core.scheduler import scheduler
 
 
 class MaterialList(object):
@@ -15,7 +15,8 @@ class MaterialList(object):
 	listeners = ('sent_out', 'po', 'delivered')
 	_steps = ('send_out', 'assess_quotes', 'send_po', 'receive_delivery', 'complete')
 
-	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="", task=True, user=None):
+	def __init__(self, job, items=None, doc=None, foreman=None, date_sent=today(), date_due=None, comments="", label="",
+				 task=True, user=None):
 		"""
 		Initializes a representational object for a material list document.
 		:param job: AwardedJob that material list is for
@@ -31,8 +32,8 @@ class MaterialList(object):
 		"""
 		if doc:
 			self.hash = abs(hash(str(doc)))  # hash attribute is derived from document title
-		else:     # create _hash attribute if it doesn't exist
-			self.hash = abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+		else:  # create _hash attribute if it doesn't exist
+			self.hash = abs(hash(''.join([str(now()), os.urandom(4)])))
 
 		self.job = job
 		self.items = items
@@ -51,15 +52,14 @@ class MaterialList(object):
 		self.rentals = {}
 		self.fulfilled = False  # True once list has been purchased
 		self.delivered = False  # True once order has been delivered
-		self.delivery = None    # Stores Delivery object
+		self.delivery = None  # Stores Delivery object
 		self.backorders = {}
 
 		# TODO: set listener to delete todo object associated with sending self out to vendors
-		self.sent_out = False   # Is set to true once list is given out for pricing
-		self.po = None			# Stores PO object
+		self.sent_out = False  # Is set to true once list is given out for pricing
+		self.po = None  # Stores PO object
 
 		self.update()
-
 
 	def __setattr__(self, key, value):
 		# do not update yaml file or call self.update() if self is still initializing
@@ -68,7 +68,7 @@ class MaterialList(object):
 			self.update()
 		_return = super(MaterialList, self).__setattr__(key, value)
 		# TODO: automate Task completion via variable listeners
-		#if key in MaterialList.listeners:
+		# if key in MaterialList.listeners:
 		#	self._listen(key, value)
 		return _return
 
@@ -123,7 +123,7 @@ class MaterialList(object):
 
 	def update(self):
 		if hasattr(self, 'hash') and hasattr(self, 'job'):
-				self.job.add_mat_list(self)
+			self.job.add_mat_list(self)
 		return None
 
 	def upgrade_quote(self, quote, **kwargs):
@@ -142,7 +142,7 @@ class MaterialList(object):
 
 	def add_quote(self, quote_obj):
 		self.quotes[quote_obj.hash] = quote_obj
-		self.sent_out = True	# update is called
+		self.sent_out = True  # update is called
 		return None
 
 	def del_quote(self, quote_obj):
@@ -191,7 +191,7 @@ class MaterialList(object):
 		return _obj
 
 	def return_rental(self, obj_id):
-		#return self.rentals[obj_id]
+		# return self.rentals[obj_id]
 		return NotImplemented
 
 	def _listen(self, key, value):
@@ -233,10 +233,9 @@ class Quote(object):
 	def hash(self):
 		if hasattr(self, 'doc') and self.doc:
 			return abs(hash(str(self.doc)))  # hash attribute is derived from document filename
-		elif not hasattr(self, '_hash'):     # create _hash attribute if it doesn't exist
-			self._hash =  abs(hash( ''.join([ str(now()), os.urandom(4)]) ))
+		elif not hasattr(self, '_hash'):  # create _hash attribute if it doesn't exist
+			self._hash = abs(hash(''.join([str(now()), os.urandom(4)])))
 		return self._hash
-
 
 	@property
 	def doc(self):
@@ -291,7 +290,7 @@ class MaterialListQuote(Quote):
 		# do not update yaml file if self is still initializing
 		_caller = traceback.extract_stack(None, 2)[0][2]
 		if _caller is not '__init__':
-			#scheduler.add_job(update_po_in_log, args=[self, key, value])
+			# scheduler.add_job(update_po_in_log, args=[self, key, value])
 			self.update()
 		return _return
 
@@ -314,8 +313,8 @@ class PO(object):
 		self.mat_list = mat_list
 		self.date_issued = date_issued
 		self.quote = quote
-		self.delivery = delivery    # stores initial delivery date
-		self.backorders = []        # stores any backorder delivery dates
+		self.delivery = delivery  # stores initial delivery date
+		self.backorders = []  # stores any backorder delivery dates
 		self.desc = str(desc)
 		self.user = user
 		if po_pre:
@@ -330,7 +329,7 @@ class PO(object):
 
 		if update:
 			try:
-				scheduler.add_job(add_po_to_log, args=[self])
+				scheduler.add_job(add_po_to_log, args=[self, self.job.get_po_log()])
 			except TypeError:
 				logger.warning('There was an error adding PO to the log.')
 				print "There was an error adding PO to log. Possibly no spreadsheet for jobs??"
@@ -370,6 +369,7 @@ class Delivery(object):
 	:param
 		po:     pointer to PO object
 	"""
+
 	def __init__(self, mat_list, expected=None, destination='shop'):
 
 		# TODO:add object to jobs.deliveries

@@ -136,7 +136,7 @@ class TestMaterialListMethods(unittest.TestCase):
 		by creating a `MaterialListQuote` and `PO` instance.
 		"""
 		quote = core.MaterialListQuote(self.object, vend='Test Vend')
-		po = core.PO(self.job, self.object, quote=quote)
+		po = core.PO(self.job, self.object, quote=quote, update=False)
 
 		self.assertEqual(po, self.object.po)
 		self.assertIn(po, self.job.POs.values())
