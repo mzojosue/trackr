@@ -81,11 +81,11 @@ def bid_info(bid_num):
 			return "Error: Bid does not exist."
 
 
-@app.route('/estimating/bid/<int:bid_num>/_dir/<_dir>')
-def bid_folder(bid_num, _dir):
+@app.route('/estimating/bid/<int:bid_num>/_dir/<dir>')
+def bid_folder(bid_num, dir):
 	""" Renders given directory as page. Renders specific pages for 'Drawings', and 'Takeoffs'.
 	:param bid_num: bid number to select
-	:param _dir: directory to iterate over and render
+	:param dir: directory to iterate over and render
 	:return:
 	"""
 	auth = check_login()
@@ -94,11 +94,11 @@ def bid_folder(bid_num, _dir):
 	if hasattr(EstimatingJob, 'db'):
 		try:
 			_bid = EstimatingJob.find(bid_num)
-			if _dir == 'Drawings':
+			if dir == 'Drawings':
 				return render_template('estimating/bid_drawings.html', bid=_bid, usr=auth)
 			else:
-				_dir = os.path.join(_bid.path, _dir)
-				contents = _bid.dump_folder(_dir)
+				_dir = os.path.join(_bid.path, dir)
+				contents = _bid.dump_folder(dir)
 				return render_template('estimating/bid_folder.html', bid=_bid, usr=auth, dir=contents, current_page=_dir)
 		except KeyError:
 			return "Error: Bid does not exist."
