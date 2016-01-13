@@ -1,4 +1,5 @@
 import yaml, os, traceback
+from PyPDF2 import PdfFileReader
 
 from datetime import timedelta
 import core.log as log
@@ -294,10 +295,14 @@ class Job(yaml.YAMLObject):
 		"""
 		_dump = self.dump_folder('Drawings')
 		for fn, stats in _dump.iteritems():
-			if os.path.isfile(stats['path']):
-				print 'bam'
-
-				# add pdf dimensions to stats dict
+			if os.path.isfile(stats['path']) and 'pdf' in fn:
+				doc = PdfFileReader(file(stats['path'], 'rb'))
+				_dims = []
+				for p in doc.pages:
+					d = '%d" x %d"' % (p.mediaBox.getWidth()/72, p.mediaBox.getHeight()/72)
+					if d not in _dims:
+						_dims.append(d)
+				stats['dimensions'] = ', '.join(_dims)     # add pdf dimensions to stats dict
 		return _dump
 
 	@property
