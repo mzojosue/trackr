@@ -35,6 +35,7 @@
           <th>Project Name:</th>
           <th>Date Added</th>
           <th>Scope:</th>
+					<th>Dimensions:</th>
 					<!--th>Uploaded By:</th-->
 				</tr>
 				{% for dwg, info in bid.drawings.iteritems() %}
@@ -60,8 +61,12 @@
 
 						<td>
               Mech
-              <!-- TODO: deterimine drawing type -->
+              <!-- TODO: determine drawing type -->
             </td>
+
+						<td>
+							{{ info['dimensions'] }}
+						</td>
 
 					</tr>
 				{% endfor %}

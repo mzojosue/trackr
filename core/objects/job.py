@@ -1,4 +1,5 @@
 import yaml, os, traceback
+from PyPDF2 import PdfFileReader
 
 from datetime import timedelta
 import core.log as log
@@ -252,8 +253,11 @@ class Job(yaml.YAMLObject):
 			return False
 
 	def dump_folder(self, _dir):
-		""" Iterates through contents of given _dir and returns file-names, paths, and last modified times
-		:return:
+		""" Iterates through contents of given _dir and returns file-names, paths, and last modified times.
+
+		:param _dir: Directory to dump
+		:return: Dictionary containing filename as key,
+			and dictionary containing 'path', 'sub_path' and 'mod_time' as value.
 		"""
 		# TODO: update docstring
 		if self.path:
@@ -277,24 +281,34 @@ class Job(yaml.YAMLObject):
 	@property
 	def addendums(self):
 		""" Iterates through contents of Addendums folder and returns file-names, paths, and last modified times
+
 		:return: self.dump_folder
 		"""
 		return self.dump_folder('Addendums')
 
 	@property
 	def drawings(self):
-		""" Iterates through contents of Drawings folder and returns file-names, paths, and last modified times
-		:return: self.dump_folder
+		""" Iterates through contents of Drawings folder and returns file stats and info.
+		The PDF file dimensions are added to the returned dict from `dump_folder` for each document file.
+
+		:return: modified `self.dump_folder` output
 		"""
 		_dump = self.dump_folder('Drawings')
 		for fn, stats in _dump.iteritems():
-			if os.path.isfile(stats['path']):
-				print 'bam'
+			if os.path.isfile(stats['path']) and 'pdf' in fn:
+				doc = PdfFileReader(file(stats['path'], 'rb'))
+				_dims = []
+				for p in doc.pages:
+					d = '%d" x %d"' % (p.mediaBox.getWidth()/72, p.mediaBox.getHeight()/72)
+					if d not in _dims:
+						_dims.append(d)
+				stats['dimensions'] = ', '.join(_dims)     # add pdf dimensions to stats dict
 		return _dump
 
 	@property
 	def documents(self):
 		""" Iterates through contents of Documents folder and returns file-names, paths, and last modified times
+
 		:return: self.dump_folder
 		"""
 		return self.dump_folder('Documents')
