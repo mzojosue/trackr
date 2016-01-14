@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 
 # Python environment
-.env/*
+env/*
 
 # misc logs and data
 *.log
