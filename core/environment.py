@@ -64,13 +64,13 @@ class Environment(object):
 		# TODO: reinitialize logger
 		# remove(environment.get_log_file)
 
-		User.load_users()
-
 		self.start_db()
 		init_db(self.db_label)
 		self.check_db()
 
+		User.load_users()
 		Worker.load_workers()
+
 		os.chdir(_cwd)  # Ensure that directories haven't been changed
 
 		print "Database was successfully reset\n"
@@ -84,12 +84,13 @@ class Environment(object):
 		"""
 		if not self.db_state:
 			try:
-				pymongo.MongoClient()
+				pymongo.MongoClient('127.0.0.1', 27017)
 				self.db_state = True
 				return self.db_state  # daemon already running
 			except ConnectionFailure:
 				_paths = ('C:\\Program Files\\MongoDB 2.6 Standard\\bin\\mongod',
-						  'C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod')
+						  'C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod',
+						  'C:\\Program Files\\MongoDB\\Server\\3.2\\bin\\mongod')
 				for path in _paths:
 					try:
 						subprocess.Popen([path, '--dbpath', 'C:\\data\\db', '--quiet'])
@@ -103,9 +104,11 @@ class Environment(object):
 				self.db_state = False
 		else:  # verify `self.db_state`
 			try:
-				pymongo.MongoClient()  # verify status of start_db
+				pymongo.MongoClient('127.0.0.1', 27017)  # verify status of start_db
+				print "MongoDB already started"
 				return self.db_state
 			except ConnectionFailure:
+				print "Starting MongoDB"
 				self.db_state = False
 				self.start_db()
 
